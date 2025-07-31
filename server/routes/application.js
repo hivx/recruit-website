@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Application = require('../models/application');
 const Job = require('../models/job');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authMiddleware');
 
 // @route   POST /api/applications
 // @desc    Ứng tuyển vào một công việc
