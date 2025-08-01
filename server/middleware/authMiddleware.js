@@ -24,8 +24,8 @@ const authMiddleware = async (req, res, next) => {
       return res.status(404).json({ message: 'Người dùng không tồn tại!' });
     }
 
-    // Gắn user vào request để dùng ở route sau
-    req.user = user;
+    // Chỉ gán userId thôi
+    req.user = { userId: user._id };
 
     next();
   } catch (err) {

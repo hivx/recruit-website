@@ -42,10 +42,10 @@
  *             properties:
  *               email:
  *                 type: string
- *                 example: user@example.com
+ *                 example: a@example.com
  *               password:
  *                 type: string
- *                 example: yourpassword
+ *                 example: 123456
  *     responses:
  *       200:
  *         description: Đăng nhập thành công, trả về token và thông tin user
