@@ -2,14 +2,14 @@
  * @swagger
  * tags:
  *   name: Jobs
- *   description: API cho việc làm
+ *   description: API quản lý việc làm
  */
 
 /**
  * @swagger
  * /api/jobs:
  *   post:
- *     summary: Đăng tin tuyển dụng mới
+ *     summary: Tạo bài tuyển dụng mới
  *     tags: [Jobs]
  *     security:
  *       - bearerAuth: []
@@ -36,31 +36,31 @@
  *                 type: string
  *                 example: Tuyển gấp lập trình viên ReactJS có kinh nghiệm
  *               salary:
- *                 type: number
+ *                 type: string
  *                 example: 15000000
  *               requirements:
  *                 type: string
  *                 example: Có ít nhất 1 năm kinh nghiệm
  *     responses:
  *       201:
- *         description: Đăng bài thành công
+ *         description: Tạo bài tuyển dụng thành công
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Job'
  *       401:
- *         description: Không có quyền truy cập
+ *         description: Chưa xác thực token hoặc không có quyền truy cập
  */
 
 /**
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Lấy danh sách việc làm
+ *     summary: Lấy danh sách tất cả các việc làm
  *     tags: [Jobs]
  *     responses:
  *       200:
- *         description: Danh sách việc làm
+ *         description: Danh sách bài tuyển dụng
  *         content:
  *           application/json:
  *             schema:
@@ -73,7 +73,7 @@
  * @swagger
  * /api/jobs/{id}:
  *   get:
- *     summary: Lấy chi tiết 1 việc làm
+ *     summary: Lấy thông tin chi tiết một bài tuyển dụng
  *     tags: [Jobs]
  *     parameters:
  *       - in: path
@@ -84,7 +84,7 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Thông tin bài tuyển dụng
+ *         description: Chi tiết bài tuyển dụng
  *         content:
  *           application/json:
  *             schema:
@@ -111,11 +111,12 @@
  *         description:
  *           type: string
  *         salary:
- *           type: number
+ *           type: string
  *         requirements:
  *           type: string
  *         createdBy:
  *           type: object
+ *           nullable: true
  *           properties:
  *             _id:
  *               type: string
@@ -123,8 +124,13 @@
  *               type: string
  *             email:
  *               type: string
+ *         createdByName:
+ *           type: string
+ *           description: Tên người tạo bài viết, lưu lại ngay cả khi tài khoản bị xoá
  *         createdAt:
  *           type: string
  *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
-

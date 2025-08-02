@@ -21,6 +21,10 @@ exports.login = async ({ email, password }) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error('Email không tồn tại');
 
+  if (!user.isVerified) {
+    throw new Error('Tài khoản chưa được xác thực qua email');
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('Sai mật khẩu');
 

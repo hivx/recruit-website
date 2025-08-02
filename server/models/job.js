@@ -17,6 +17,10 @@ const jobSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  createdByName: { // 👈 Thêm trường này
+    type: String,
+    required: true
   }
 }, {
   timestamps: true

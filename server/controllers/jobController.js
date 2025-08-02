@@ -5,7 +5,8 @@ exports.createJob = async (req, res) => {
   try {
     const jobData = {
       ...req.body,
-      createdBy: req.user.userId
+      createdBy: req.user.userId,
+      createdByName: req.user.fullName // 👈 Lưu tên người tạo vào Job
     };
     const newJob = await jobService.createJob(jobData);
     res.status(201).json(newJob);
