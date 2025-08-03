@@ -28,11 +28,11 @@ exports.login = async ({ email, password }) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('Sai mật khẩu');
 
-  const token = generateToken(user._id);
+  const token = generateToken(user._id, user.role); // truyền thêm role
 
   return {
     token,
-    user: { id: user._id, name: user.name, email: user.email }
+    user: { id: user._id, name: user.name, email: user.email, role: user.role }
   };
 };
 

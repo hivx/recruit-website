@@ -5,29 +5,36 @@ const emailService = require('../services/emailService');
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    // 1. Kiểm tra định dạng email
+    // 1. Chỉ chấp nhận email @gmail.com
     if (!email.toLowerCase().endsWith('@gmail.com')) {
       return res.status(400).json({ message: 'Chỉ chấp nhận email @gmail.com' });
     }
 
-    // 2. Check email tồn tại
+    // 2. Kiểm tra trùng email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: 'Email đã tồn tại' });
     }
 
-    // 3. Tạo user mới
-    const user = await User.create({ name, email, password, isVerified: false });
+    // 3. Xác định role
+    let userRole = 'applicant'; // mặc định
+    if (role === 'recruiter') userRole = 'recruiter';
+    else if (role === 'admin') {
+      return res.status(403).json({ message: 'Không thể tự đăng ký với quyền admin' });
+    }
 
-    // 4. Tạo token xác thực
+    // 4. Tạo user mới
+    const user = await User.create({ name, email, password, isVerified: false, role: userRole });
+
+    // 5. Tạo token xác thực
     const verifyToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // 5. Tạo link xác thực
+    // 6. Tạo link xác thực
     const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
 
-    // 6. Gửi email xác thực
+    // 7. Gửi email xác thực
     await emailService.sendEmail(
       email,
       'Xác thực tài khoản',

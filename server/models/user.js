@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  role: {
+    type: String,
+    enum: ['admin', 'recruiter', 'applicant'],
+    default: 'applicant'
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -40,7 +45,7 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// Hàm kiểm tra password (có thể dùng trong login sau này)
+// Hàm kiểm tra password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
