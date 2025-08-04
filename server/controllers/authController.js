@@ -78,28 +78,28 @@ exports.verifyEmail = async (req, res) => {
   try {
     const token = req.query.token;
     if (!token) {
-      return res.status(400).send('<h1>❌ Thiếu token xác thực</h1>');
+      return res.status(400).send('<h1>Thiếu token xác thực</h1>');
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
 
     if (!user) {
-      return res.status(404).send('<h1>❌ Không tìm thấy người dùng</h1>');
+      return res.status(404).send('<h1>Không tìm thấy người dùng</h1>');
     }
 
     if (user.isVerified) {
-      return res.send('<h1>✅ Tài khoản của bạn đã được xác thực trước đó</h1>');
+      return res.send('<h1>Tài khoản của bạn đã được xác thực trước đó</h1>');
     }
 
     user.isVerified = true;
     await user.save();
 
-    return res.send('<h1>🎉 Tài khoản đã xác thực thành công! Bạn có thể đăng nhập.</h1>');
+    return res.send('<h1>Tài khoản đã xác thực thành công! Bạn có thể đăng nhập.</h1>');
 
   } catch (err) {
     console.error('Lỗi xác thực:', err);
-    return res.status(400).send('<h1>❌ Token không hợp lệ hoặc đã hết hạn</h1>');
+    return res.status(400).send('<h1>Token không hợp lệ hoặc đã hết hạn</h1>');
   }
 };
 

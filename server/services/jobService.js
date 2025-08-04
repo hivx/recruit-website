@@ -14,11 +14,33 @@ exports.createJob = async (jobData) => {
 };
 
 // Lấy danh sách jobs
-exports.getAllJobs = async () => {
-  return await Job.find().populate('createdBy', 'name email');
+exports.getAllJobs = async (filter = {}) => {
+  return Job.find(filter).sort({ createdAt: -1 });
 };
 
 // Lấy job theo ID
 exports.getJobById = async (id) => {
   return await Job.findById(id).populate('createdBy', 'name email');
+};
+
+// Trả về danh sách tag phổ biến nhất
+exports.getPopularTags = async () => {
+  const result = await Job.aggregate([
+    { $unwind: '$tags' },
+    { $group: { _id: '$tags', count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 10 } // lấy top 10
+  ]);
+
+  return result.map(r => ({ tag: r._id, count: r.count }));
+};
+
+// Lấy tất cả tag
+exports.getAllTags = async () => {
+  const result = await Job.aggregate([
+    { $unwind: '$tags' },
+    { $group: { _id: '$tags', count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+  ]);
+  return result.map(item => item._id);
 };

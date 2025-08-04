@@ -21,12 +21,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // Kết nối MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ Kết nối MongoDB thành công!'))
-.catch((err) => console.error('❌ Lỗi kết nối MongoDB:', err));
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log('Kết nối MongoDB thành công!'))
+.catch((err) => console.error('Lỗi kết nối MongoDB:', err));
 
 // Route đơn giản để test
 app.get('/', (req, res) => {
@@ -36,11 +33,11 @@ app.get('/', (req, res) => {
 // Mở cổng server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
-  console.log(`📚 Swagger Docs: http://localhost:${PORT}/api-docs`);
+  console.log(`Server chạy tại http://localhost:${PORT}`);
+  console.log(`Swagger Docs: http://localhost:${PORT}/api-docs`);
 });
 
-// Import và sử dụng các route
+// Import và sử dụng route cho xác thực người dùng
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
@@ -50,3 +47,7 @@ app.use('/api/jobs', jobRoutes);
 
 // Import và sử dụng route cho ứng tuyển
 app.use('/api/applications', require('./routes/application'));
+
+// Import và sử dụng route cho người dùng
+const userRoutes = require('./routes/user');
+app.use('/api/users', userRoutes);

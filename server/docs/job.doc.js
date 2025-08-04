@@ -91,6 +91,12 @@
  *               requirements:
  *                 type: string
  *                 example: Kinh nghiệm 1 năm ReactJS
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["IT", "Marketing"]
+ *
  *     responses:
  *       201:
  *         description: Bài tuyển dụng đã được tạo
@@ -108,17 +114,17 @@
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Lấy danh sách tất cả bài tuyển dụng
+ *     summary: Lấy danh sách tất cả các việc làm (có thể lọc theo lĩnh vực)
  *     tags: [Jobs]
+ *     parameters:
+ *       - in: query
+ *         name: tag
+ *         schema:
+ *           type: string
+ *         description: "Lọc theo lĩnh vực (VD: IT, Marketing, Y tế...)"
  *     responses:
  *       200:
  *         description: Danh sách bài tuyển dụng
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Job'
  */
 
 /**
@@ -143,4 +149,43 @@
  *               $ref: '#/components/schemas/Job'
  *       404:
  *         description: Không tìm thấy bài tuyển dụng
+ */
+
+/**
+ * @swagger
+ * /api/jobs/popular-tags:
+ *   get:
+ *     summary: Lấy các tag phổ biến nhất
+ *     tags: [Jobs]
+ *     responses:
+ *       200:
+ *         description: Danh sách tag phổ biến
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   tag:
+ *                     type: string
+ *                   count:
+ *                     type: number
+ */
+
+/**
+ * @swagger
+ * /api/jobs/tags:
+ *   get:
+ *     summary: Lấy danh sách các lĩnh vực (tag) đang được sử dụng
+ *     tags: [Jobs]
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách tag
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
  */

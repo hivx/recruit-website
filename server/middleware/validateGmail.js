@@ -1,3 +1,4 @@
+// server/middleware/validateGmail.js
 module.exports = function (req, res, next) {
   const { email } = req.body;
   if (!email || !email.endsWith('@gmail.com')) {

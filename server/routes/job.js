@@ -15,7 +15,13 @@ router.post(
 // GET all: public
 router.get('/', jobController.getAllJobs);
 
+// GET all tags
+router.get('/tags', jobController.getAllTags);
+
 // GET by ID: public
 router.get('/:id', jobController.getJobById);
+
+// GET popular tags: public
+router.get('/popular-tags', jobController.getPopularTags);
 
 module.exports = router;

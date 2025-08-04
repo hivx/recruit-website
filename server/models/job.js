@@ -5,6 +5,10 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tags: {
+    type: [String],
+    default: []
+  },
   company: {
     type: String,
     required: true,
@@ -18,7 +22,7 @@ const jobSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  createdByName: { // 👈 Thêm trường này
+  createdByName: { //Thêm trường này
     type: String,
     required: true
   }

@@ -27,6 +27,12 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'recruiter', 'applicant'],
     default: 'applicant'
   },
+  favoriteJobs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Job'
+    }
+  ],
   createdAt: {
     type: Date,
     default: Date.now
