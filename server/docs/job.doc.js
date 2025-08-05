@@ -114,17 +114,54 @@
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Lấy danh sách tất cả các việc làm (có thể lọc theo lĩnh vực)
+ *     summary: Lấy danh sách việc làm (có thể lọc theo tag, tìm kiếm, phân trang)
  *     tags: [Jobs]
  *     parameters:
  *       - in: query
  *         name: tag
  *         schema:
  *           type: string
- *         description: "Lọc theo lĩnh vực (VD: IT, Marketing, Y tế...)"
+ *         description: "Lọc theo tag (VD: IT, Y tế, Marketing)"
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: "Tìm kiếm theo từ khóa (VD: tiêu đề, công ty, mô tả)"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang hiện tại (phân trang)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng job trên mỗi trang
  *     responses:
  *       200:
- *         description: Danh sách bài tuyển dụng
+ *         description: Danh sách các bài tuyển dụng kèm phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 jobs:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Job'
+ *                 total:
+ *                   type: integer
+ *                   example: 100
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 10
+ *       500:
+ *         description: Lỗi server khi lấy danh sách việc làm
  */
 
 /**
@@ -133,6 +170,8 @@
  *   get:
  *     summary: Lấy chi tiết bài tuyển dụng theo ID
  *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -146,7 +185,38 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Job'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 title:
+ *                   type: string
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 company:
+ *                   type: string
+ *                 location:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 salary:
+ *                   type: string
+ *                 requirements:
+ *                   type: string
+ *                 createdBy:
+ *                   type: string
+ *                 createdByName:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                 createdAtFormatted:
+ *                   type: string
+ *                   description: "Ngày giờ định dạng DD/MM/YYYY HH:mm"
+ *                 isFavorite:
+ *                   type: boolean
+ *                   description: "Có được user login đánh dấu yêu thích không"
  *       404:
  *         description: Không tìm thấy bài tuyển dụng
  */

@@ -13,9 +13,29 @@ exports.createJob = async (jobData) => {
   return await job.save();
 };
 
-// Lấy danh sách jobs
-exports.getAllJobs = async (filter = {}) => {
-  return Job.find(filter).sort({ createdAt: -1 });
+// Lấy danh sách việc làm với các tùy chọn lọc, tìm kiếm và phân trang
+exports.getAllJobs = async ({ filter = {}, search = '', page = 1, limit = 10 }) => {
+  const skip = (page - 1) * limit;
+
+  const query = {
+    ...filter,
+    ...(search && {
+      $or: [
+        { title: { $regex: search, $options: 'i' } },
+        { company: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ]
+    })
+  };
+
+  const jobs = await Job.find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Job.countDocuments(query);
+
+  return { jobs, total, page, totalPages: Math.ceil(total / limit) };
 };
 
 // Lấy job theo ID

@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const authorizeRoles = require('../middleware/roleMiddleware');
 const jobController = require('../controllers/jobController');
+const authOptional = require('../middleware/authOptional');
 
 // POST: Chỉ recruiter được đăng tin
 router.post(
@@ -18,8 +19,8 @@ router.get('/', jobController.getAllJobs);
 // GET all tags
 router.get('/tags', jobController.getAllTags);
 
-// GET by ID: public
-router.get('/:id', jobController.getJobById);
+// GET by ID: public, nhưng nếu đã đăng nhập thì sẽ trả về thông tin yêu thích
+router.get('/:id', authOptional, jobController.getJobById);
 
 // GET popular tags: public
 router.get('/popular-tags', jobController.getPopularTags);

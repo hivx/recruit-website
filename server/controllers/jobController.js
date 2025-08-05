@@ -1,4 +1,7 @@
+const moment = require('moment');
 const jobService = require('../services/jobService');
+const Job = require('../models/job');
+const User = require('../models/user'); 
 
 // POST /api/jobs
 exports.createJob = async (req, res) => {
@@ -23,38 +26,48 @@ exports.createJob = async (req, res) => {
 // GET /api/jobs
 exports.getAllJobs = async (req, res) => {
   try {
-    const { tag } = req.query;
+    const { tag, search, page = 1, limit = 10 } = req.query;
 
     let filter = {};
-
-    // Cho phép lọc theo tag hoặc nhiều tag (tag=IT&tag=Y tế)
     if (tag) {
-      if (Array.isArray(tag)) {
-        filter.tags = { $in: tag };
-      } else {
-        filter.tags = tag;
-      }
+      filter.tags = Array.isArray(tag) ? { $in: tag } : tag;
     }
 
-    const jobs = await jobService.getAllJobs(filter);
-    res.json(jobs);
+    const result = await jobService.getAllJobs({
+      filter,
+      search,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
+
+    res.json(result);
   } catch (err) {
     console.error('[Job List Error]', err.message);
     res.status(500).json({ message: 'Lỗi server khi lấy danh sách việc làm!' });
   }
 };
 
-
 // GET /api/jobs/:id
 exports.getJobById = async (req, res) => {
   try {
-    const job = await jobService.getJobById(req.params.id);
+    const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Không tìm thấy việc làm!' });
     }
-    res.json(job);
+
+    let isFavorite = false;
+    if (req.user) {
+      const user = await User.findById(req.user.userId);
+      isFavorite = user?.favoriteJobs?.includes(req.params.id);
+    }
+
+    res.json({
+      ...job.toObject(),
+      createdAtFormatted: moment(job.createdAt).format('DD/MM/YYYY HH:mm'),
+      isFavorite
+    });
   } catch (err) {
-    console.error(err);
+    console.error('[Get Job Detail Error]', err.message);
     res.status(500).json({ message: 'Lỗi server!' });
   }
 };
@@ -80,3 +93,4 @@ exports.getAllTags = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server khi lấy danh sách tags!' });
   }
 };
+
