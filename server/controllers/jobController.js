@@ -94,3 +94,55 @@ exports.getAllTags = async (req, res) => {
   }
 };
 
+// PUT /api/jobs/:id
+exports.updateJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: 'Không tìm thấy công việc!' });
+    }
+
+    console.log(job.createdBy, req.user.userId);
+    // Kiểm tra nếu người dùng là người tạo hoặc admin
+    if (job.createdBy.toString() !== req.user.userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Bạn không có quyền sửa công việc này' });
+    }
+
+    // Cập nhật các trường
+    job.title = req.body.title || job.title;
+    job.company = req.body.company || job.company;
+    job.location = req.body.location || job.location;
+    job.description = req.body.description || job.description;
+    job.salary = req.body.salary || job.salary;
+    job.requirements = req.body.requirements || job.requirements;
+    job.tags = req.body.tags || job.tags;
+
+    await job.save();
+    res.status(200).json(job);
+  } catch (err) {
+    console.error('[Update Job Error]', err.message);
+    res.status(500).json({ message: 'Lỗi server khi cập nhật công việc!' });
+  }
+};
+
+// DELETE /api/jobs/:id
+exports.deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: 'Không tìm thấy công việc!' });
+    }
+
+    // Kiểm tra nếu người dùng là người tạo hoặc admin
+    if (job.createdBy.toString() !== req.user.userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Bạn không có quyền xóa công việc này' });
+    }
+
+    await job.deleteOne();
+    res.status(200).json({ message: 'Xóa công việc thành công!' });
+  } catch (err) {
+    console.error('[Delete Job Error]', err.message);
+    res.status(500).json({ message: 'Lỗi server khi xóa công việc!' });
+  }
+};
+

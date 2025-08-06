@@ -22,6 +22,12 @@ router.get('/tags', jobController.getAllTags);
 // GET by ID: public, nhưng nếu đã đăng nhập thì sẽ trả về thông tin yêu thích
 router.get('/:id', authOptional, jobController.getJobById);
 
+// Cập nhật công việc
+router.put('/:id', authMiddleware, jobController.updateJob);
+
+// DELETE công việc: chỉ cho phép người tạo hoặc admin
+router.delete('/:id', authMiddleware, authorizeRoles('recruiter', 'admin'), jobController.deleteJob);
+
 // GET popular tags: public
 router.get('/popular-tags', jobController.getPopularTags);
 

@@ -259,3 +259,84 @@
  *               items:
  *                 type: string
  */
+
+/**
+ * @swagger
+ * /api/jobs/{id}:
+ *   put:
+ *     summary: Cập nhật thông tin công việc theo ID
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID của bài tuyển dụng cần cập nhật
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               company:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               salary:
+ *                 type: string
+ *               requirements:
+ *                 type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               createdByName:
+ *                 type: string
+ *             required:
+ *               - title
+ *               - company
+ *               - createdByName
+ *     responses:
+ *       200:
+ *         description: Cập nhật công việc thành công
+ *       403:
+ *         description: Bạn không có quyền sửa công việc này
+ *       404:
+ *         description: Không tìm thấy công việc
+ *       500:
+ *         description: Lỗi server khi cập nhật công việc
+ */
+
+/**
+ * @swagger
+ * /api/jobs/{id}:
+ *   delete:
+ *     summary: Xóa công việc theo ID
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID của bài tuyển dụng cần xóa
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Xóa công việc thành công
+ *       403:
+ *         description: Bạn không có quyền xóa công việc này
+ *       404:
+ *         description: Không tìm thấy công việc
+ *       500:
+ *         description: Lỗi server khi xóa công việc
+ */
