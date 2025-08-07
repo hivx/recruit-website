@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Khởi tạo app
 const app = express();
@@ -51,3 +52,6 @@ app.use('/api/applications', require('./routes/application'));
 // Import và sử dụng route cho người dùng
 const userRoutes = require('./routes/user');
 app.use('/api/users', userRoutes);
+
+// Sử dụng middleware static để phục vụ các tệp trong thư mục 'uploads'
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

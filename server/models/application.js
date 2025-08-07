@@ -1,4 +1,4 @@
-// server/models/application.js
+// models/application.js
 const mongoose = require('mongoose');
 
 const ApplicationSchema = new mongoose.Schema({
@@ -15,6 +15,14 @@ const ApplicationSchema = new mongoose.Schema({
   coverLetter: {
     type: String,
     required: true,
+  },
+  cv: {
+    type: String,  // Lưu đường dẫn đến file CV
+    required: false, // Nếu bạn muốn không bắt buộc thì set là false
+  },
+  phone: {
+    type: String,
+    required: false, // Số điện thoại của ứng viên
   },
   createdAt: {
     type: Date,
