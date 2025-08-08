@@ -13,32 +13,23 @@ React Snippets
 (Tuỳ chọn) Cài đặt Postman để test API
 
 2. Khởi tạo thư mục dự án
-bash
-Sao chép
-Chỉnh sửa
+
 mkdir job-recruitment-app
 cd job-recruitment-app
 Chia làm 2 folders:
 
-bash
-Sao chép
-Chỉnh sửa
 job-recruitment-app/
 ├── client/       # React frontend
 ├── server/       # Node.js backend
 💻 Giai đoạn 2: Xây dựng Backend với Node.js + Express
 1. Khởi tạo project backend
-bash
-Sao chép
-Chỉnh sửa
+
 cd server
 npm init -y
 npm install express mongoose cors dotenv jsonwebtoken bcryptjs
 npm install --save-dev nodemon
 2. Cấu trúc thư mục backend:
-pgsql
-Sao chép
-Chỉnh sửa
+
 server/
 ├── controllers/
 ├── models/
@@ -72,16 +63,12 @@ Hồ sơ nhà tuyển dụng
 
 🎨 Giai đoạn 3: Xây dựng Frontend với ReactJS
 1. Khởi tạo frontend
-bash
-Sao chép
-Chỉnh sửa
+
 npx create-react-app client
 cd client
 npm install axios react-router-dom
 2. Cấu trúc frontend
-css
-Sao chép
-Chỉnh sửa
+
 client/
 ├── src/
 │   ├── components/
@@ -138,3 +125,22 @@ Làm phần xem và duyệt hồ sơ (cho nhà tuyển dụng)
 Hoàn thiện trang cá nhân
 
 Triển khai lên production
+
+📌 GIAI ĐOẠN 1: Chuẩn hóa Backend & bảo mật
+✅ Bạn đã làm 80% phần này — giờ ta chuẩn hóa lại và hoàn thiện các chi tiết.
+
+Bảo mật API
+
+✅ Đã có JWT + phân quyền, nhưng cần kiểm tra kỹ lại authMiddleware và logic kiểm soát vai trò (role-based access).
+
+🔒 Thêm rate limit, helmet hoặc cors cấu hình chặt hơn nếu deploy ra ngoài.
+
+Hoàn thiện các API hỗ trợ Frontend:
+
+Trả về isFavorite trong /api/jobs nếu có token.
+
+Sắp xếp job theo thời gian tạo, có phân trang, lọc nâng cao.
+
+Tích hợp gửi email (Gmail API)
+
+Khi ứng viên nộp CV, nhà tuyển dụng được thông báo.
