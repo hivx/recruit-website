@@ -1,69 +1,282 @@
-# React + TypeScript + Vite
+SITEMAP & ROUTES (FE)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+/                      -> Home (danh sách job, filter, pagination)
+/jobs/:id              -> Job Detail
+/jobs/:id/apply        -> Apply Job (applicant)
+/favorites             -> Favorite Jobs (applicant)
+/auth/login            -> Login
+/auth/register         -> Register
 
-Currently, two official plugins are available:
+/recruiter/dashboard   -> Recruiter Dashboard (bảo vệ bởi role)
+/recruiter/jobs        -> My Jobs (list)
+/recruiter/jobs/new    -> Create Job
+/recruiter/jobs/:id/edit -> Edit Job
+/recruiter/jobs/:id/applications -> Applications for a Job
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+/admin (để sau nếu cần)
 
-## Expanding the ESLint configuration
+** nhớ cài thêm cái gì mà chuyển src/ thành @/
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1) Vai trò & mục tiêu
+Roles: guest, applicant, recruiter, admin.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Mục tiêu v1: tìm việc, xem chi tiết, ứng tuyển (upload CV), yêu thích; recruiter đăng/sửa/xóa job, xem ứng viên.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+2) SITEMAP & ROUTES (FE)
+bash
+Sao chép
+Chỉnh sửa
+/                      -> Home (danh sách job, filter, pagination)
+/jobs/:id              -> Job Detail
+/jobs/:id/apply        -> Apply Job (applicant)
+/favorites             -> Favorite Jobs (applicant)
+/auth/login            -> Login
+/auth/register         -> Register
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+/recruiter/dashboard   -> Recruiter Dashboard (bảo vệ bởi role)
+/recruiter/jobs        -> My Jobs (list)
+/recruiter/jobs/new    -> Create Job
+/recruiter/jobs/:id/edit -> Edit Job
+/recruiter/jobs/:id/applications -> Applications for a Job
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+/admin (để sau nếu cần)
+3) Quy ước URL query cho danh sách job
+cpp
+Sao chép
+Chỉnh sửa
+/?search=react+node
+  &tags=frontend,remote           // CSV
+  &location=Hanoi                 // optional
+  &minSalary=1500&maxSalary=3000  // optional
+  &sort=createdAt_desc            // createdAt_desc|salary_desc|salary_asc
+  &page=1&limit=20
+4) Hợp đồng dữ liệu (TypeScript types)
+4.1 Job (FE model)
+ts
+Sao chép
+Chỉnh sửa
+export interface Job {
+  _id: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  salary?: string;            // hoặc number nếu BE đã chuẩn
+  requirements?: string;
+  tags: string[];
+  createdBy: string;          // userId
+  createdByName: string;
+  createdAt: string;          // ISO
+  updatedAt?: string;         // ISO
+  isFavorite?: boolean;       // phụ thuộc token
+}
+4.2 Application
+ts
+Sao chép
+Chỉnh sửa
+export interface Application {
+  _id: string;
+  job: string;               // jobId
+  applicant: string;         // userId
+  applicantName?: string;
+  email?: string;
+  phone?: string;
+  coverLetter?: string;
+  cv?: string;               // URL/Path
+  createdAt: string;
+}
+4.3 User (tối thiểu cho FE)
+ts
+Sao chép
+Chỉnh sửa
+export type UserRole = 'admin' | 'recruiter' | 'applicant';
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+4.4 API response chuẩn (gợi ý)
+Danh sách có phân trang
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+ts
+Sao chép
+Chỉnh sửa
+export interface Paginated<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;         // tổng bản ghi
+}
+Lỗi chuẩn
+
+ts
+Sao chép
+Chỉnh sửa
+export interface ApiError {
+  message: string;
+  code?: string;         // e.g., 'UNAUTHORIZED', 'VALIDATION_ERROR'
+  details?: Record<string, string>; // field-level errors
+}
+5) ENDPOINTS & PAYLOADS (đồng bộ với BE hiện có)
+5.1 Jobs
+GET /api/jobs
+
+Query: search, tags, location, minSalary, maxSalary, sort, page, limit
+
+Res: Paginated<Job> hoặc Job[] (chốt 1 kiểu; khuyến nghị Paginated)
+
+GET /api/jobs/:id
+
+Res: Job
+
+POST /api/jobs (recruiter/admin)
+
+Body (min):
+
+json
+Sao chép
+Chỉnh sửa
+{
+  "title": "", "company": "", "location": "",
+  "description": "", "salary": "", "requirements": "",
+  "tags": ["frontend","remote"]
+}
+Res: Job
+
+PUT /api/jobs/:id (owner/admin)
+
+Body: partial fields
+
+Res: Job
+
+DELETE /api/jobs/:id (owner/admin)
+
+Res: { success: true }
+
+5.2 Favorites (applicant)
+POST /api/users/favorite/:jobId → Res: { success: true }
+
+GET /api/users/favorite → Res: Job[] hoặc Paginated<Job>
+
+5.3 Applications
+POST /api/applications (multipart nếu có CV)
+
+Body:
+
+makefile
+Sao chép
+Chỉnh sửa
+job: string
+coverLetter?: string
+phone?: string
+cv?: File
+Res: Application
+
+GET /api/applications/job/:jobId (recruiter/admin)
+
+Res: Application[] hoặc Paginated<Application>
+
+5.4 Auth
+POST /api/auth/login → Res: { token: string, user: User }
+
+POST /api/auth/register → Res: { token: string, user: User }
+
+GET /api/auth/me → Res: User
+
+6) Quy ước lưu trữ & trạng thái FE
+Auth token: localStorage["token"]
+
+User cache: localStorage["user"] (hoặc fetch /auth/me trên app load)
+
+Axios Interceptor: gắn Authorization: Bearer <token> nếu có.
+
+Error handling: chụp ApiError và hiển thị toast/alert.
+
+7) Kiến trúc màn hình & component
+7.1 Home (Job list)
+UI Blocks: SearchBar, TagFilter, SortSelect, JobCard grid, Pagination
+
+Data: gọi GET /api/jobs theo query trên URL (đồng bộ useSearchParams)
+
+Actions: click JobCard → /jobs/:id, toggle favorite (nếu đã login)
+
+7.2 Job Detail
+UI: title/company/location/salary/tags/description, nút Apply, nút Favorite
+
+Actions: Apply → /jobs/:id/apply
+
+7.3 Apply
+UI: form coverLetter, phone, upload cv
+
+Submit: POST /api/applications
+
+7.4 Favorites
+hiển thị danh sách từ GET /api/users/favorite
+
+7.5 Recruiter
+Dashboard: số job, số ứng viên gần đây
+
+My Jobs: list + CRUD
+
+Applications for Job: bảng ứng viên theo job
+
+8) Cấu trúc mã nguồn (map vào folders đã tạo)
+pgsql
+Sao chép
+Chỉnh sửa
+src/
+  components/
+    JobCard.tsx
+    SearchBar.tsx
+    TagFilter.tsx
+    SortSelect.tsx
+    Pagination.tsx
+    Header.tsx
+    Footer.tsx
+  layouts/
+    DefaultLayout.tsx
+  pages/
+    Home.tsx
+    JobDetail.tsx
+    ApplyJob.tsx
+    Favorites.tsx
+    Login.tsx
+    Register.tsx
+    recruiter/
+      Dashboard.tsx
+      MyJobs.tsx
+      JobForm.tsx
+      JobApplications.tsx
+  router/
+    index.tsx
+    guards.tsx               // Route guards theo role
+  services/
+    axiosClient.ts
+    jobApi.ts
+    applicationApi.ts
+    authApi.ts
+    favoriteApi.ts
+  types/
+    job.ts
+    application.ts
+    user.ts
+    api.ts                   // Paginated, ApiError
+  utils/
+    format.ts                // formatDate, money, etc.
+9) Nguyên tắc UI/UX & Tailwind v4 (ngắn gọn)
+Tailwind v4 “zero‑config”: giữ @tailwind base; @tailwind components; @tailwind utilities;
+
+Quy ước spacing (px-4, py-6), container (max-w-6xl mx-auto), grid responsive.
+
+Nút & input thống nhất class để tái dùng.
+
+Bước tiếp theo (thực thi)
+Khởi tạo router & route trống tương ứng sitemap (render placeholder).
+
+Khai báo toàn bộ types: job.ts, application.ts, user.ts, api.ts.
+
+Tạo axiosClient.ts + interceptors.
+
+Tạo Header/Footer + DefaultLayout để ráp khung.
