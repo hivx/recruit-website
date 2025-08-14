@@ -1,36 +1,90 @@
 // /src/types/mappers.ts
-import type { Job } from '@/types';
+import type { Job, Application, User } from '@/types';
 
+// Raw types từ API (giống schema BE trả về)
 type RawJob = {
-  _id: string | number;
+  _id: string;
   title: string;
   tags?: string[];
   company: string;
   location?: string;
   description?: string;
-  salary?: string | number;
+  salary?: string;
   requirements?: string;
   createdBy: string;
   createdByName: string;
-  createdAt?: string | number;
-  updatedAt?: string | number;
+  createdAt?: string;
+  updatedAt?: string;
   isFavorite?: boolean;
 };
 
+type RawApplication = {
+  _id: string;
+  job: RawJob | string; // Có thể là ID hoặc object Job
+  applicant: RawUser | string; // Có thể là ID hoặc object User
+  coverLetter: string;
+  cv?: string;
+  phone?: string;
+  createdAt?: string;
+};
+
+type RawUser = {
+  _id: string;
+  name: string;
+  email: string;
+  isVerified?: boolean;
+  role: 'admin' | 'recruiter' | 'applicant';
+  favoriteJobs?: (RawJob | string)[];
+  createdAt?: string;
+};
+
+// MAPPER: Job
 export function normalizeJob(raw: RawJob): Job {
   return {
     _id: String(raw._id),
-    title: String(raw.title),
+    title: raw.title ?? '',
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
-    company: String(raw.company),
-    location: raw.location ? String(raw.location) : undefined,
-    description: raw.description ? String(raw.description) : undefined,
-    salary: raw.salary ? String(raw.salary) : undefined,
-    requirements: raw.requirements ? String(raw.requirements) : undefined,
-    createdBy: String(raw.createdBy),
-    createdByName: String(raw.createdByName),
-    createdAt: String(raw.createdAt || ''),
-    updatedAt: String(raw.updatedAt || ''),
-    isFavorite: typeof raw.isFavorite === 'boolean' ? raw.isFavorite : undefined,
+    company: raw.company ?? '',
+    location: raw.location ?? '',
+    description: raw.description ?? '',
+    salary: raw.salary ?? '',
+    requirements: raw.requirements ?? '',
+    createdBy: raw.createdBy ?? '',
+    createdByName: raw.createdByName ?? '',
+    createdAt: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
+    updatedAt: raw.updatedAt ? new Date(raw.updatedAt).toISOString() : '',
+  };
+}
+
+// MAPPER: User
+export function normalizeUser(raw: RawUser): User {
+  return {
+    _id: String(raw._id),
+    name: raw.name,
+    email: raw.email,
+    isVerified: raw.isVerified ?? false,
+    role: raw.role,
+    favoriteJobs: Array.isArray(raw.favoriteJobs)
+      ? raw.favoriteJobs.map((job) =>
+          typeof job === 'string' ? String(job) : String(job._id)
+        )
+      : [],
+    createdAt: raw.createdAt ?? '',
+  };
+}
+
+// MAPPER: Application
+export function normalizeApplication(raw: RawApplication): Application {
+  return {
+    _id: String(raw._id),
+    job: typeof raw.job === 'string' ? raw.job : String(raw.job._id),
+    applicant:
+      typeof raw.applicant === 'string'
+        ? raw.applicant
+        : String(raw.applicant._id),
+    coverLetter: raw.coverLetter,
+    cv: raw.cv,
+    phone: raw.phone,
+    createdAt: raw.createdAt ?? '',
   };
 }

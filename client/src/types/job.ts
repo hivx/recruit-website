@@ -1,45 +1,47 @@
-// Khớp với BE Job schema
-export interface Job {
-  _id: string;
+// src/types/job.ts
+
+/** Dạng BE trả về (raw) — bám sát Mongoose schema + timestamps */
+export interface JobRaw {
+  _id: string;              // ObjectId -> FE dùng string
   title: string;
-  tags: string[];           // default []
+  tags?: string[];          // default []
   company: string;
   location?: string;
   description?: string;
-  salary?: string;          // BE đang để String
+  salary?: string;          // BE là String
   requirements?: string;
-  createdBy: string;        // ObjectId -> FE dùng string
+  createdBy: string;        // ObjectId -> string
   createdByName: string;    // required
-  createdAt: string;        // timestamps true -> ISO string
-  updatedAt: string;        // timestamps true -> ISO string
-
-  // field phát sinh từ BE (nếu BE có set theo user)
-  isFavorite?: boolean;
+  createdAt?: string;       // từ timestamps: true
+  updatedAt?: string;       // từ timestamps: true
 }
 
-// Khi tạo job (POST /api/jobs)
-export interface JobCreatePayload {
+/** Kiểu FE dùng (đã “chuẩn hóa” optional & luôn là string/array) */
+export interface Job {
+  _id: string;
   title: string;
-  tags?: string[];
+  tags: string[];           // luôn là array (mặc định [])
   company: string;
   location?: string;
   description?: string;
   salary?: string;
   requirements?: string;
-  // createdBy & createdByName BE sẽ lấy từ token/middleware -> FE không gửi
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;        // ISO string
+  updatedAt: string;        // ISO string
 }
 
-// Khi cập nhật job (PUT /api/jobs/:id)
-export type JobUpdatePayload = Partial<JobCreatePayload>;
-
-// Query cho danh sách job (GET /api/jobs)
-export interface JobQuery {
-  search?: string;          // từ khóa tự do
-  tags?: string[];          // FE sẽ join thành CSV nếu BE nhận CSV
+/** Payload khi tạo/cập nhật (FE gửi lên BE) */
+export interface JobCreatePayload {
+  title: string;
+  company: string;
+  tags?: string[];
   location?: string;
-  minSalary?: number;       // nếu BE chưa hỗ trợ có thể bỏ
-  maxSalary?: number;
-  sort?: 'createdAt_desc' | 'salary_desc' | 'salary_asc';
-  page?: number;
-  limit?: number;
+  description?: string;
+  salary?: string;
+  requirements?: string;
+  // createdBy & createdByName: BE lấy từ token/middleware -> FE không gửi
 }
+
+export type JobUpdatePayload = Partial<JobCreatePayload>;

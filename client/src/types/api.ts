@@ -11,3 +11,9 @@ export interface ApiError {
   code?: string;
   details?: Record<string, string>;
 }
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+}
