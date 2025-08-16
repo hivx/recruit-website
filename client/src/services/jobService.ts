@@ -1,20 +1,13 @@
-import axios from 'axios';
-import { normalizeJob } from '@/types';
-import type { Job, Paginated } from '@/types';
+// src/services/jobService.ts
+import { api } from "@/api";       // dùng axios instance chung
+import { normalizeJob } from "@/types";
+import type { Job, Paginated } from "@/types";
 
-// Cấu hình baseURL một lần, mọi request bên dưới đều dùng
-const api = axios.create({
-  baseURL: 'http://localhost:5000', // Đúng port của BE
-});
-
-/**
- * Lấy danh sách job có phân trang
- */
 export async function getJobs(
   page = 1,
   limit = 10
 ): Promise<Paginated<Job>> {
-  const res = await api.get('/api/jobs', { params: { page, limit } });
+  const res = await api.get("/api/jobs", { params: { page, limit } });
 
   return {
     data: (res.data.jobs ?? []).map(normalizeJob),
@@ -24,16 +17,13 @@ export async function getJobs(
   };
 }
 
-/**
- * Lấy thông tin chi tiết 1 job theo ID
- */
 export async function getJobById(id: string): Promise<Job> {
   const res = await api.get(`/api/jobs/${id}`);
   return normalizeJob(res.data);
 }
 
 export async function createJob(jobData: Partial<Job>): Promise<Job> {
-  const res = await api.post('/api/jobs', jobData);
+  const res = await api.post("/api/jobs", jobData);
   return normalizeJob(res.data);
 }
 

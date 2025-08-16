@@ -23,9 +23,7 @@ Roles: guest, applicant, recruiter, admin.
 Mục tiêu v1: tìm việc, xem chi tiết, ứng tuyển (upload CV), yêu thích; recruiter đăng/sửa/xóa job, xem ứng viên.
 
 2) SITEMAP & ROUTES (FE)
-bash
-Sao chép
-Chỉnh sửa
+
 /                      -> Home (danh sách job, filter, pagination)
 /jobs/:id              -> Job Detail
 /jobs/:id/apply        -> Apply Job (applicant)
@@ -41,9 +39,7 @@ Chỉnh sửa
 
 /admin (để sau nếu cần)
 3) Quy ước URL query cho danh sách job
-cpp
-Sao chép
-Chỉnh sửa
+
 /?search=react+node
   &tags=frontend,remote           // CSV
   &location=Hanoi                 // optional
@@ -52,9 +48,7 @@ Chỉnh sửa
   &page=1&limit=20
 4) Hợp đồng dữ liệu (TypeScript types)
 4.1 Job (FE model)
-ts
-Sao chép
-Chỉnh sửa
+
 export interface Job {
   _id: string;
   title: string;
@@ -71,9 +65,7 @@ export interface Job {
   isFavorite?: boolean;       // phụ thuộc token
 }
 4.2 Application
-ts
-Sao chép
-Chỉnh sửa
+
 export interface Application {
   _id: string;
   job: string;               // jobId
@@ -86,9 +78,7 @@ export interface Application {
   createdAt: string;
 }
 4.3 User (tối thiểu cho FE)
-ts
-Sao chép
-Chỉnh sửa
+
 export type UserRole = 'admin' | 'recruiter' | 'applicant';
 
 export interface User {
@@ -100,9 +90,7 @@ export interface User {
 4.4 API response chuẩn (gợi ý)
 Danh sách có phân trang
 
-ts
-Sao chép
-Chỉnh sửa
+
 export interface Paginated<T> {
   data: T[];
   page: number;
@@ -111,9 +99,7 @@ export interface Paginated<T> {
 }
 Lỗi chuẩn
 
-ts
-Sao chép
-Chỉnh sửa
+
 export interface ApiError {
   message: string;
   code?: string;         // e.g., 'UNAUTHORIZED', 'VALIDATION_ERROR'
@@ -135,9 +121,6 @@ POST /api/jobs (recruiter/admin)
 
 Body (min):
 
-json
-Sao chép
-Chỉnh sửa
 {
   "title": "", "company": "", "location": "",
   "description": "", "salary": "", "requirements": "",
@@ -165,9 +148,7 @@ POST /api/applications (multipart nếu có CV)
 
 Body:
 
-makefile
-Sao chép
-Chỉnh sửa
+
 job: string
 coverLetter?: string
 phone?: string
@@ -223,9 +204,7 @@ My Jobs: list + CRUD
 Applications for Job: bảng ứng viên theo job
 
 8) Cấu trúc mã nguồn (map vào folders đã tạo)
-pgsql
-Sao chép
-Chỉnh sửa
+
 src/
   components/
     JobCard.tsx

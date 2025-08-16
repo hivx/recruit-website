@@ -4,14 +4,14 @@ import { getJobs, getJobById } from '@/services';
 import type { Job, Paginated } from '@/types';
 
 export function useJobs(page = 1, limit = 10) {
-  return useQuery<Paginated<Job>>({
-    queryKey: ['jobs', page, limit],
+  return useQuery<Paginated<Job>, Error>({
+    queryKey: ["jobs", page, limit],
     queryFn: () => getJobs(page, limit),
   });
 }
 
 export function useJobById(id: string) {
-  return useQuery({
+  return useQuery<Job>({
     queryKey: ['job', id],
     queryFn: () => getJobById(id),
     enabled: !!id,
