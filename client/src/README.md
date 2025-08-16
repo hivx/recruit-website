@@ -1,5 +1,3 @@
-
-
 4. Quản lý state (React Query + Zustand)
 
 React Query: quản lý data từ server (jobs, job detail).
