@@ -9,13 +9,13 @@ export function ErrorFallback({ error, resetErrorBoundary }: Readonly<FallbackPr
       <div className="flex gap-2">
         <button
           onClick={resetErrorBoundary}
-          className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
+          className="px-4 py-2 rounded-lg bg-black border hover:bg-gray-50"
         >
           Thử lại
         </button>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 rounded-lg bg-red-600 text-white"
+          className="px-4 py-2 rounded-lg bg-red-600 text-black"
         >
           Tải lại trang
         </button>

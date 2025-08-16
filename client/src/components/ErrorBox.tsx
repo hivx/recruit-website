@@ -12,7 +12,7 @@ export function ErrorBox({ message = "Có lỗi xảy ra.", onRetry }: Props) {
       {onRetry && (
         <button
           onClick={onRetry}
-          className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm"
+          className="px-3 py-1.5 rounded-lg bg-red-600 text-black text-sm"
         >
           Thử lại
         </button>
