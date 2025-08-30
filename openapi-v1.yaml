@@ -1,0 +1,633 @@
+openapi: 3.1.0
+info:
+  title: Recruitment Website API (V1)
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+      example: "2f9a9b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+    Timestamp:
+      type: string
+      format: date-time
+    Email:
+      type: string
+      format: email
+    Role:
+      type: string
+      enum: [applicant, recruiter, admin]
+    User:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        email: { $ref: "#/components/schemas/Email" }
+        full_name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        status:
+          type: string
+          enum: [active, locked]
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+        updated_at: { $ref: "#/components/schemas/Timestamp" }
+    Tag:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        name: { type: string }
+    Job:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        recruiter_id: { $ref: "#/components/schemas/UUID" }
+        title: { type: string }
+        description: { type: string }
+        status:
+          type: string
+          enum: [draft, published, closed]
+        salary_min: { type: integer, minimum: 0 }
+        salary_max: { type: integer, minimum: 0 }
+        location: { type: string }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/Tag" }
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+        updated_at: { $ref: "#/components/schemas/Timestamp" }
+    Application:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        job_id: { $ref: "#/components/schemas/UUID" }
+        applicant_id: { $ref: "#/components/schemas/UUID" }
+        state:
+          type: string
+          enum: [received, reviewed, interview, offer, rejected]
+        cv_path: { type: string }
+        phone: { type: string }
+        note: { type: string }
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+        updated_at: { $ref: "#/components/schemas/Timestamp" }
+    Favorite:
+      type: object
+      properties:
+        user_id: { $ref: "#/components/schemas/UUID" }
+        job_id: { $ref: "#/components/schemas/UUID" }
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer, minimum: 1, example: 1 }
+        limit: { type: integer, minimum: 1, maximum: 50, example: 20 }
+        total: { type: integer, minimum: 0, example: 125 }
+    PaginatedJobs:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Job" }
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+    PaginatedApplications:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Application" }
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+    ErrorResponse:
+      type: object
+      properties:
+        message: { type: string }
+        code: { type: string }
+        details:
+          type: object
+          additionalProperties: true
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, role]
+              properties:
+                email: { $ref: "#/components/schemas/Email" }
+                password: { type: string, minLength: 8 }
+                role:
+                  $ref: "#/components/schemas/Role"
+                full_name: { type: string }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /auth/login:
+    post:
+      summary: Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { $ref: "#/components/schemas/Email" }
+                password: { type: string }
+      responses:
+        "200":
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  refresh_token: { type: string }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /auth/me:
+    get:
+      summary: Get current user
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /jobs:
+    get:
+      summary: List published jobs
+      tags: [Jobs]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: tagIds
+          schema: { type: string }
+          description: Comma-separated tag UUIDs
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - in: query
+          name: sort
+          schema: { type: string, enum: ["-created_at", "created_at"] }
+      responses:
+        "200":
+          description: Paginated jobs
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedJobs" }
+    post:
+      summary: Create a job
+      tags: [Jobs]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description, status]
+              properties:
+                title: { type: string }
+                description: { type: string }
+                status:
+                  type: string
+                  enum: [draft, published]
+                salary_min: { type: integer, minimum: 0 }
+                salary_max: { type: integer, minimum: 0 }
+                location: { type: string }
+                tagIds:
+                  type: array
+                  items: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /jobs/{id}:
+    get:
+      summary: Get job detail
+      tags: [Jobs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+    put:
+      summary: Update a job
+      tags: [Jobs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                status:
+                  type: string
+                  enum: [draft, published, closed]
+                salary_min: { type: integer, minimum: 0 }
+                salary_max: { type: integer, minimum: 0 }
+                location: { type: string }
+                tagIds:
+                  type: array
+                  items: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden (not owner/admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /jobs/{id}/status:
+    patch:
+      summary: Change job status
+      tags: [Jobs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [draft, published, closed]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /jobs/{id}:
+    delete:
+      summary: Delete a job
+      tags: [Jobs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /applications:
+    post:
+      summary: Apply to a job (multipart)
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [jobId, cv]
+              properties:
+                jobId: { $ref: "#/components/schemas/UUID" }
+                cv:
+                  type: string
+                  format: binary
+                  description: pdf/doc/docx, ≤ 10MB
+                phone: { type: string }
+                note: { type: string }
+      responses:
+        "201":
+          description: Created application
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "409":
+          description: Already applied
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "413":
+          description: Payload too large (CV)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /applications/job/{jobId}:
+    get:
+      summary: List applications for a job (owner recruiter)
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: Paginated applications
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedApplications" }
+        "403":
+          description: Forbidden (not owner/admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /applications/{id}/status:
+    patch:
+      summary: Change application state
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [reviewed, interview, offer, rejected]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /users/favorites:
+    get:
+      summary: List current user's favorite jobs
+      tags: [Favorites]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: Paginated jobs
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedJobs" }
+
+  /users/favorites/{jobId}:
+    post:
+      summary: Toggle favorite for a job (idempotent)
+      tags: [Favorites]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  favorited: { type: boolean }
+
+  /admin/users:
+    get:
+      summary: List users (admin)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/User" }
+                  page: { type: integer }
+                  limit: { type: integer }
+                  total: { type: integer }
+
+  /admin/users/{id}/role:
+    patch:
+      summary: Update user role
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: "#/components/schemas/Role" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+
+  /admin/users/{id}/status:
+    patch:
+      summary: Lock/Unlock user
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, locked]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+
+  /admin/users/{id}/reset-password:
+    post:
+      summary: Reset user password
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204":
+          description: Email sent
+"
