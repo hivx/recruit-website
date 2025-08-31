@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  recruiter
+  applicant
+}
+
+model User {
+  id            BigInt   @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  password_hash String
+  is_verified   Boolean  @default(false)
+  role          Role     @default(applicant)
+  created_at    DateTime @default(now())
+
+  favorites    UserFavoriteJobs[]
+  jobs         Job[]              @relation("UserJobs")
+  applications Application[]
+
+  @@map("users") // <— bảng thật trong MySQL
+}
+
+model Job {
+  id              BigInt   @id @default(autoincrement())
+  title           String
+  company         String
+  location        String?
+  description     String?
+  salary          String?
+  requirements    String?
+  created_by      BigInt
+  created_by_name String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  creator   User               @relation("UserJobs", fields: [created_by], references: [id])
+  tags      JobTag[]
+  favorites UserFavoriteJobs[]
+  apps      Application[]
+
+  @@map("jobs") // <—
+}
+
+model JobTag {
+  job_id BigInt
+  tag    String
+  job    Job    @relation(fields: [job_id], references: [id])
+
+  @@id([job_id, tag])
+  @@map("job_tags") // <—
+}
+
+model UserFavoriteJobs {
+  user_id BigInt
+  job_id  BigInt
+  user    User   @relation(fields: [user_id], references: [id])
+  job     Job    @relation(fields: [job_id], references: [id])
+
+  @@id([user_id, job_id])
+  @@map("user_favorite_jobs") // <—
+}
+
+model Application {
+  id           BigInt   @id @default(autoincrement())
+  job_id       BigInt
+  applicant_id BigInt
+  cover_letter String
+  cv           String?
+  phone        String?
+  created_at   DateTime @default(now())
+
+  job       Job  @relation(fields: [job_id], references: [id])
+  applicant User @relation(fields: [applicant_id], references: [id])
+
+  // @@unique([job_id, applicant_id])
+  @@map("applications") // <—
+}

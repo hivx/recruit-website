@@ -1,0 +1,511 @@
+PHẦN A — Cài MySQL (Windows 10/11)
+Bước A1. Cài MySQL Server + Workbench
+
+Tải “MySQL Installer (Community)” từ trang MySQL (gói có cả Server, Workbench).
+
+Chạy installer → chọn “Developer Default” (có MySQL Server, Workbench, Connector).
+
+Trong quá trình cài:
+
+Ghi nhớ root password (ví dụ: Root!12345).
+
+“Config Type”: Development Computer → Next.
+
+Start MySQL as a Windows Service → Yes.
+
+Mở MySQL Workbench để kiểm tra: kết nối tới Local instance MySQL (thường là localhost:3306).
+
+Nếu bạn quen Docker hơn, có thể dùng:
+
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=Root!12345 -p 3306:3306 -d mysql:8
+
+Bước A2. Tạo database & user riêng cho app
+
+Mở MySQL Workbench → Query:
+
+CREATE DATABASE myapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'myapp'@'%' IDENTIFIED BY 'StrongPassword!123';
+GRANT ALL PRIVILEGES ON myapp.* TO 'myapp'@'%';
+FLUSH PRIVILEGES;
+
+PHẦN B — Tạo schema MySQL phù hợp 3 model hiện có
+Bước B1. Tạo các bảng (DDL)
+
+Sao chép toàn bộ khối dưới vào Workbench:
+
+USE myapp;
+
+-- 1) Bảng users (từ userSchema)  :contentReference[oaicite:3]{index=3}
+CREATE TABLE users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  is_verified TINYINT(1) NOT NULL DEFAULT 0,
+  role ENUM('admin','recruiter','applicant') NOT NULL DEFAULT 'applicant',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  mongo_id CHAR(24) NULL,
+  UNIQUE KEY uk_users_email (email),
+  KEY idx_users_created_at (created_at)
+);
+
+-- 2) Bảng jobs (từ jobSchema)  :contentReference[oaicite:4]{index=4}
+CREATE TABLE jobs (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  company VARCHAR(200) NOT NULL,
+  location VARCHAR(200) NULL,
+  description TEXT NULL,
+  salary VARCHAR(100) NULL,
+  requirements TEXT NULL,
+  created_by BIGINT UNSIGNED NOT NULL,
+  created_by_name VARCHAR(120) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  mongo_id CHAR(24) NULL,
+  CONSTRAINT fk_jobs_user FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- 2a) Bảng tag cho job (từ jobs.tags là mảng)
+CREATE TABLE job_tags (
+  job_id BIGINT UNSIGNED NOT NULL,
+  tag VARCHAR(100) NOT NULL,
+  PRIMARY KEY (job_id, tag),
+  CONSTRAINT fk_job_tags_job FOREIGN KEY (job_id) REFERENCES jobs(id)
+);
+
+-- 3) Bảng liên kết user yêu thích job (từ users.favoriteJobs)  :contentReference[oaicite:5]{index=5}
+CREATE TABLE user_favorite_jobs (
+  user_id BIGINT UNSIGNED NOT NULL,
+  job_id BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (user_id, job_id),
+  CONSTRAINT fk_ufj_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_ufj_job  FOREIGN KEY (job_id)  REFERENCES jobs(id)
+);
+
+-- 4) Bảng applications (từ ApplicationSchema)  :contentReference[oaicite:6]{index=6}
+CREATE TABLE applications (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  job_id BIGINT UNSIGNED NOT NULL,
+  applicant_id BIGINT UNSIGNED NOT NULL,
+  cover_letter TEXT NOT NULL,
+  cv VARCHAR(500) NULL,
+  phone VARCHAR(30) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  mongo_id CHAR(24) NULL,
+  CONSTRAINT fk_app_job FOREIGN KEY (job_id) REFERENCES jobs(id),
+  CONSTRAINT fk_app_user FOREIGN KEY (applicant_id) REFERENCES users(id),
+  -- Nếu muốn: 1 ứng viên chỉ nộp 1 đơn / job → bật UNIQUE dưới đây
+  -- UNIQUE KEY uk_app_unique (job_id, applicant_id)
+);
+
+
+Ghi chú thiết kế:
+
+Giữ mongo_id để dễ đối chiếu/rollback.
+
+created_by_name tạm giữ lại vì bạn đang dùng trường này trong Mongo (có thể bỏ sau nếu BE join từ users).
+
+users.password (Mongo) là hash sẵn → đổ sang password_hash không re-hash.
+
+PHẦN C — Chuẩn bị dự án Node.js & Prisma (để ETL + chạy BE)
+Bước C1. Tạo project Node + cài gói
+mkdir migration && cd migration
+npm init -y
+npm i prisma @prisma/client mysql2 mongodb bcryptjs
+npx prisma init
+
+Bước C2. Tạo file .env
+DATABASE_URL="mysql://myapp:123456@localhost:3306/myapp"
+MONGODB_URI="mongodb://localhost:27017/your_mongo_db"
+
+Bước C3. Khai báo Prisma schema (khớp DDL ở PHẦN B)
+
+Tạo/ghi prisma/schema.prisma:
+
+generator client { provider = "prisma-client-js" }
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  recruiter
+  applicant
+}
+
+model User {
+  id            BigInt   @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  password_hash String
+  is_verified   Boolean  @default(false)
+  role          Role     @default(applicant)
+  created_at    DateTime @default(now())
+  mongo_id      String?  @db.Char(24)
+
+  favorites     UserFavoriteJobs[]
+  jobs          Job[]    @relation("UserJobs")
+  applications  Application[]
+}
+
+model Job {
+  id              BigInt   @id @default(autoincrement())
+  title           String
+  company         String
+  location        String?
+  description     String?
+  salary          String?
+  requirements    String?
+  created_by      BigInt
+  created_by_name String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+  mongo_id        String?  @db.Char(24)
+
+  creator    User   @relation("UserJobs", fields: [created_by], references: [id])
+  tags       JobTag[]
+  favorites  UserFavoriteJobs[]
+  apps       Application[]
+}
+
+model JobTag {
+  job_id BigInt
+  tag    String
+  job    Job @relation(fields: [job_id], references: [id])
+  @@id([job_id, tag])
+}
+
+model UserFavoriteJobs {
+  user_id BigInt
+  job_id  BigInt
+  user    User @relation(fields: [user_id], references: [id])
+  job     Job  @relation(fields: [job_id], references: [id])
+  @@id([user_id, job_id])
+}
+
+model Application {
+  id            BigInt   @id @default(autoincrement())
+  job_id        BigInt
+  applicant_id  BigInt
+  cover_letter  String
+  cv            String?
+  phone         String?
+  created_at    DateTime @default(now())
+  mongo_id      String?  @db.Char(24)
+
+  job       Job  @relation(fields: [job_id], references: [id])
+  applicant User @relation(fields: [applicant_id], references: [id])
+
+  // Bật nếu muốn 1 ứng viên chỉ nộp 1 đơn cho 1 job
+  // @@unique([job_id, applicant_id])
+}
+
+Bước C4. Sinh client & kiểm tra kết nối
+npx prisma generate
+
+
+Nếu OK, Prisma đã kết nối MySQL bằng DATABASE_URL.
+
+PHẦN D — Viết script di trú dữ liệu từ Mongo → MySQL
+
+Nguyên tắc: Đổ theo thứ tự Users → Jobs (+JobTags) → Favorites → Applications để đảm bảo khoá ngoại.
+
+Tạo thư mục scripts/ và các file sau:
+
+1) scripts/migrate_users.js (từ userSchema)
+const { MongoClient } = require('mongodb');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+(async () => {
+  const mongo = new MongoClient(process.env.MONGODB_URI);
+  await mongo.connect();
+  const db = mongo.db();
+
+  const cursor = db.collection('users').find({}, { batchSize: 1000 });
+  const batch = [];
+  let count = 0;
+
+  while (await cursor.hasNext()) {
+    const doc = await cursor.next();
+    const email = (doc.email || '').toLowerCase().trim();
+    const role = ['admin','recruiter','applicant'].includes(doc.role) ? doc.role : 'applicant';
+
+    batch.push({
+      name: doc.name || '',
+      email,
+      password_hash: doc.password, // đã hash sẵn trong Mongo (bcrypt pre-save)
+      is_verified: !!doc.isVerified,
+      role,
+      created_at: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      mongo_id: doc._id ? String(doc._id) : null
+    });
+
+    if (batch.length >= 500) {
+      await prisma.$transaction(batch.map(u => prisma.user.create({ data: u })));
+      count += batch.length; batch.length = 0;
+      console.log('Inserted users:', count);
+    }
+  }
+
+  if (batch.length) {
+    await prisma.$transaction(batch.map(u => prisma.user.create({ data: u })));
+    count += batch.length;
+    console.log('Inserted users:', count);
+  }
+
+  await mongo.close(); await prisma.$disconnect();
+  console.log('Done users');
+})();
+
+2) scripts/migrate_jobs.js (từ jobSchema—kèm tags)
+const { MongoClient, ObjectId } = require('mongodb');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+(async () => {
+  const mongo = new MongoClient(process.env.MONGODB_URI);
+  await mongo.connect();
+  const db = mongo.db();
+
+  const cursor = db.collection('jobs').find({}, { batchSize: 1000 });
+  let count = 0;
+
+  while (await cursor.hasNext()) {
+    const doc = await cursor.next();
+
+    // tìm user.id theo users.mongo_id == createdBy
+    const creator = await prisma.user.findFirst({
+      where: { mongo_id: doc.createdBy ? String(doc.createdBy) : '' },
+      select: { id: true }
+    });
+
+    if (!creator) {
+      console.warn('Skip job because creator not found', doc._id?.toString());
+      continue;
+    }
+
+    const job = await prisma.job.create({
+      data: {
+        title: doc.title || '',
+        company: doc.company || '',
+        location: doc.location || null,
+        description: doc.description || null,
+        salary: doc.salary || null,
+        requirements: doc.requirements || null,
+        created_by: creator.id,
+        created_by_name: doc.createdByName || '',
+        created_at: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+        updated_at: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
+        mongo_id: doc._id ? String(doc._id) : null
+      }
+    });
+
+    // tags (mảng string)
+    if (Array.isArray(doc.tags)) {
+      const tags = [...new Set(doc.tags.filter(t => typeof t === 'string' && t.trim()))];
+      if (tags.length) {
+        await prisma.$transaction(
+          tags.map(tag => prisma.jobTag.create({ data: { job_id: job.id, tag } }))
+        );
+      }
+    }
+
+    count++;
+    if (count % 200 === 0) console.log('Inserted jobs:', count);
+  }
+
+  await mongo.close(); await prisma.$disconnect();
+  console.log('Done jobs. Total:', count);
+})();
+
+3) scripts/migrate_favorites.js (từ users.favoriteJobs)
+const { MongoClient } = require('mongodb');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+(async () => {
+  const mongo = new MongoClient(process.env.MONGODB_URI);
+  await mongo.connect();
+  const db = mongo.db();
+
+  const cursor = db.collection('users').find(
+    { favoriteJobs: { $exists: true, $ne: [] } },
+    { projection: { favoriteJobs: 1 } }
+  );
+
+  let links = 0;
+
+  while (await cursor.hasNext()) {
+    const u = await cursor.next();
+
+    // map user mongo _id -> users.id
+    const user = await prisma.user.findFirst({
+      where: { mongo_id: String(u._id) },
+      select: { id: true }
+    });
+    if (!user) continue;
+
+    const jobMongoIds = (u.favoriteJobs || []).map(x => String(x));
+    if (!jobMongoIds.length) continue;
+
+    // tìm job ids theo mongo_id
+    const jobs = await prisma.job.findMany({
+      where: { mongo_id: { in: jobMongoIds } },
+      select: { id: true, mongo_id: true }
+    });
+
+    // chèn, bỏ trùng bởi PK (user_id, job_id)
+    await prisma.$transaction(
+      jobs.map(j =>
+        prisma.userFavoriteJobs.upsert({
+          where: { user_id_job_id: { user_id: user.id, job_id: j.id } },
+          update: {},
+          create: { user_id: user.id, job_id: j.id }
+        })
+      )
+    );
+    links += jobs.length;
+  }
+
+  await mongo.close(); await prisma.$disconnect();
+  console.log('Done favorites:', links);
+})();
+
+4) scripts/migrate_applications.js (từ ApplicationSchema)
+const { MongoClient } = require('mongodb');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+(async () => {
+  const mongo = new MongoClient(process.env.MONGODB_URI);
+  await mongo.connect();
+  const db = mongo.db();
+
+  const cursor = db.collection('applications').find({}, { batchSize: 1000 });
+  let count = 0;
+
+  while (await cursor.hasNext()) {
+    const doc = await cursor.next();
+
+    const job = await prisma.job.findFirst({
+      where: { mongo_id: String(doc.job) }, select: { id: true }
+    });
+    const applicant = await prisma.user.findFirst({
+      where: { mongo_id: String(doc.applicant) }, select: { id: true }
+    });
+
+    if (!job || !applicant) {
+      console.warn('Skip application (missing fk):', String(doc._id));
+      continue;
+    }
+
+    await prisma.application.create({
+      data: {
+        job_id: job.id,
+        applicant_id: applicant.id,
+        cover_letter: doc.coverLetter || '',
+        cv: doc.cv || null,
+        phone: doc.phone || null,
+        created_at: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+        mongo_id: doc._id ? String(doc._id) : null
+      }
+    });
+
+    count++;
+    if (count % 500 === 0) console.log('Inserted applications:', count);
+  }
+
+  await mongo.close(); await prisma.$disconnect();
+  console.log('Done applications. Total:', count);
+})();
+
+5) Thêm script chạy nhanh trong package.json
+{
+  "scripts": {
+    "prisma:gen": "prisma generate",
+    "migrate:users": "node scripts/migrate_users.js",
+    "migrate:jobs": "node scripts/migrate_jobs.js",
+    "migrate:favorites": "node scripts/migrate_favorites.js",
+    "migrate:applications": "node scripts/migrate_applications.js"
+  }
+}
+
+PHẦN E — Chạy di trú & kiểm tra
+Bước E1. Chạy lần lượt
+node scripts/migrate_users.js
+node scripts/migrate_jobs.js
+node scripts/migrate_favorites.js
+node scripts/migrate_applications.js
+
+Bước E2. Kiểm tra số lượng & ràng buộc
+
+Trong MySQL Workbench:
+
+SELECT COUNT(*) FROM users;
+SELECT COUNT(*) FROM jobs;
+SELECT COUNT(*) FROM job_tags;
+SELECT COUNT(*) FROM user_favorite_jobs;
+SELECT COUNT(*) FROM applications;
+
+-- Kiểm tra email trùng (không nên có)
+SELECT email, COUNT(*) c FROM users GROUP BY email HAVING c>1;
+
+-- (Tuỳ chọn) bật unique 1 ứng viên/1 job nếu OK dữ liệu
+-- ALTER TABLE applications ADD UNIQUE KEY uk_app_unique (job_id, applicant_id);
+
+PHẦN F — Chuyển backend từ Mongo (Mongoose) sang MySQL (Prisma)
+
+Cài Prisma trong dự án BE (nếu chưa có):
+npm i @prisma/client prisma mysql2
+
+Trỏ .env của BE sang DATABASE_URL MySQL (giống ở PHẦN C).
+
+Thay các thao tác Mongoose bằng Prisma. Ví dụ tạo user:
+
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+const prisma = new PrismaClient();
+
+export async function register(req, res) {
+  const { name, email, password, role } = req.body;
+  const hash = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email: email.toLowerCase().trim(),
+      password_hash: hash,
+      role: ['admin','recruiter','applicant'].includes(role) ? role : 'applicant'
+    },
+    select: { id: true, name: true, email: true, role: true, created_at: true }
+  });
+
+  res.json(user);
+}
+
+Checklist “giờ G” (cutover)
+
+ mongodump + mysqldump (backup).
+
+ Tạm đóng ghi vào Mongo (hoặc dual-write ngắn hạn).
+
+ Chạy di trú lần cuối.
+
+ Chuyển BE sang dùng MySQL (DATABASE_URL).
+
+ Theo dõi log; nếu lỗi, rollback bằng backup + mongo_id.
+
+Nếu bạn làm theo đúng thứ tự trên, bạn sẽ:
+
+Cài xong MySQL & tạo DB/user,
+
+Tạo schema chuẩn quan hệ cho 3 model Mongo hiện tại (Users, Jobs, Applications + Tags/Favorites),
+
+Chuyển toàn bộ dữ liệu sang MySQL an toàn,
+
+Chạy lại backend bằng Prisma/MySQL.
