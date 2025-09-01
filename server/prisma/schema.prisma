@@ -17,8 +17,8 @@ model User {
   id            BigInt   @id @default(autoincrement())
   name          String
   email         String   @unique
-  password_hash String
-  is_verified   Boolean  @default(false)
+  password String
+  isVerified   Boolean  @default(false)
   role          Role     @default(applicant)
   created_at    DateTime @default(now())
 

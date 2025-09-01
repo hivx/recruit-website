@@ -36,8 +36,8 @@ exports.getAllJobs = async (req, res) => {
     const result = await jobService.getAllJobs({
       filter,
       search,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: parseBigInt(page),
+      limit: parseBigInt(limit),
     });
 
     res.json(result);

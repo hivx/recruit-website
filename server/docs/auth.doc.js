@@ -28,7 +28,7 @@
  *         email:
  *           type: string
  *           format: email
- *           example: example@gmail.com
+ *           example: chuvanhieu357@gmail.com
  *         password:
  *           type: string
  *           example: 123456
@@ -45,7 +45,7 @@
  *         email:
  *           type: string
  *           format: email
- *           example: example@gmail.com
+ *           example: chuvanhieu357@gmail.com
  *         password:
  *           type: string
  *           example: 123456

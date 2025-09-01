@@ -2,11 +2,11 @@ USE recruit_web;
 
 -- USERS
 CREATE TABLE users (
-  id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id BigInt UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(255) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  is_verified TINYINT(1) NOT NULL DEFAULT 0,
+  password VARCHAR(255) NOT NULL,
+  isVerified TINYINT(1) NOT NULL DEFAULT 0,
   role ENUM('admin','recruiter','applicant') NOT NULL DEFAULT 'applicant',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_users_email (email),
@@ -15,14 +15,14 @@ CREATE TABLE users (
 
 -- JOBS
 CREATE TABLE jobs (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id BigInt UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(200) NOT NULL,
   company VARCHAR(200) NOT NULL,
   location VARCHAR(200) NULL,
   description TEXT NULL,
   salary VARCHAR(100) NULL,
   requirements TEXT NULL,
-  created_by BIGINT UNSIGNED NOT NULL,
+  created_by BigInt UNSIGNED NOT NULL,
   created_by_name VARCHAR(120) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -31,7 +31,7 @@ CREATE TABLE jobs (
 
 -- JOB TAGS (từ mảng tags của job)
 CREATE TABLE job_tags (
-  job_id BIGINT UNSIGNED NOT NULL,
+  job_id BigInt UNSIGNED NOT NULL,
   tag VARCHAR(100) NOT NULL,
   PRIMARY KEY (job_id, tag),
   CONSTRAINT fk_job_tags_job FOREIGN KEY (job_id) REFERENCES jobs(id)
@@ -39,8 +39,8 @@ CREATE TABLE job_tags (
 
 -- USER FAVORITES (từ favoriteJobs trong user)
 CREATE TABLE user_favorite_jobs (
-  user_id BIGINT UNSIGNED NOT NULL,
-  job_id BIGINT UNSIGNED NOT NULL,
+  user_id BigInt UNSIGNED NOT NULL,
+  job_id BigInt UNSIGNED NOT NULL,
   PRIMARY KEY (user_id, job_id),
   CONSTRAINT fk_ufj_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_ufj_job  FOREIGN KEY (job_id)  REFERENCES jobs(id)
@@ -48,9 +48,9 @@ CREATE TABLE user_favorite_jobs (
 
 -- APPLICATIONS
 CREATE TABLE applications (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  job_id BIGINT UNSIGNED NOT NULL,
-  applicant_id BIGINT UNSIGNED NOT NULL,
+  id BigInt UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  job_id BigInt UNSIGNED NOT NULL,
+  applicant_id BigInt UNSIGNED NOT NULL,
   cover_letter TEXT NOT NULL,
   cv VARCHAR(500) NULL,
   phone VARCHAR(30) NULL,

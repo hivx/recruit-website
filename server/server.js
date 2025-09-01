@@ -5,12 +5,21 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-// ✅ Dùng Prisma thay vì Mongoose
+// Dùng Prisma thay vì Mongoose
 const prisma = require('./utils/prisma');
 
 // Swagger
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
+
+// BigInt safe stringify toàn cục
+const originalStringify = JSON.stringify;
+JSON.stringify = (value, replacer, space) =>
+  originalStringify(
+    value,
+    (key, val) => (typeof val === "bigint" ? val.toString() : val),
+    space
+  );
 
 // Khởi tạo app
 const app = express();
@@ -22,7 +31,7 @@ app.use(express.json());
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// ✅ Health check: kiểm tra kết nối MySQL/Prisma
+// Health check: kiểm tra kết nối MySQL/Prisma
 app.get('/sql', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;

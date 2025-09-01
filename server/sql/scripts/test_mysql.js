@@ -11,9 +11,9 @@ const prisma = new PrismaClient();
     // chèn user mới
     const u = await prisma.user.create({
       data: {
-        name: 'Demo User',
-        email: 'demo@gmail.com',
-        password_hash: hash,
+        name: 'Chu Văn Hiếu',
+        email: 'chuvanhieu357@gmail.com',
+        password: hash,
         role: 'applicant'
       },
       select: { id: true, name: true, email: true, role: true, created_at: true }
