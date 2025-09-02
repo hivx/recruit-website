@@ -1,22 +1,24 @@
-const User = require('../models/user');
-
 // controllers/userController.js
+const userService = require('../services/userService');
+
 exports.toggleFavoriteJob = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { jobId } = req.params;
+    const jobId = req.params.jobId;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
 
-    const index = user.favoriteJobs.indexOf(jobId);
-    if (index === -1) {
-      user.favoriteJobs.push(jobId);
-      await user.save();
+    // Kiểm tra job có trong favorites chưa
+    const isFavorite = user.favorites.some(fav => fav.job_id === BigInt(jobId));
+
+    if (!isFavorite) {
+      await userService.addFavoriteJob(userId, jobId);
       return res.status(200).json({ message: 'Đã thêm vào danh sách yêu thích' });
     } else {
-      user.favoriteJobs.splice(index, 1);
-      await user.save();
+      await userService.removeFavoriteJob(userId, jobId);
       return res.status(200).json({ message: 'Đã gỡ khỏi danh sách yêu thích' });
     }
   } catch (err) {
@@ -25,15 +27,15 @@ exports.toggleFavoriteJob = async (req, res) => {
   }
 };
 
-// GET /api/users/favorite
+// GET /api/users/favorites
 exports.getFavoriteJobs = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate('favoriteJobs');
-    if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    const favorites = await userService.getFavoriteJobs(req.user.userId);
+    const jobs = favorites.map(fav => fav.job); // lấy danh sách job từ quan hệ
 
-    res.status(200).json(user.favoriteJobs);
+    res.status(200).json(jobs);
   } catch (err) {
-    console.error(err);
+    console.error('[Get Favorite Jobs Error]', err.message);
     res.status(500).json({ message: 'Lỗi server' });
   }
 };
