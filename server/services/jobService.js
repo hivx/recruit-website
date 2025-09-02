@@ -148,7 +148,11 @@ exports.getPopularTags = async () => {
   const result = await prisma.jobTag.groupBy({
     by: ['tag'],
     _count: { tag: true },
-    orderBy: { _count: { tag: 'desc' } },
+    orderBy: {
+      _count: {
+        tag: 'desc',
+      },
+    },
     take: 10,
   });
   return result.map((r) => ({ tag: r.tag, count: r._count.tag }));

@@ -95,7 +95,7 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy công việc!' });
     }
 
-    if (job.createdBy !== req.user.userId && req.user.role !== 'admin') {
+    if (job.created_by !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Bạn không có quyền sửa công việc này' });
     }
 
