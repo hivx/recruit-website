@@ -17,14 +17,14 @@ const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     // Chỉ cho phép tải lên các file PDF và DOCX
-    const filetypes = /pdf|docx/;
+    const filetypes = /pdf|docx|doc/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
 
     if (extname && mimetype) {
       return cb(null, true);
     } else {
-      cb(new Error('Chỉ cho phép tải lên tệp PDF hoặc DOCX!'));
+      cb(new Error('Chỉ cho phép tải lên tệp PDF, DOC hoặc DOCX!'));
     }
   }
 });
