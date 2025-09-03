@@ -38,7 +38,7 @@ module.exports = {
   //  Thêm job yêu thích (tránh trùng lặp)
   async addFavoriteJob(userId, jobId) {
     try {
-      const exists = await prisma.userFavoriteJob.findUnique({
+      const exists = await prisma.userFavoriteJobs.findUnique({
         where: {
           user_id_job_id: {
             user_id: BigInt(userId),
@@ -49,7 +49,7 @@ module.exports = {
 
       if (exists) return exists; // đã tồn tại thì trả luôn
 
-      return await prisma.userFavoriteJob.create({
+      return await prisma.userFavoriteJobs.create({
         data: {
           user_id: BigInt(userId),
           job_id: BigInt(jobId),
@@ -64,7 +64,7 @@ module.exports = {
   //  Xóa job yêu thích
   async removeFavoriteJob(userId, jobId) {
     try {
-      return await prisma.userFavoriteJob.delete({
+      return await prisma.userFavoriteJobs.delete({
         where: {
           user_id_job_id: {
             user_id: BigInt(userId),
@@ -81,7 +81,7 @@ module.exports = {
   //  Lấy danh sách job yêu thích của user
   async getFavoriteJobs(userId) {
     try {
-      return await prisma.userFavoriteJob.findMany({
+      return await prisma.userFavoriteJobs.findMany({
         where: { user_id: BigInt(userId) },
         include: { job: true },
       });
