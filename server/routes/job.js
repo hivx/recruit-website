@@ -16,6 +16,9 @@ router.post(
 // GET all: public
 router.get('/', jobController.getAllJobs);
 
+// GET popular tags: public
+router.get('/popular-tags', jobController.getPopularTags);
+
 // GET all tags
 router.get('/tags', jobController.getAllTags);
 
@@ -27,8 +30,5 @@ router.put('/:id', authMiddleware, jobController.updateJob);
 
 // DELETE công việc: chỉ cho phép người tạo hoặc admin
 router.delete('/:id', authMiddleware, authorizeRoles('recruiter', 'admin'), jobController.deleteJob);
-
-// GET popular tags: public
-router.get('/popular-tags', jobController.getPopularTags);
 
 module.exports = router;

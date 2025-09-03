@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 module.exports = {
-  // ✅ Lấy thông tin user theo ID (kèm danh sách job yêu thích)
+  //  Lấy thông tin user theo ID (kèm danh sách job yêu thích)
   async getUserById(userId) {
     try {
       return await prisma.user.findUnique({
@@ -22,7 +22,7 @@ module.exports = {
     }
   },
 
-  // ✅ Cập nhật thông tin user
+  //  Cập nhật thông tin user
   async updateUser(userId, data) {
     try {
       return await prisma.user.update({
@@ -35,7 +35,7 @@ module.exports = {
     }
   },
 
-  // ✅ Thêm job yêu thích (tránh trùng lặp)
+  //  Thêm job yêu thích (tránh trùng lặp)
   async addFavoriteJob(userId, jobId) {
     try {
       const exists = await prisma.userFavoriteJob.findUnique({
@@ -61,7 +61,7 @@ module.exports = {
     }
   },
 
-  // ✅ Xóa job yêu thích
+  //  Xóa job yêu thích
   async removeFavoriteJob(userId, jobId) {
     try {
       return await prisma.userFavoriteJob.delete({
@@ -78,7 +78,7 @@ module.exports = {
     }
   },
 
-  // ✅ Lấy danh sách job yêu thích của user
+  //  Lấy danh sách job yêu thích của user
   async getFavoriteJobs(userId) {
     try {
       return await prisma.userFavoriteJob.findMany({

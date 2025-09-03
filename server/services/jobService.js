@@ -2,7 +2,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// ✅ Tạo Job (kèm tags)
+//  Tạo Job (kèm tags)
 exports.createJob = async (jobData) => {
   let createdByName = jobData.createdByName;
 
@@ -26,7 +26,7 @@ exports.createJob = async (jobData) => {
       created_by: BigInt(jobData.createdBy),
       created_by_name: createdByName,
 
-      // ✅ Lưu tags vào bảng job_tags (quan hệ Job.tags)
+      // Lưu tags vào bảng job_tags (quan hệ Job.tags)
       tags: Array.isArray(jobData.tags) && jobData.tags.length
         ? {
             create: [...new Set(jobData.tags)].map((t) => ({ tag: t })),
@@ -41,7 +41,7 @@ exports.createJob = async (jobData) => {
   return job;
 };
 
-// ✅ Lấy danh sách Job với lọc + search + phân trang (có tags, company, location, created_by_name)
+//  Lấy danh sách Job với lọc + search + phân trang (có tags, company, location, created_by_name)
 exports.getAllJobs = async ({ filter = {}, search = '', page = 1, limit = 10 }) => {
   const skip = (page - 1) * limit;
 
@@ -88,7 +88,7 @@ exports.getAllJobs = async ({ filter = {}, search = '', page = 1, limit = 10 }) 
   };
 };
 
-// ✅ Lấy Job theo ID (kèm creator, tags, favorites)
+//  Lấy Job theo ID (kèm creator, tags, favorites)
 exports.getJobById = async (id) => {
   return prisma.job.findUnique({
     where: { id: BigInt(id) },
@@ -100,7 +100,7 @@ exports.getJobById = async (id) => {
   });
 };
 
-// ✅ Cập nhật Job (thay toàn bộ tags nếu truyền vào)
+//  Cập nhật Job (thay toàn bộ tags nếu truyền vào)
 exports.updateJob = async (id, data) => {
   const { tags, ...fields } = data;
 
@@ -131,7 +131,7 @@ exports.updateJob = async (id, data) => {
   return updated;
 };
 
-// ✅ Xóa Job (dọn phụ thuộc trước để tránh lỗi FK)
+//  Xóa Job (dọn phụ thuộc trước để tránh lỗi FK)
 exports.deleteJob = async (id) => {
   const jobId = BigInt(id);
   await prisma.$transaction([
@@ -143,7 +143,7 @@ exports.deleteJob = async (id) => {
   return { success: true };
 };
 
-// ✅ Trả về tag phổ biến nhất
+//  Trả về tag phổ biến nhất - Thứ tự đặt route tĩnh cần đặt trước /:id (route động)
 exports.getPopularTags = async () => {
   const result = await prisma.jobTag.groupBy({
     by: ['tag'],
@@ -158,7 +158,7 @@ exports.getPopularTags = async () => {
   return result.map((r) => ({ tag: r.tag, count: r._count.tag }));
 };
 
-// ✅ Lấy tất cả tag (distinct)
+//  Lấy tất cả tag (distinct)
 exports.getAllTags = async () => {
   const result = await prisma.jobTag.findMany({
     distinct: ['tag'],
