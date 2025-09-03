@@ -51,7 +51,7 @@ exports.getJobById = async (req, res) => {
     let isFavorite = false;
     if (req.user) {
       const user = await userService.getUserById(req.user.userId);
-      isFavorite = user?.favoriteJobs?.includes(job.id);
+      isFavorite = user?.favorites?.some(fav => fav.job_id === job.id);
     }
 
     res.json({

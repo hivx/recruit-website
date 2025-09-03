@@ -12,9 +12,9 @@
  *     Job:
  *       type: object
  *       properties:
- *         _id:
- *           type: string
- *           example: 64e9d3c2e4f57e1234567890
+ *         id:
+ *           type: integer
+ *           example: 1
  *         title:
  *           type: string
  *           example: Lập trình viên ReactJS
@@ -33,16 +33,25 @@
  *         requirements:
  *           type: string
  *           example: Có ít nhất 1 năm kinh nghiệm
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["IT", "Marketing"]
  *         createdBy:
  *           type: object
  *           nullable: true
  *           properties:
- *             _id:
- *               type: string
+ *             id:
+ *               type: integer
+ *               example: 2
  *             name:
  *               type: string
+ *               example: Nguyễn Văn B
  *             email:
  *               type: string
+ *               example: example@gmail.com
+ *           description: Thông tin người tạo (join từ bảng users)
  *         createdByName:
  *           type: string
  *           example: Nguyễn Văn A
@@ -50,9 +59,11 @@
  *         createdAt:
  *           type: string
  *           format: date-time
+ *           example: 2025-09-01T14:30:00Z
  *         updatedAt:
  *           type: string
  *           format: date-time
+ *           example: 2025-09-02T09:15:00Z
  */
 
 /**
@@ -96,7 +107,6 @@
  *                 items:
  *                   type: string
  *                 example: ["IT", "Marketing"]
- *
  *     responses:
  *       201:
  *         description: Bài tuyển dụng đã được tạo
@@ -132,13 +142,11 @@
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Số trang hiện tại (phân trang)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Số lượng job trên mỗi trang
  *     responses:
  *       200:
  *         description: Danh sách các bài tuyển dụng kèm phân trang
@@ -170,53 +178,30 @@
  *   get:
  *     summary: Lấy chi tiết bài tuyển dụng theo ID
  *     tags: [Jobs]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         description: ID của bài tuyển dụng
  *         schema:
- *           type: string
+ *           type: integer
  *     responses:
  *       200:
  *         description: Chi tiết bài tuyển dụng
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 title:
- *                   type: string
- *                 tags:
- *                   type: array
- *                   items:
- *                     type: string
- *                 company:
- *                   type: string
- *                 location:
- *                   type: string
- *                 description:
- *                   type: string
- *                 salary:
- *                   type: string
- *                 requirements:
- *                   type: string
- *                 createdBy:
- *                   type: string
- *                 createdByName:
- *                   type: string
- *                 createdAt:
- *                   type: string
- *                 createdAtFormatted:
- *                   type: string
- *                   description: "Ngày giờ định dạng DD/MM/YYYY HH:mm"
- *                 isFavorite:
- *                   type: boolean
- *                   description: "Có được user login đánh dấu yêu thích không"
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Job'
+ *                 - type: object
+ *                   properties:
+ *                     createdAtFormatted:
+ *                       type: string
+ *                       example: "01/09/2025 14:30"
+ *                       description: Ngày giờ định dạng DD/MM/YYYY HH:mm
+ *                     isFavorite:
+ *                       type: boolean
+ *                       description: Có được user login đánh dấu yêu thích không
  *       404:
  *         description: Không tìm thấy bài tuyển dụng
  */
@@ -240,7 +225,7 @@
  *                   tag:
  *                     type: string
  *                   count:
- *                     type: number
+ *                     type: integer
  */
 
 /**
@@ -272,9 +257,8 @@
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID của bài tuyển dụng cần cập nhật
  *         schema:
- *           type: string
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -298,12 +282,9 @@
  *                 type: array
  *                 items:
  *                   type: string
- *               createdByName:
- *                 type: string
  *             required:
  *               - title
  *               - company
- *               - createdByName
  *     responses:
  *       200:
  *         description: Cập nhật công việc thành công
@@ -327,9 +308,8 @@
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID của bài tuyển dụng cần xóa
  *         schema:
- *           type: string
+ *           type: integer
  *     responses:
  *       200:
  *         description: Xóa công việc thành công

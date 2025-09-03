@@ -1,5 +1,6 @@
 // controllers/userController.js
 const userService = require('../services/userService');
+const bcrypt = require('bcrypt');
 
 exports.toggleFavoriteJob = async (req, res) => {
   try {
@@ -36,6 +37,59 @@ exports.getFavoriteJobs = async (req, res) => {
     res.status(200).json(jobs);
   } catch (err) {
     console.error('[Get Favorite Jobs Error]', err.message);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+// update user profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId; // từ JWT
+    const { name, email } = req.body;
+
+    const updatedUser = await userService.updateUser(userId, { name, email });
+
+    res.status(200).json({
+      message: 'Cập nhật thông tin thành công',
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error('[Update Profile Error]', err.message);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+// change password
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId; // lấy từ token sau khi middleware decode
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ mật khẩu cũ và mới' });
+    }
+
+    // Lấy user từ DB
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    // So sánh mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Mật khẩu cũ không đúng' });
+    }
+
+    // Hash mật khẩu mới
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật
+    await userService.updateUser(userId, { password: hashed });
+
+    res.json({ message: 'Đổi mật khẩu thành công' });
+  } catch (err) {
+    console.error('[Change Password Error]', err.message);
     res.status(500).json({ message: 'Lỗi server' });
   }
 };

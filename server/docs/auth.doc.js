@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Auth
- *   description: Quản lý xác thực và người dùng
+ *   description: Quản lý xác thực (đăng ký, đăng nhập, xác thực người dùng)
  */
 
 /**
@@ -31,6 +31,7 @@
  *           example: chuvanhieu357@gmail.com
  *         password:
  *           type: string
+ *           format: password
  *           example: 123456
  *         role:
  *           type: string
@@ -48,18 +49,24 @@
  *           example: chuvanhieu357@gmail.com
  *         password:
  *           type: string
+ *           format: password
  *           example: 123456
  *     UserResponse:
  *       type: object
  *       properties:
  *         id:
- *           type: string
+ *           type: integer
+ *           example: 1
  *         name:
  *           type: string
+ *           example: Nguyễn Văn A
  *         email:
  *           type: string
+ *           example: chuvanhieu357@gmail.com
  *         role:
  *           type: string
+ *           enum: [admin, recruiter, applicant]
+ *           example: applicant
  */
 
 /**
@@ -107,6 +114,7 @@
  *               properties:
  *                 token:
  *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
