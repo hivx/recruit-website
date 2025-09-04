@@ -1,22 +1,28 @@
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
-const applicationController = require('../controllers/applicationController');
-const upload = require('../utils/uploadCV');
+const applicationController = require("../controllers/applicationController");
+const auth = require("../middleware/authMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
+const upload = require("../utils/uploadCV");
 
 // @route   POST /api/applications
 // @desc    Ứng tuyển công việc (chỉ dành cho applicant)
 router.post(
-  '/',
+  "/",
   auth,
-  authorizeRoles('applicant', 'admin'), // chỉ applicant hoặc admin
-  upload.single('cv'), // middleware Multer xử lý tệp tải lên
-  applicationController.createApplication
+  authorizeRoles("applicant", "admin"), // chỉ applicant hoặc admin
+  upload.single("cv"), // middleware Multer xử lý tệp tải lên
+  applicationController.createApplication,
 );
 
 // @route   GET /api/applications/:jobId
 // GET: Lấy danh sách ứng viên đã ứng tuyển vào công việc
-router.get('/job/:jobId', auth, authorizeRoles('applicant', 'admin'), applicationController.getApplicantsByJob);
+router.get(
+  "/job/:jobId",
+  auth,
+  authorizeRoles("applicant", "admin"),
+  applicationController.getApplicantsByJob,
+);
 
 module.exports = router;

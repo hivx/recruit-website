@@ -1,5 +1,5 @@
 // controllers/applicationController.js
-const applicationService = require('../services/applicationService');
+const applicationService = require("../services/applicationService");
 
 // POST: Ứng tuyển công việc (coverLetter, cv, phone bắt buộc)
 exports.createApplication = async (req, res) => {
@@ -9,7 +9,7 @@ exports.createApplication = async (req, res) => {
 
     // Đảm bảo CV đã được upload
     if (!req.file) {
-      return res.status(400).json({ message: 'Chưa tải lên file CV' });
+      return res.status(400).json({ message: "Chưa tải lên file CV" });
     }
 
     const application = await applicationService.createApplication({
@@ -21,13 +21,13 @@ exports.createApplication = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Ứng tuyển thành công!',
+      message: "Ứng tuyển thành công!",
       application,
     });
   } catch (err) {
-    console.error('[ApplicationController createApplication]', err.message);
+    console.error("[ApplicationController createApplication]", err.message);
     res.status(err.statusCode || 500).json({
-      message: err.message || 'Lỗi server!',
+      message: err.message || "Lỗi server!",
     });
   }
 };
@@ -42,13 +42,13 @@ exports.getApplicantsByJob = async (req, res) => {
 
     if (!applications || applications.length === 0) {
       return res.status(404).json({
-        message: 'Không có ứng viên nào ứng tuyển cho công việc này.',
+        message: "Không có ứng viên nào ứng tuyển cho công việc này.",
       });
     }
 
     res.json({
       totalApplicants: applications.length,
-      applicants: applications.map(app => ({
+      applicants: applications.map((app) => ({
         applicantName: app.applicant.name,
         applicantEmail: app.applicant.email,
         coverLetter: app.cover_letter,
@@ -58,7 +58,7 @@ exports.getApplicantsByJob = async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('[Get Applicants By Job Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi lấy danh sách ứng viên!' });
+    console.error("[Get Applicants By Job Error]", err.message);
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách ứng viên!" });
   }
 };

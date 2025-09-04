@@ -1,5 +1,6 @@
 // services/userService.js
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
+
 const prisma = new PrismaClient();
 
 module.exports = {
@@ -17,7 +18,7 @@ module.exports = {
         },
       });
     } catch (err) {
-      console.error('[UserService getUserById Error]', err.message);
+      console.error("[UserService getUserById Error]", err.message);
       throw err;
     }
   },
@@ -30,7 +31,7 @@ module.exports = {
         data,
       });
     } catch (err) {
-      console.error('[UserService updateUser Error]', err.message);
+      console.error("[UserService updateUser Error]", err.message);
       throw err;
     }
   },
@@ -47,7 +48,9 @@ module.exports = {
         },
       });
 
-      if (exists) return exists; // đã tồn tại thì trả luôn
+      if (exists) {
+        return exists;
+      } // đã tồn tại thì trả luôn
 
       return await prisma.userFavoriteJobs.create({
         data: {
@@ -56,7 +59,7 @@ module.exports = {
         },
       });
     } catch (err) {
-      console.error('[UserService addFavoriteJob Error]', err.message);
+      console.error("[UserService addFavoriteJob Error]", err.message);
       throw err;
     }
   },
@@ -73,7 +76,7 @@ module.exports = {
         },
       });
     } catch (err) {
-      console.error('[UserService removeFavoriteJob Error]', err.message);
+      console.error("[UserService removeFavoriteJob Error]", err.message);
       throw err;
     }
   },
@@ -86,7 +89,7 @@ module.exports = {
         include: { job: true },
       });
     } catch (err) {
-      console.error('[UserService getFavoriteJobs Error]', err.message);
+      console.error("[UserService getFavoriteJobs Error]", err.message);
       throw err;
     }
   },

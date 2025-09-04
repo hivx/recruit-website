@@ -1,6 +1,7 @@
-const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
-const generateToken = require('../utils/generateToken');
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
+
+const generateToken = require("../utils/generateToken");
 
 const prisma = new PrismaClient();
 
@@ -9,7 +10,7 @@ exports.register = async ({ name, email, password }) => {
   // Kiểm tra email tồn tại
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    throw new Error('Email đã tồn tại');
+    throw new Error("Email đã tồn tại");
   }
 
   // Hash password
@@ -21,8 +22,8 @@ exports.register = async ({ name, email, password }) => {
     data: {
       name,
       email,
-      password: hashedPassword
-    }
+      password: hashedPassword,
+    },
   });
 
   return newUser;
@@ -31,14 +32,18 @@ exports.register = async ({ name, email, password }) => {
 // Đăng nhập
 exports.login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('Email không tồn tại');
+  if (!user) {
+    throw new Error("Email không tồn tại");
+  }
 
   if (!user.isVerified) {
-    throw new Error('Tài khoản chưa được xác thực qua email');
+    throw new Error("Tài khoản chưa được xác thực qua email");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error('Sai mật khẩu');
+  if (!isMatch) {
+    throw new Error("Sai mật khẩu");
+  }
 
   const token = generateToken(user.id.toString(), user.role);
 
@@ -48,8 +53,8 @@ exports.login = async ({ email, password }) => {
       id: user.id.toString(),
       name: user.name,
       email: user.email,
-      role: user.role
-    }
+      role: user.role,
+    },
   };
 };
 
@@ -63,10 +68,12 @@ exports.getMe = async (userId) => {
       email: true,
       role: true,
       isVerified: true,
-      created_at: true
-    }
+      created_at: true,
+    },
   });
 
-  if (!user) throw new Error('Không tìm thấy người dùng');
+  if (!user) {
+    throw new Error("Không tìm thấy người dùng");
+  }
   return user;
 };

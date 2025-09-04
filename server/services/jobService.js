@@ -1,5 +1,6 @@
 // services/jobService.js
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
+
 const prisma = new PrismaClient();
 
 //  Tạo Job (kèm tags)
@@ -12,7 +13,9 @@ exports.createJob = async (jobData) => {
       where: { id: BigInt(jobData.createdBy) },
       select: { name: true },
     });
-    if (user) createdByName = user.name;
+    if (user) {
+      createdByName = user.name;
+    }
   }
 
   const job = await prisma.job.create({
@@ -27,11 +30,12 @@ exports.createJob = async (jobData) => {
       created_by_name: createdByName,
 
       // Lưu tags vào bảng job_tags (quan hệ Job.tags)
-      tags: Array.isArray(jobData.tags) && jobData.tags.length
-        ? {
-            create: [...new Set(jobData.tags)].map((t) => ({ tag: t })),
-          }
-        : undefined,
+      tags:
+        Array.isArray(jobData.tags) && jobData.tags.length
+          ? {
+              create: [...new Set(jobData.tags)].map((t) => ({ tag: t })),
+            }
+          : undefined,
     },
     include: {
       tags: true,
@@ -42,7 +46,12 @@ exports.createJob = async (jobData) => {
 };
 
 //  Lấy danh sách Job với lọc + search + phân trang (có tags, company, location, created_by_name)
-exports.getAllJobs = async ({ filter = {}, search = '', page = 1, limit = 10 }) => {
+exports.getAllJobs = async ({
+  filter = {},
+  search = "",
+  page = 1,
+  limit = 10,
+}) => {
   const skip = (page - 1) * limit;
 
   // Lọc theo tag: bất kỳ tag nào trong danh sách
@@ -72,7 +81,7 @@ exports.getAllJobs = async ({ filter = {}, search = '', page = 1, limit = 10 }) 
   const [jobs, total] = await Promise.all([
     prisma.job.findMany({
       where,
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
       skip,
       take: limit,
       include: { tags: true },
@@ -146,11 +155,11 @@ exports.deleteJob = async (id) => {
 //  Trả về tag phổ biến nhất - Thứ tự đặt route tĩnh cần đặt trước /:id (route động)
 exports.getPopularTags = async () => {
   const result = await prisma.jobTag.groupBy({
-    by: ['tag'],
+    by: ["tag"],
     _count: { tag: true },
     orderBy: {
       _count: {
-        tag: 'desc',
+        tag: "desc",
       },
     },
     take: 10,
@@ -161,7 +170,7 @@ exports.getPopularTags = async () => {
 //  Lấy tất cả tag (distinct)
 exports.getAllTags = async () => {
   const result = await prisma.jobTag.findMany({
-    distinct: ['tag'],
+    distinct: ["tag"],
     select: { tag: true },
   });
   return result.map((r) => r.tag);

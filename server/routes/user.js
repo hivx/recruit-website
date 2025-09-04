@@ -1,19 +1,20 @@
 // routes/userRoutes.js hoặc routes/favoriteRoutes.js
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
-const userController = require('../controllers/userController');
+const userController = require("../controllers/userController");
+const auth = require("../middleware/authMiddleware");
 
 // PUT: Cập nhật thông tin cá nhân
-router.put('/me', auth, userController.updateProfile);
+router.put("/me", auth, userController.updateProfile);
 
 // Đổi mật khẩu (chỉ user đã đăng nhập mới được)
-router.put('/change-password', auth, userController.changePassword);
+router.put("/change-password", auth, userController.changePassword);
 
 // GET: Lấy danh sách công việc yêu thích
-router.get('/favorite', auth, userController.getFavoriteJobs);
+router.get("/favorite", auth, userController.getFavoriteJobs);
 
 // POST: Thêm hoặc xóa công việc yêu thích
-router.post('/favorite/:jobId', auth, userController.toggleFavoriteJob);
+router.post("/favorite/:jobId", auth, userController.toggleFavoriteJob);
 
 module.exports = router;

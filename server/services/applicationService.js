@@ -1,5 +1,6 @@
 // services/applicationService.js
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
+
 const prisma = new PrismaClient();
 
 module.exports = {
@@ -10,7 +11,7 @@ module.exports = {
       where: { id: BigInt(jobId) },
     });
     if (!job) {
-      const error = new Error('Công việc không tồn tại!');
+      const error = new Error("Công việc không tồn tại!");
       error.statusCode = 404;
       throw error;
     }
@@ -23,7 +24,7 @@ module.exports = {
       },
     });
     if (existing) {
-      const error = new Error('Bạn đã ứng tuyển công việc này rồi.');
+      const error = new Error("Bạn đã ứng tuyển công việc này rồi.");
       error.statusCode = 400;
       throw error;
     }
@@ -47,7 +48,7 @@ module.exports = {
     return await prisma.application.findMany({
       where: { applicant_id: BigInt(userId) },
       include: { job: true },
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
     });
   },
 
@@ -56,7 +57,7 @@ module.exports = {
     return await prisma.application.findMany({
       where: { job_id: BigInt(jobId) },
       include: { applicant: true },
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
     });
   },
 };

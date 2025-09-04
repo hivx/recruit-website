@@ -1,4 +1,4 @@
-const transporter = require('../utils/gmailTransport');
+const transporter = require("../utils/gmailTransport");
 
 exports.sendEmail = async (to, subject, html) => {
   return transporter.sendMail({

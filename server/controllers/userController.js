@@ -1,6 +1,7 @@
 // controllers/userController.js
-const userService = require('../services/userService');
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
+
+const userService = require("../services/userService");
 
 exports.toggleFavoriteJob = async (req, res) => {
   try {
@@ -9,22 +10,28 @@ exports.toggleFavoriteJob = async (req, res) => {
 
     const user = await userService.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
     }
 
     // Kiểm tra job có trong favorites chưa
-    const isFavorite = user.favorites.some(fav => fav.job_id === BigInt(jobId));
+    const isFavorite = user.favorites.some(
+      (fav) => fav.job_id === BigInt(jobId),
+    );
 
     if (!isFavorite) {
       await userService.addFavoriteJob(userId, jobId);
-      return res.status(200).json({ message: 'Đã thêm vào danh sách yêu thích' });
+      return res
+        .status(200)
+        .json({ message: "Đã thêm vào danh sách yêu thích" });
     } else {
       await userService.removeFavoriteJob(userId, jobId);
-      return res.status(200).json({ message: 'Đã gỡ khỏi danh sách yêu thích' });
+      return res
+        .status(200)
+        .json({ message: "Đã gỡ khỏi danh sách yêu thích" });
     }
   } catch (err) {
-    console.error('[Favorite Job Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server' });
+    console.error("[Favorite Job Error]", err.message);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
@@ -32,12 +39,12 @@ exports.toggleFavoriteJob = async (req, res) => {
 exports.getFavoriteJobs = async (req, res) => {
   try {
     const favorites = await userService.getFavoriteJobs(req.user.userId);
-    const jobs = favorites.map(fav => fav.job); // lấy danh sách job từ quan hệ
+    const jobs = favorites.map((fav) => fav.job); // lấy danh sách job từ quan hệ
 
     res.status(200).json(jobs);
   } catch (err) {
-    console.error('[Get Favorite Jobs Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server' });
+    console.error("[Get Favorite Jobs Error]", err.message);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
@@ -50,12 +57,12 @@ exports.updateProfile = async (req, res) => {
     const updatedUser = await userService.updateUser(userId, { name, email });
 
     res.status(200).json({
-      message: 'Cập nhật thông tin thành công',
+      message: "Cập nhật thông tin thành công",
       user: updatedUser,
     });
   } catch (err) {
-    console.error('[Update Profile Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server' });
+    console.error("[Update Profile Error]", err.message);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
@@ -66,19 +73,21 @@ exports.changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ mật khẩu cũ và mới' });
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới" });
     }
 
     // Lấy user từ DB
     const user = await userService.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
     }
 
     // So sánh mật khẩu cũ
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Mật khẩu cũ không đúng' });
+      return res.status(400).json({ message: "Mật khẩu cũ không đúng" });
     }
 
     // Hash mật khẩu mới
@@ -87,9 +96,9 @@ exports.changePassword = async (req, res) => {
     // Cập nhật
     await userService.updateUser(userId, { password: hashed });
 
-    res.json({ message: 'Đổi mật khẩu thành công' });
+    res.json({ message: "Đổi mật khẩu thành công" });
   } catch (err) {
-    console.error('[Change Password Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server' });
+    console.error("[Change Password Error]", err.message);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
