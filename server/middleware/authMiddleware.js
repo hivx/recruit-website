@@ -28,6 +28,7 @@ const authMiddleware = async (req, res, next) => {
       select: {
         id: true,
         name: true,
+        avatar: true,
         email: true,
         role: true,
         isVerified: true,
@@ -41,6 +42,7 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       userId: user.id.toString(), // tránh lỗi JSON khi trả về
       username: user.name,
+      avatar: user.avatar,
       email: user.email,
       role: user.role,
       isVerified: user.isVerified,

@@ -14,17 +14,19 @@ enum Role {
 }
 
 model User {
-  id            BigInt   @id @default(autoincrement())
-  name          String
-  email         String   @unique
-  password String
-  isVerified   Boolean  @default(false)
-  role          Role     @default(applicant)
-  created_at    DateTime @default(now())
+  id         BigInt   @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  isVerified Boolean  @default(false)
+  role       Role     @default(applicant)
+  created_at DateTime @default(now())
 
   favorites    UserFavoriteJobs[]
   jobs         Job[]              @relation("UserJobs")
   applications Application[]
+
+  avatar String? @default("pic.jpg")
 
   @@map("users") // <— bảng thật trong MySQL
 }
@@ -35,7 +37,8 @@ model Job {
   company         String
   location        String?
   description     String?
-  salary          String?
+  salary_min      Int?
+  salary_max      Int?
   requirements    String?
   created_by      BigInt
   created_by_name String

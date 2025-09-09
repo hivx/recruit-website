@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
+const uploadCV = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     // Chỉ cho phép tải lên các file PDF và DOCX
@@ -31,4 +31,4 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+module.exports = uploadCV;

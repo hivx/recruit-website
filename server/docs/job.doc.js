@@ -27,9 +27,12 @@
  *         description:
  *           type: string
  *           example: Tuyển lập trình viên ReactJS có kinh nghiệm
- *         salary:
- *           type: string
+ *         salary_min:
+ *           type: number
  *           example: 15000000
+ *         salary_max:
+ *           type: number
+ *           example: 20000000
  *         requirements:
  *           type: string
  *           example: Có ít nhất 1 năm kinh nghiệm
@@ -96,9 +99,12 @@
  *               description:
  *                 type: string
  *                 example: Mô tả công việc ReactJS
- *               salary:
- *                 type: string
+ *               salary_min:
+ *                 type: number
  *                 example: 15000000
+ *               salary_max:
+ *                 type: number
+ *                 example: 20000000
  *               requirements:
  *                 type: string
  *                 example: Kinh nghiệm 1 năm ReactJS

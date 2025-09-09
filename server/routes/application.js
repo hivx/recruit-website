@@ -4,7 +4,7 @@ const router = express.Router();
 const applicationController = require("../controllers/applicationController");
 const auth = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
-const upload = require("../utils/uploadCV");
+const uploadCV = require("../utils/uploadCV");
 
 // @route   POST /api/applications
 // @desc    Ứng tuyển công việc (chỉ dành cho applicant)
@@ -12,7 +12,7 @@ router.post(
   "/",
   auth,
   authorizeRoles("applicant", "admin"), // chỉ applicant hoặc admin
-  upload.single("cv"), // middleware Multer xử lý tệp tải lên
+  uploadCV.single("cv"), // middleware Multer xử lý tệp tải lên
   applicationController.createApplication,
 );
 
