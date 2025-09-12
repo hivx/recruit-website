@@ -4,7 +4,7 @@ CREATE TABLE `users` (
     `name` VARCHAR(100) NOT NULL,
     `email` VARCHAR(100) NOT NULL,
     `password` VARCHAR(100) NOT NULL,
-    `avatar` VARCHAR(500) NOT NULL DEFAULT 'pic.jpg';,
+    `avatar` VARCHAR(500) NOT NULL DEFAULT 'uploads/pic.jpg';,
     `isVerified` BOOLEAN NOT NULL DEFAULT false,
     `role` ENUM('admin', 'recruiter', 'applicant') NOT NULL DEFAULT 'applicant',
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -58,6 +58,7 @@ CREATE TABLE `applications` (
     `phone` VARCHAR(100) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    -- UNIQUE KEY `applications_job_id_applicant_id_key` (`job_id`, `applicant_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

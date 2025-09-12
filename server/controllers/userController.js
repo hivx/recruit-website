@@ -48,17 +48,33 @@ exports.getFavoriteJobs = async (req, res) => {
   }
 };
 
-// update user profile
+// update user profile (name, email, avatar)
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // từ JWT
+    const userId = req.user.userId; // từ JWT (tùy payload bạn set)
+
+    // nếu có file upload (avatar) thì lấy path
+    let avatarPath;
+    if (req.file) {
+      avatarPath = "uploads/" + req.file.filename;
+    }
+
     const { name, email } = req.body;
 
-    const updatedUser = await userService.updateUser(userId, { name, email });
+    const updatedUser = await userService.updateUser(userId, {
+      ...(name && { name }),
+      ...(email && { email }),
+      ...(avatarPath && { avatar: avatarPath }),
+    });
 
     res.status(200).json({
       message: "Cập nhật thông tin thành công",
-      user: updatedUser,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatar: updatedUser.avatar,
+      },
     });
   } catch (err) {
     console.error("[Update Profile Error]", err.message);

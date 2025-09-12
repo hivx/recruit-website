@@ -21,7 +21,7 @@ router.post(
 router.get(
   "/job/:jobId",
   auth,
-  authorizeRoles("applicant", "admin"),
+  authorizeRoles("recuiter", "admin"),
   applicationController.getApplicantsByJob,
 );
 

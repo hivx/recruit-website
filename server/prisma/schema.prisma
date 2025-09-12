@@ -21,12 +21,13 @@ model User {
   isVerified Boolean  @default(false)
   role       Role     @default(applicant)
   created_at DateTime @default(now())
+  updated_at DateTime @default(now())
 
   favorites    UserFavoriteJobs[]
   jobs         Job[]              @relation("UserJobs")
   applications Application[]
 
-  avatar String? @default("pic.jpg")
+  avatar     String @default("uploads\pic.jpg")
 
   @@map("users") // <— bảng thật trong MySQL
 }

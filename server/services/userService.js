@@ -23,12 +23,16 @@ module.exports = {
     }
   },
 
-  //  Cập nhật thông tin user
+  //  Cập nhật thông tin user (hỗ trợ cả avatar)
   async updateUser(userId, data) {
     try {
       return await prisma.user.update({
         where: { id: BigInt(userId) },
-        data,
+        data: {
+          ...(data.name && { name: data.name }),
+          ...(data.email && { email: data.email }),
+          ...(data.avatar && { avatar: data.avatar }),
+        },
       });
     } catch (err) {
       console.error("[UserService updateUser Error]", err.message);

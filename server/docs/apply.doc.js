@@ -79,7 +79,7 @@
  *             schema:
  *               $ref: '#/components/schemas/Application'
  *       400:
- *         description: Đã ứng tuyển trước đó hoặc dữ liệu không hợp lệ
+ *         description: Bạn đã ứng tuyển công việc này rồi.
  *       401:
  *         description: Chưa đăng nhập hoặc token không hợp lệ
  *       403:

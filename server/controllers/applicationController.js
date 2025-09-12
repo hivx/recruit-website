@@ -11,12 +11,13 @@ exports.createApplication = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "Chưa tải lên file CV" });
     }
+    const cvPath = `uploads/${req.file.filename}`; // nếu có file upload (avatar) thì lấy path
 
     const application = await applicationService.createApplication({
-      jobId,
+      jobId: BigInt(jobId),
       coverLetter,
-      userId,
-      cv: req.file.path, // đường dẫn file
+      userId: BigInt(userId),
+      cv: cvPath, // đường dẫn file
       phone,
     });
 
