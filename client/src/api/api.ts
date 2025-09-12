@@ -12,7 +12,7 @@ api.interceptors.request.use(
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error instanceof Error ? error : new Error(error))
 );
 
 api.interceptors.response.use(
