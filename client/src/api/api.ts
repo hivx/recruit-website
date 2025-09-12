@@ -23,6 +23,6 @@ api.interceptors.response.use(
       error?.message ||
       "Đã có lỗi khi gọi API";
     toast.error(msg);
-    return Promise.reject(error);
+    return Promise.reject(error instanceof Error ? error : new Error(msg));
   }
 );
