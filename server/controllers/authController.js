@@ -40,6 +40,7 @@ exports.register = async (req, res) => {
       data: {
         name,
         email,
+        avatar: "uploads/pic.jpg",
         password: hashedPassword,
         role: userRole,
         isVerified: false,

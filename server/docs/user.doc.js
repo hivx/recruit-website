@@ -142,7 +142,7 @@
  * @swagger
  * /api/users/me:
  *   put:
- *     summary: Cập nhật thông tin cá nhân (name/email/avatar)
+ *     summary: Cập nhật thông tin cá nhân người dùng
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []

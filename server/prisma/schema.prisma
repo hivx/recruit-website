@@ -15,34 +15,34 @@ enum Role {
 
 model User {
   id         BigInt   @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  password   String
+  name       String   @db.VarChar(100)
+  email      String   @unique @db.VarChar(100)
+  password   String   @db.VarChar(100)
   isVerified Boolean  @default(false)
   role       Role     @default(applicant)
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   favorites    UserFavoriteJobs[]
   jobs         Job[]              @relation("UserJobs")
   applications Application[]
 
-  avatar     String @default("uploads\pic.jpg")
+  avatar     String @default("uploads\\pic.jpg") @db.VarChar(500)
 
   @@map("users") // <— bảng thật trong MySQL
 }
 
 model Job {
-  id              BigInt   @id @default(autoincrement())
-  title           String
-  company         String
-  location        String?
-  description     String?
+  id              BigInt  @id @default(autoincrement())
+  title           String  @db.VarChar(200)
+  company         String  @db.VarChar(200)
+  location        String? @db.VarChar(100)
+  description     String? @db.VarChar(500)
   salary_min      Int?
   salary_max      Int?
-  requirements    String?
+  requirements    String?  @db.VarChar(500)
   created_by      BigInt
-  created_by_name String
+  created_by_name String   @db.VarChar(500)
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now())
 
@@ -77,9 +77,9 @@ model Application {
   id           BigInt   @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String
-  cv           String?
-  phone        String?
+  cover_letter String   @db.VarChar(500)
+  cv           String?  @db.VarChar(500)
+  phone        String?  @db.VarChar(100)
   created_at   DateTime @default(now())
 
   job       Job  @relation(fields: [job_id], references: [id])

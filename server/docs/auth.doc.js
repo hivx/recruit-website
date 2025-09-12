@@ -67,6 +67,16 @@
  *           type: string
  *           enum: [admin, recruiter, applicant]
  *           example: applicant
+ *         isVerified:
+ *           type: boolean
+ *           example: true
+ *         avatar:
+ *           type: string
+ *           example: uploads/1_1736625098123.png
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-09-01T10:20:30.000Z
  */
 
 /**
