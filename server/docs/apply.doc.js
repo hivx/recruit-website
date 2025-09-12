@@ -27,7 +27,7 @@
  *         cv:
  *           type: string
  *           nullable: true
- *           example: /uploads/cv_1725353678.pdf
+ *           example: /uploads/1736725098123_cv.pdf
  *         phone:
  *           type: string
  *           nullable: true
@@ -35,7 +35,33 @@
  *         created_at:
  *           type: string
  *           format: date-time
- *           example: 2025-09-03T12:34:56.000Z
+ *           example: 2025-09-12T12:34:56.000Z
+ *
+ *     ApplicantInfo:
+ *       type: object
+ *       properties:
+ *         applicantName:
+ *           type: string
+ *           example: "Chu Văn Hiếu"
+ *         applicantEmail:
+ *           type: string
+ *           example: "chuvanhieu357@gmail.com"
+ *         applicantAvatar:
+ *           type: string
+ *           example: "/uploads/avatars/1_1736625098123.png"
+ *         coverLetter:
+ *           type: string
+ *           example: Tôi có 3 năm kinh nghiệm ReactJS...
+ *         cv:
+ *           type: string
+ *           example: http://localhost:5000/uploads/1736725098123_cv.pdf
+ *         phone:
+ *           type: string
+ *           example: "0901234567"
+ *         appliedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-09-12T14:32:01.123Z
  */
 
 /**
@@ -70,16 +96,22 @@
  *               cv:
  *                 type: string
  *                 format: binary
- *                 description: File CV (chỉ hỗ trợ PDF, DOC, DOCX)
+ *                 description: File CV (PDF, DOC, DOCX)
  *     responses:
  *       201:
  *         description: Ứng tuyển thành công
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Application'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Ứng tuyển thành công!
+ *                 application:
+ *                   $ref: '#/components/schemas/Application'
  *       400:
- *         description: Bạn đã ứng tuyển công việc này rồi.
+ *         description: Thiếu dữ liệu hoặc đã ứng tuyển job này rồi
  *       401:
  *         description: Chưa đăng nhập hoặc token không hợp lệ
  *       403:
@@ -92,7 +124,7 @@
  * @swagger
  * /api/applications/job/{jobId}:
  *   get:
- *     summary: Lấy danh sách ứng viên đã ứng tuyển vào một công việc
+ *     summary: Nhà tuyển dụng lấy danh sách ứng viên đã ứng tuyển vào một công việc
  *     tags: [Applications]
  *     security:
  *       - bearerAuth: []
@@ -118,9 +150,9 @@
  *                 applicants:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Application'
+ *                     $ref: '#/components/schemas/ApplicantInfo'
  *       404:
- *         description: Không tìm thấy ứng viên nào
+ *         description: Không có ứng viên nào ứng tuyển cho công việc này
  *       500:
  *         description: Lỗi server khi lấy danh sách ứng viên
  */

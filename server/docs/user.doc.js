@@ -57,6 +57,9 @@
  *         isVerified:
  *           type: boolean
  *           example: true
+ *         avatar:
+ *           type: string
+ *           example: /uploads/avatars/1_1736625098123.png
  *         created_at:
  *           type: string
  *           format: date-time
@@ -139,16 +142,28 @@
  * @swagger
  * /api/users/me:
  *   put:
- *     summary: Cập nhật thông tin cá nhân của người dùng
+ *     summary: Cập nhật thông tin cá nhân (name/email/avatar)
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UpdateUserInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Nguyễn Văn B
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: nguyenvanb@gmail.com
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ảnh đại diện (jpg, png, webp, ...)
  *     responses:
  *       200:
  *         description: Cập nhật thành công, trả về thông tin user mới

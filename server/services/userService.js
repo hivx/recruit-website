@@ -32,6 +32,7 @@ module.exports = {
           ...(data.name && { name: data.name }),
           ...(data.email && { email: data.email }),
           ...(data.avatar && { avatar: data.avatar }),
+          ...(data.password && { password: data.password }),
         },
       });
     } catch (err) {
