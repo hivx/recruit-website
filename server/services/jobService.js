@@ -121,7 +121,8 @@ exports.updateJob = async (id, data) => {
       company: fields.company,
       location: fields.location ?? null,
       description: fields.description ?? null,
-      salary: fields.salary ?? null,
+      salary_min: fields.salary_min ?? null,
+      salary_max: fields.salary_max ?? null,
       requirements: fields.requirements ?? null,
       updated_at: new Date(),
 

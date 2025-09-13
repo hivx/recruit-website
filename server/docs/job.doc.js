@@ -12,9 +12,6 @@
  *     Job:
  *       type: object
  *       properties:
- *         id:
- *           type: integer
- *           example: 1
  *         title:
  *           type: string
  *           example: Lập trình viên ReactJS
@@ -35,38 +32,30 @@
  *           example: 20000000
  *         requirements:
  *           type: string
- *           example: Có ít nhất 1 năm kinh nghiệm
- *         tags:
- *           type: array
- *           items:
- *             type: string
- *           example: ["IT", "Marketing"]
- *         createdBy:
- *           type: object
- *           nullable: true
- *           properties:
- *             id:
- *               type: integer
- *               example: 2
- *             name:
- *               type: string
- *               example: Nguyễn Văn B
- *             email:
- *               type: string
- *               example: example@gmail.com
- *           description: Thông tin người tạo (join từ bảng users)
- *         createdByName:
+ *           example: Có ít nhất 1 năm kinh nghiệm.
+ *         created_by_name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Nguyễn Văn Víp
  *           description: Tên người tạo bài viết, vẫn lưu ngay cả khi tài khoản bị xoá
- *         createdAt:
+ *         created_t:
  *           type: string
  *           format: date-time
  *           example: 2025-09-01T14:30:00Z
- *         updatedAt:
+ *         updated_at:
  *           type: string
  *           format: date-time
  *           example: 2025-09-02T09:15:00Z
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               job_id:
+ *                 type: string
+ *                 example: "12"
+ *               tag:
+ *                 type: string
+ *                 example: "IT"
  */
 
 /**
@@ -274,26 +263,40 @@
  *             properties:
  *               title:
  *                 type: string
+ *                 example: Kỹ sư phần mềm ERP
  *               company:
  *                 type: string
+ *                 example: Công ty IVIP
  *               location:
  *                 type: string
+ *                 example: Thành phố Đà Nẵng
  *               description:
  *                 type: string
- *               salary:
- *                 type: string
+ *                 example: Công việc phát triển phần mềm ERP cần rất nhiều kỹ năng
+ *               salary_min:
+ *                 type: number
+ *                 example: 10000000
+ *               salary_max:
+ *                 type: number
+ *                 example: 35000000
  *               requirements:
  *                 type: string
+ *                 example: Yêu cầu có kinh nghiệm với các hệ thống ERP
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
+ *                 example: ["IT", "Kinh doanh"]
  *             required:
  *               - title
  *               - company
  *     responses:
  *       200:
  *         description: Cập nhật công việc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Job'
  *       403:
  *         description: Bạn không có quyền sửa công việc này
  *       404:
