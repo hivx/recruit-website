@@ -1,61 +1,65 @@
 // controllers/applicationController.js
-const Application = require('../models/application');
+const applicationService = require("../services/applicationService");
 
-// POST: Ứng tuyển công việc (bắt buộc cover letter, cv và phone)
+// POST: Ứng tuyển công việc (coverLetter, cv, phone bắt buộc)
 exports.createApplication = async (req, res) => {
-  const { jobId, coverLetter, phone } = req.body;
-  const userId = req.user.userId || req.user._id;
-
-  // Đảm bảo tệp CV đã được tải lên
-  if (!req.file) {
-    return res.status(400).json({ message: 'Chưa tải lên file CV' });
-  }
-
-  // Lưu thông tin ứng viên vào cơ sở dữ liệu
   try {
-    const result = await Application.create({
-      job: jobId,
+    const { jobId, coverLetter, phone } = req.body;
+    const userId = req.user.userId;
+
+    // Đảm bảo CV đã được upload
+    if (!req.file) {
+      return res.status(400).json({ message: "Chưa tải lên file CV" });
+    }
+    const cvPath = `uploads/${req.file.filename}`; // nếu có file upload (avatar) thì lấy path
+
+    const application = await applicationService.createApplication({
+      jobId: BigInt(jobId),
       coverLetter,
-      applicant: userId,
-      cv: req.file.path,  // Lưu đường dẫn của file
-      phone
+      userId: BigInt(userId),
+      cv: cvPath, // đường dẫn file
+      phone,
     });
 
-    res.status(201).json({ message: 'Ứng tuyển thành công!', application: result });
+    res.status(201).json({
+      message: "Ứng tuyển thành công!",
+      application,
+    });
   } catch (err) {
-    console.error('[ApplicationController]', err.message);
-    res.status(500).json({ message: 'Lỗi server!' });
+    console.error("[ApplicationController createApplication]", err.message);
+    res.status(err.statusCode || 500).json({
+      message: err.message || "Lỗi server!",
+    });
   }
 };
 
-// GET: Lấy danh sách ứng viên đã ứng tuyển vào công việc
-// Chỉ dành cho admin hoặc ứng viên đã ứng tuyển
+// GET: Lấy danh sách ứng viên theo job
+// Chỉ dành cho admin hoặc chủ job
 exports.getApplicantsByJob = async (req, res) => {
   try {
     const jobId = req.params.jobId;
 
-    // Tìm tất cả các ứng viên đã ứng tuyển vào công việc này
-    const applications = await Application.find({ job: jobId })
-      .populate('applicant', 'name email') // Populated thông tin ứng viên
-      .populate('job', 'title company'); // Populated thông tin công việc
+    const applications = await applicationService.getApplicationsByJob(jobId);
 
-    if (applications.length === 0) {
-      return res.status(404).json({ message: 'Không có ứng viên nào ứng tuyển cho công việc này.' });
+    if (!applications || applications.length === 0) {
+      return res.status(404).json({
+        message: "Không có ứng viên nào ứng tuyển cho công việc này.",
+      });
     }
 
     res.json({
       totalApplicants: applications.length,
-      applicants: applications.map(application => ({
-        applicantName: application.applicant.name,
-        applicantEmail: application.applicant.email,
-        coverLetter: application.coverLetter,
-        cv: `http://localhost:5000/uploads/${application.cv.split('uploads\\')[1]}`, // Đảm bảo trả về đường dẫn URL
-        phone: application.phone,
-        appliedAt: application.createdAt,
+      applicants: applications.map((app) => ({
+        applicantName: app.applicant.name,
+        applicantEmail: app.applicant.email,
+        coverLetter: app.cover_letter,
+        cv: app.cv ? `http://localhost:5000/${app.cv}` : null,
+        phone: app.phone,
+        appliedAt: app.created_at,
       })),
     });
   } catch (err) {
-    console.error('[Get Applicants By Job Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi lấy danh sách ứng viên!' });
+    console.error("[Get Applicants By Job Error]", err.message);
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách ứng viên!" });
   }
 };

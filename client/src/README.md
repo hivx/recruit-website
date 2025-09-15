@@ -20,7 +20,7 @@ export const useAuth = create<AuthState>((set) => ({
   logout: () => set({ user: null }),
 }));
 
-✅ 5. Kế hoạch tính năng tiếp theo
+ 5. Kế hoạch tính năng tiếp theo
 
 Sau khi đã có Jobs cơ bản, roadmap nên là:
 

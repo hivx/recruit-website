@@ -12,9 +12,6 @@
  *     Job:
  *       type: object
  *       properties:
- *         _id:
- *           type: string
- *           example: 64e9d3c2e4f57e1234567890
  *         title:
  *           type: string
  *           example: Lập trình viên ReactJS
@@ -27,32 +24,38 @@
  *         description:
  *           type: string
  *           example: Tuyển lập trình viên ReactJS có kinh nghiệm
- *         salary:
- *           type: string
+ *         salary_min:
+ *           type: number
  *           example: 15000000
+ *         salary_max:
+ *           type: number
+ *           example: 20000000
  *         requirements:
  *           type: string
- *           example: Có ít nhất 1 năm kinh nghiệm
- *         createdBy:
- *           type: object
- *           nullable: true
- *           properties:
- *             _id:
- *               type: string
- *             name:
- *               type: string
- *             email:
- *               type: string
- *         createdByName:
+ *           example: Có ít nhất 1 năm kinh nghiệm.
+ *         created_by_name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Nguyễn Văn Víp
  *           description: Tên người tạo bài viết, vẫn lưu ngay cả khi tài khoản bị xoá
- *         createdAt:
+ *         created_t:
  *           type: string
  *           format: date-time
- *         updatedAt:
+ *           example: 2025-09-01T14:30:00Z
+ *         updated_at:
  *           type: string
  *           format: date-time
+ *           example: 2025-09-02T09:15:00Z
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               job_id:
+ *                 type: string
+ *                 example: "12"
+ *               tag:
+ *                 type: string
+ *                 example: "IT"
  */
 
 /**
@@ -85,9 +88,12 @@
  *               description:
  *                 type: string
  *                 example: Mô tả công việc ReactJS
- *               salary:
- *                 type: string
+ *               salary_min:
+ *                 type: number
  *                 example: 15000000
+ *               salary_max:
+ *                 type: number
+ *                 example: 20000000
  *               requirements:
  *                 type: string
  *                 example: Kinh nghiệm 1 năm ReactJS
@@ -96,7 +102,6 @@
  *                 items:
  *                   type: string
  *                 example: ["IT", "Marketing"]
- *
  *     responses:
  *       201:
  *         description: Bài tuyển dụng đã được tạo
@@ -132,13 +137,11 @@
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Số trang hiện tại (phân trang)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Số lượng job trên mỗi trang
  *     responses:
  *       200:
  *         description: Danh sách các bài tuyển dụng kèm phân trang
@@ -170,53 +173,30 @@
  *   get:
  *     summary: Lấy chi tiết bài tuyển dụng theo ID
  *     tags: [Jobs]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         description: ID của bài tuyển dụng
  *         schema:
- *           type: string
+ *           type: integer
  *     responses:
  *       200:
  *         description: Chi tiết bài tuyển dụng
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 title:
- *                   type: string
- *                 tags:
- *                   type: array
- *                   items:
- *                     type: string
- *                 company:
- *                   type: string
- *                 location:
- *                   type: string
- *                 description:
- *                   type: string
- *                 salary:
- *                   type: string
- *                 requirements:
- *                   type: string
- *                 createdBy:
- *                   type: string
- *                 createdByName:
- *                   type: string
- *                 createdAt:
- *                   type: string
- *                 createdAtFormatted:
- *                   type: string
- *                   description: "Ngày giờ định dạng DD/MM/YYYY HH:mm"
- *                 isFavorite:
- *                   type: boolean
- *                   description: "Có được user login đánh dấu yêu thích không"
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Job'
+ *                 - type: object
+ *                   properties:
+ *                     createdAtFormatted:
+ *                       type: string
+ *                       example: "01/09/2025 14:30"
+ *                       description: Ngày giờ định dạng DD/MM/YYYY HH:mm
+ *                     isFavorite:
+ *                       type: boolean
+ *                       description: Có được user login đánh dấu yêu thích không
  *       404:
  *         description: Không tìm thấy bài tuyển dụng
  */
@@ -240,7 +220,7 @@
  *                   tag:
  *                     type: string
  *                   count:
- *                     type: number
+ *                     type: integer
  */
 
 /**
@@ -272,9 +252,8 @@
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID của bài tuyển dụng cần cập nhật
  *         schema:
- *           type: string
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -284,29 +263,40 @@
  *             properties:
  *               title:
  *                 type: string
+ *                 example: Kỹ sư phần mềm ERP
  *               company:
  *                 type: string
+ *                 example: Công ty IVIP
  *               location:
  *                 type: string
+ *                 example: Thành phố Đà Nẵng
  *               description:
  *                 type: string
- *               salary:
- *                 type: string
+ *                 example: Công việc phát triển phần mềm ERP cần rất nhiều kỹ năng
+ *               salary_min:
+ *                 type: number
+ *                 example: 10000000
+ *               salary_max:
+ *                 type: number
+ *                 example: 35000000
  *               requirements:
  *                 type: string
+ *                 example: Yêu cầu có kinh nghiệm với các hệ thống ERP
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
- *               createdByName:
- *                 type: string
+ *                 example: ["IT", "Kinh doanh"]
  *             required:
  *               - title
  *               - company
- *               - createdByName
  *     responses:
  *       200:
  *         description: Cập nhật công việc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Job'
  *       403:
  *         description: Bạn không có quyền sửa công việc này
  *       404:
@@ -327,9 +317,8 @@
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID của bài tuyển dụng cần xóa
  *         schema:
- *           type: string
+ *           type: integer
  *     responses:
  *       200:
  *         description: Xóa công việc thành công

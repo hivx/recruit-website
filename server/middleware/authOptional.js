@@ -1,16 +1,34 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const { PrismaClient } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
+
+const prisma = new PrismaClient();
 
 const authOptional = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Lỗi sẽ throw tự nhiên
-    const user = await User.findById(decoded.userId).select('-password');
-    if (user) {
-      req.user = { userId: user._id, role: user.role };
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const user = await prisma.user.findUnique({
+        where: { id: BigInt(decoded.userId) },
+        select: { id: true, role: true },
+      });
+
+      if (user) {
+        req.user = {
+          userId: user.id.toString(), // BigInt → string
+          role: user.role,
+        };
+      }
     }
+  } catch (err) {
+    console.error("[AUTH OPTIONAL ERROR]", err.message);
+    // khác với authMiddleware: không return res.status(401)
+    // chỉ bỏ qua và cho đi tiếp
   }
+
   next();
 };
 

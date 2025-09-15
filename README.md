@@ -127,11 +127,11 @@ Hoàn thiện trang cá nhân
 Triển khai lên production
 
 📌 GIAI ĐOẠN 1: Chuẩn hóa Backend & bảo mật
-✅ Bạn đã làm 80% phần này — giờ ta chuẩn hóa lại và hoàn thiện các chi tiết.
+ Bạn đã làm 80% phần này — giờ ta chuẩn hóa lại và hoàn thiện các chi tiết.
 
 Bảo mật API
 
-✅ Đã có JWT + phân quyền, nhưng cần kiểm tra kỹ lại authMiddleware và logic kiểm soát vai trò (role-based access).
+ Đã có JWT + phân quyền, nhưng cần kiểm tra kỹ lại authMiddleware và logic kiểm soát vai trò (role-based access).
 
 🔒 Thêm rate limit, helmet hoặc cors cấu hình chặt hơn nếu deploy ra ngoài.
 

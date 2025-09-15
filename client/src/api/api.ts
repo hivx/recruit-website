@@ -12,7 +12,7 @@ api.interceptors.request.use(
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error instanceof Error ? error : new Error(error))
 );
 
 api.interceptors.response.use(
@@ -23,6 +23,6 @@ api.interceptors.response.use(
       error?.message ||
       "Đã có lỗi khi gọi API";
     toast.error(msg);
-    return Promise.reject(error);
+    return Promise.reject(error instanceof Error ? error : new Error(msg));
   }
 );
