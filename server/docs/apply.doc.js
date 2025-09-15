@@ -31,7 +31,7 @@
  *         phone:
  *           type: string
  *           nullable: true
- *           example: 0987654321
+ *           example: "0987654321"
  *         created_at:
  *           type: string
  *           format: date-time
@@ -82,7 +82,6 @@
  *               - jobId
  *               - coverLetter
  *               - phone
- *               - cv
  *             properties:
  *               jobId:
  *                 type: string
@@ -92,11 +91,12 @@
  *                 example: Tôi rất quan tâm tới vị trí này và tin rằng mình phù hợp...
  *               phone:
  *                 type: string
- *                 example: 0987654321
+ *                 example: "0987654321"
  *               cv:
  *                 type: string
  *                 format: binary
- *                 description: File CV (PDF, DOC, DOCX)
+ *                 description: File CV (PDF, DOC, DOCX) - Không bắt buộc nhưng nếu thiếu sẽ báo lỗi
+ *                 nullable: true
  *     responses:
  *       201:
  *         description: Ứng tuyển thành công
@@ -111,13 +111,21 @@
  *                 application:
  *                   $ref: '#/components/schemas/Application'
  *       400:
- *         description: Thiếu dữ liệu hoặc đã ứng tuyển job này rồi
+ *         description: Bạn đã ứng tuyển công việc này rồi hoặc chưa tải lên file CV!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Chưa tải lên file CV!"
  *       401:
- *         description: Chưa đăng nhập hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       403:
- *         description: Chỉ ứng viên (applicant hoặc admin) mới có thể ứng tuyển
+ *         description: Chỉ ứng viên (applicant hoặc admin) mới có thể ứng tuyển!
  *       404:
- *         description: Không tìm thấy công việc với ID đã cung cấp
+ *         description: Không tìm thấy công việc với ID đã cung cấp!
  */
 
 /**
@@ -152,7 +160,7 @@
  *                   items:
  *                     $ref: '#/components/schemas/ApplicantInfo'
  *       404:
- *         description: Không có ứng viên nào ứng tuyển cho công việc này
+ *         description: Không có ứng viên nào ứng tuyển cho công việc này!
  *       500:
  *         description: Lỗi server khi lấy danh sách ứng viên
  */

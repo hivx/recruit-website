@@ -46,7 +46,9 @@ exports.getJobById = async (req, res) => {
   try {
     const job = await jobService.getJobById(Number(req.params.id));
     if (!job) {
-      return res.status(404).json({ message: "Không tìm thấy việc làm!" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
     let isFavorite = false;
@@ -93,13 +95,15 @@ exports.updateJob = async (req, res) => {
   try {
     const job = await jobService.getJobById(Number(req.params.id));
     if (!job) {
-      return res.status(404).json({ message: "Không tìm thấy công việc!" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
     if (job.created_by !== req.user.userId && req.user.role !== "admin") {
       return res
         .status(403)
-        .json({ message: "Bạn không có quyền sửa công việc này" });
+        .json({ message: "Bạn không có quyền sửa công việc này!" });
     }
 
     const updatedJob = await jobService.updateJob(
@@ -118,13 +122,15 @@ exports.deleteJob = async (req, res) => {
   try {
     const job = await jobService.getJobById(Number(req.params.id));
     if (!job) {
-      return res.status(404).json({ message: "Không tìm thấy công việc!" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
     if (job.createdBy !== req.user.userId && req.user.role !== "admin") {
       return res
         .status(403)
-        .json({ message: "Bạn không có quyền xóa công việc này" });
+        .json({ message: "Bạn không có quyền xóa công việc này!" });
     }
 
     await jobService.deleteJob(Number(req.params.id));

@@ -10,7 +10,7 @@ exports.toggleFavoriteJob = async (req, res) => {
 
     const user = await userService.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
+      return res.status(404).json({ message: "Người dùng không tồn tại!" });
     }
 
     // Kiểm tra job có trong favorites chưa
@@ -48,12 +48,12 @@ exports.getFavoriteJobs = async (req, res) => {
   }
 };
 
-// update user profile (name, email, avatar)
+// Cập nhật thông tin người dùng (name, email, avatar)
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // từ JWT (tùy payload bạn set)
+    const userId = req.user.userId; // Lấy userId từ JWT (tùy payload bạn set)
 
-    // nếu có file upload (avatar) thì lấy path
+    // Nếu có file upload (avatar) thì lấy path
     let avatarPath;
     if (req.file) {
       avatarPath = "uploads/" + req.file.filename;
@@ -61,12 +61,31 @@ exports.updateProfile = async (req, res) => {
 
     const { name, email } = req.body;
 
+    // Kiểm tra định dạng email (chỉ cho phép email có @gmail.com)
+    if (email && !/\S+@gmail\.com$/.test(email)) {
+      return res.status(400).json({
+        message: "Email phải có định dạng @gmail.com!",
+      });
+    }
+
+    // Kiểm tra email đã tồn tại trong cơ sở dữ liệu (trừ người dùng hiện tại)
+    if (email) {
+      const existingUser = await userService.getUserByEmail(email, userId);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({
+          message: "Email này đã được sử dụng bởi tài khoản khác!",
+        });
+      }
+    }
+
+    // Gọi service để cập nhật thông tin người dùng
     const updatedUser = await userService.updateUser(userId, {
       ...(name && { name }),
       ...(email && { email }),
       ...(avatarPath && { avatar: avatarPath }),
     });
 
+    // Phản hồi thành công
     res.status(200).json({
       message: "Cập nhật thông tin thành công",
       user: {
@@ -91,19 +110,19 @@ exports.changePassword = async (req, res) => {
     if (!oldPassword || !newPassword) {
       return res
         .status(400)
-        .json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới" });
+        .json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới!" });
     }
 
     // Lấy user từ DB
     const user = await userService.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
+      return res.status(404).json({ message: "Người dùng không tồn tại!" });
     }
 
     // So sánh mật khẩu cũ
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Mật khẩu cũ không đúng" });
+      return res.status(400).json({ message: "Mật khẩu cũ không đúng!" });
     }
 
     // Hash mật khẩu mới
@@ -112,9 +131,9 @@ exports.changePassword = async (req, res) => {
     // Cập nhật
     await userService.updateUser(userId, { password: hashed });
 
-    res.json({ message: "Đổi mật khẩu thành công" });
+    res.json({ message: "Đổi mật khẩu thành công!" });
   } catch (err) {
     console.error("[Change Password Error]", err.message);
-    res.status(500).json({ message: "Lỗi server" });
+    res.status(500).json({ message: "Lỗi server!" });
   }
 };

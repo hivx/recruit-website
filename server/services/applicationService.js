@@ -6,12 +6,17 @@ const prisma = new PrismaClient();
 module.exports = {
   // Tạo mới đơn ứng tuyển
   async createApplication({ jobId, coverLetter, userId, cv, phone }) {
+    // Kiểm tra số điện thoại hợp lệ
+    if (phone && !/^0\d{9}$/.test(phone)) {
+      throw new Error("Số điện thoại không hợp lệ");
+    }
+
     // 1. Kiểm tra job có tồn tại
     const job = await prisma.job.findUnique({
       where: { id: BigInt(jobId) },
     });
     if (!job) {
-      const error = new Error("Công việc không tồn tại!");
+      const error = new Error("Không tìm thấy công việc với ID đã cung cấp!");
       error.statusCode = 404;
       throw error;
     }
@@ -24,7 +29,7 @@ module.exports = {
       },
     });
     if (existing) {
-      const error = new Error("Bạn đã ứng tuyển công việc này rồi.");
+      const error = new Error("Bạn đã ứng tuyển công việc này rồi!");
       error.statusCode = 400;
       throw error;
     }

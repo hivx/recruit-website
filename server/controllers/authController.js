@@ -13,13 +13,13 @@ exports.register = async (req, res) => {
     if (!email.toLowerCase().endsWith("@gmail.com")) {
       return res
         .status(400)
-        .json({ message: "Chỉ chấp nhận email @gmail.com" });
+        .json({ message: "Chỉ chấp nhận email @gmail.com!" });
     }
 
     // 2. Kiểm tra trùng email
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(409).json({ message: "Email đã tồn tại" });
+      return res.status(409).json({ message: "Email đã tồn tại!" });
     }
 
     // 3. Xác định role
@@ -29,7 +29,7 @@ exports.register = async (req, res) => {
     } else if (role === "admin") {
       return res
         .status(403)
-        .json({ message: "Không thể tự đăng ký với quyền admin" });
+        .json({ message: "Không thể tự đăng ký với quyền admin!" });
     }
 
     // 4. Hash mật khẩu
@@ -69,7 +69,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       message:
-        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.",
+        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!",
     });
   } catch (error) {
     console.error("Lỗi đăng ký:", error);
@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ message: "Email hoặc mật khẩu không đúng" });
+        .json({ message: "Email hoặc mật khẩu không đúng!" });
     }
 
     // 2. So sánh mật khẩu
@@ -95,14 +95,14 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res
         .status(400)
-        .json({ message: "Email hoặc mật khẩu không đúng" });
+        .json({ message: "Email hoặc mật khẩu không đúng!" });
     }
 
     // 3. Check verify
     if (!user.isVerified) {
       return res
         .status(403)
-        .json({ message: "Tài khoản chưa được xác thực qua email" });
+        .json({ message: "Tài khoản chưa được xác thực qua email!" });
     }
 
     // 4. Tạo token
@@ -133,7 +133,7 @@ exports.getMe = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "Không tìm thấy user" });
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
     }
 
     res.status(200).json(user);
@@ -147,7 +147,7 @@ exports.verifyEmail = async (req, res) => {
   try {
     const token = req.query.token;
     if (!token) {
-      return res.status(400).send("<h1>Thiếu token xác thực</h1>");
+      return res.status(400).send("<h1>Thiếu token xác thực!</h1>");
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -156,11 +156,11 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).send("<h1>Không tìm thấy người dùng</h1>");
+      return res.status(404).send("<h1>Không tìm thấy người dùng!</h1>");
     }
 
     if (user.isVerified) {
-      return res.send("<h1>Tài khoản của bạn đã được xác thực trước đó</h1>");
+      return res.send("<h1>Tài khoản của bạn đã được xác thực trước đó!</h1>");
     }
 
     await prisma.user.update({
@@ -173,6 +173,6 @@ exports.verifyEmail = async (req, res) => {
     );
   } catch (err) {
     console.error("Lỗi xác thực:", err);
-    return res.status(400).send("<h1>Token không hợp lệ hoặc đã hết hạn</h1>");
+    return res.status(400).send("<h1>Token không hợp lệ hoặc đã hết hạn!</h1>");
   }
 };

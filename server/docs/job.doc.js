@@ -110,9 +110,9 @@
  *             schema:
  *               $ref: '#/components/schemas/Job'
  *       401:
- *         description: Không có token hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       403:
- *         description: Không có quyền tạo bài viết
+ *         description: Không có quyền thực hiện thao tác này!
  */
 
 /**
@@ -196,9 +196,9 @@
  *                       description: Ngày giờ định dạng DD/MM/YYYY HH:mm
  *                     isFavorite:
  *                       type: boolean
- *                       description: Có được user login đánh dấu yêu thích không
+ *                       description: Có được user login đánh dấu yêu thích không?
  *       404:
- *         description: Không tìm thấy bài tuyển dụng
+ *         description: Không tìm thấy việc làm cho ID này!
  */
 
 /**
@@ -298,9 +298,9 @@
  *             schema:
  *               $ref: '#/components/schemas/Job'
  *       403:
- *         description: Bạn không có quyền sửa công việc này
+ *         description: Bạn không có quyền sửa công việc này!
  *       404:
- *         description: Không tìm thấy công việc
+ *         description: Không tìm thấy việc làm cho ID này!
  *       500:
  *         description: Lỗi server khi cập nhật công việc
  */
@@ -323,9 +323,9 @@
  *       200:
  *         description: Xóa công việc thành công
  *       403:
- *         description: Bạn không có quyền xóa công việc này
+ *         description: Bạn không có quyền xóa công việc này!
  *       404:
- *         description: Không tìm thấy công việc
+ *         description: Không tìm thấy việc làm cho ID này!
  *       500:
  *         description: Lỗi server khi xóa công việc
  */

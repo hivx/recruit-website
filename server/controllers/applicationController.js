@@ -9,7 +9,7 @@ exports.createApplication = async (req, res) => {
 
     // Đảm bảo CV đã được upload
     if (!req.file) {
-      return res.status(400).json({ message: "Chưa tải lên file CV" });
+      return res.status(400).json({ message: "Chưa tải lên file CV!" });
     }
     const cvPath = `uploads/${req.file.filename}`; // nếu có file upload (avatar) thì lấy path
 
@@ -43,7 +43,7 @@ exports.getApplicantsByJob = async (req, res) => {
 
     if (!applications || applications.length === 0) {
       return res.status(404).json({
-        message: "Không có ứng viên nào ứng tuyển cho công việc này.",
+        message: "Không có ứng viên nào ứng tuyển cho công việc này!",
       });
     }
 

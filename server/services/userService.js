@@ -41,6 +41,31 @@ module.exports = {
     }
   },
 
+  // Lấy thông tin người dùng theo email (kiểm tra email trùng)
+  async getUserByEmail(email, excludeUserId) {
+    try {
+      // Tìm kiếm người dùng theo email, nhưng loại trừ người dùng hiện tại (excludeUserId)
+      const user = await prisma.user.findFirst({
+        where: {
+          email: email, // Tìm kiếm người dùng theo email
+          NOT: {
+            id: excludeUserId, // Loại trừ userId của người dùng hiện tại
+          },
+        },
+      });
+
+      // Nếu tìm thấy người dùng khác sử dụng email này
+      if (user) {
+        return user; // Trả về người dùng nếu email trùng lặp
+      }
+
+      return null; // Không tìm thấy người dùng khác sử dụng email này
+    } catch (err) {
+      console.error("[UserService getUserByEmail Error]", err.message);
+      throw new Error("Không thể kiểm tra email trong cơ sở dữ liệu");
+    }
+  },
+
   //  Thêm job yêu thích (tránh trùng lặp)
   async addFavoriteJob(userId, jobId) {
     try {

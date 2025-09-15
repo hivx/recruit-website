@@ -93,9 +93,11 @@
  *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
- *         description: Đăng ký thành công, vui lòng xác thực email
+ *         description: Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!
  *       400:
- *         description: Email không hợp lệ hoặc không phải @gmail.com
+ *         description: Chỉ chấp nhận email @gmail.com!
+ *       403:
+ *         description: Không thể tự đăng ký với quyền admin!
  *       409:
  *         description: Email đã tồn tại
  *       500:
@@ -128,7 +130,9 @@
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
- *         description: Thông tin đăng nhập không hợp lệ hoặc chưa xác thực email
+ *         description: Email hoặc mật khẩu không đúng!
+ *       403:
+ *         description: Tài khoản chưa được xác thực qua email!
  *       500:
  *         description: Lỗi server
  */
@@ -149,5 +153,5 @@
  *             schema:
  *               $ref: '#/components/schemas/UserResponse'
  *       401:
- *         description: Không có hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  */
