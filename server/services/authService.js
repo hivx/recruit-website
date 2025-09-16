@@ -1,79 +1,150 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken");
 const generateToken = require("../utils/generateToken");
+const emailService = require("./emailService");
 
 const prisma = new PrismaClient();
 
-// Đăng ký
-exports.register = async ({ name, email, password }) => {
-  // Kiểm tra email tồn tại
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    throw new Error("Email đã tồn tại");
-  }
+module.exports = {
+  // Đăng ký user mới
+  async register({ name, email, password, role }) {
+    if (!email.toLowerCase().endsWith("@gmail.com")) {
+      const error = new Error("Chỉ chấp nhận email @gmail.com!");
+      error.status = 400;
+      throw error;
+    }
 
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      const error = new Error("Email đã tồn tại!");
+      error.status = 409;
+      throw error;
+    }
 
-  // Tạo user mới
-  const newUser = await prisma.user.create({
-    data: {
-      name,
+    let userRole = "applicant";
+    if (role === "recruiter") {
+      userRole = "recruiter";
+    } else if (role === "admin") {
+      const error = new Error("Không thể tự đăng ký với quyền admin!");
+      error.status = 403;
+      throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        avatar: "uploads/pic.jpg",
+        password: hashedPassword,
+        role: userRole,
+        isVerified: false,
+      },
+    });
+
+    // Tạo token xác thực email
+    const verifyToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
+
+    // Gửi email xác thực
+    await emailService.sendEmail(
       email,
-      password: hashedPassword,
-    },
-  });
+      "Xác thực tài khoản",
+      `<p>Chào ${name},</p>
+       <p>Vui lòng xác thực email của bạn bằng cách nhấn vào đường link dưới đây:</p>
+       <p><a href="${verifyLink}">${verifyLink}</a></p>
+       <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>`,
+    );
 
-  return newUser;
-};
+    return user;
+  },
 
-// Đăng nhập
-exports.login = async ({ email, password }) => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    throw new Error("Email không tồn tại");
-  }
+  // Đăng nhập
+  async login(email, password) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      const error = new Error("Email hoặc mật khẩu không đúng!");
+      error.status = 400;
+      throw error;
+    }
 
-  if (!user.isVerified) {
-    throw new Error("Tài khoản chưa được xác thực qua email");
-  }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      const error = new Error("Email hoặc mật khẩu không đúng!");
+      error.status = 400;
+      throw error;
+    }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new Error("Sai mật khẩu");
-  }
+    if (!user.isVerified) {
+      const error = new Error("Tài khoản chưa được xác thực qua email!");
+      error.status = 403;
+      throw error;
+    }
 
-  const token = generateToken(user.id.toString(), user.role);
+    const token = generateToken(user.id.toString(), user.role);
 
-  return {
-    token,
-    user: {
-      id: user.id.toString(),
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  };
-};
+    return {
+      token,
+      user: {
+        id: user.id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        isVerified: user.isVerified,
+        role: user.role,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
+    };
+  },
 
-// Lấy thông tin cá nhân
-exports.getMe = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: BigInt(userId) },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isVerified: true,
-      created_at: true,
-    },
-  });
+  // Lấy thông tin cá nhân
+  async getMe(userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        created_at: true,
+      },
+    });
+    if (!user) {
+      const error = new Error("Không tìm thấy người dùng");
+      error.status = 404;
+      throw error;
+    }
+    return user;
+  },
 
-  if (!user) {
-    throw new Error("Không tìm thấy người dùng");
-  }
-  return user;
+  // Xác thực email
+  async verifyEmail(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      const error = new Error("Không tìm thấy người dùng!");
+      error.status = 404;
+      throw error;
+    }
+    if (user.isVerified) {
+      return { already: true };
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isVerified: true },
+    });
+
+    return { success: true };
+  },
 };

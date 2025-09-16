@@ -99,9 +99,9 @@
  *       403:
  *         description: Không thể tự đăng ký với quyền admin!
  *       409:
- *         description: Email đã tồn tại
+ *         description: Email đã tồn tại!
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi server!
  */
 
 /**
@@ -134,7 +134,7 @@
  *       403:
  *         description: Tài khoản chưa được xác thực qua email!
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi server!
  */
 
 /**

@@ -109,7 +109,7 @@
  *       401:
  *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng hoặc công việc!
+ *         description: Không tìm thấy công việc với ID này!
  */
 
 /**

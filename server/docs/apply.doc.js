@@ -162,5 +162,5 @@
  *       404:
  *         description: Không có ứng viên nào ứng tuyển cho công việc này!
  *       500:
- *         description: Lỗi server khi lấy danh sách ứng viên
+ *         description: Lỗi server khi lấy danh sách ứng viên!
  */

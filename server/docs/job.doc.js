@@ -164,7 +164,7 @@
  *                   type: integer
  *                   example: 10
  *       500:
- *         description: Lỗi server khi lấy danh sách việc làm
+ *         description: Lỗi server khi lấy danh sách việc làm!
  */
 
 /**
@@ -292,7 +292,7 @@
  *               - company
  *     responses:
  *       200:
- *         description: Cập nhật công việc thành công
+ *         description: Cập nhật công việc thành công!
  *         content:
  *           application/json:
  *             schema:
@@ -302,7 +302,7 @@
  *       404:
  *         description: Không tìm thấy việc làm cho ID này!
  *       500:
- *         description: Lỗi server khi cập nhật công việc
+ *         description: Lỗi server khi cập nhật công việc!
  */
 
 /**
@@ -321,11 +321,11 @@
  *           type: integer
  *     responses:
  *       200:
- *         description: Xóa công việc thành công
+ *         description: Xóa công việc thành công!
  *       403:
  *         description: Bạn không có quyền xóa công việc này!
  *       404:
  *         description: Không tìm thấy việc làm cho ID này!
  *       500:
- *         description: Lỗi server khi xóa công việc
+ *         description: Lỗi server khi xóa công việc!
  */

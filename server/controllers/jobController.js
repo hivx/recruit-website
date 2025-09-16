@@ -59,7 +59,7 @@ exports.getJobById = async (req, res) => {
 
     res.json({
       ...job,
-      createdAtFormatted: moment(job.createdAt).format("DD/MM/YYYY HH:mm"),
+      createdAtFormatted: moment(job.created_at).format("DD/MM/YYYY HH:mm"),
       isFavorite,
     });
   } catch (err) {
@@ -127,7 +127,7 @@ exports.deleteJob = async (req, res) => {
         .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
-    if (job.createdBy !== req.user.userId && req.user.role !== "admin") {
+    if (job.created_by !== req.user.userId && req.user.role !== "admin") {
       return res
         .status(403)
         .json({ message: "Bạn không có quyền xóa công việc này!" });
