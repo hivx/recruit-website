@@ -126,7 +126,7 @@
  *               properties:
  *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwicm9sZSI6InJlY3J1aXRlciIsImlhdCI6MTc1ODEyOTAxMywiZXhwIjoxNzU4MjE1NDEzfQ.E85DuUN1ATnCohrAYI0mtlH9u69aRz24g1hmfhcAlaI
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
@@ -154,4 +154,47 @@
  *               $ref: '#/components/schemas/UserResponse'
  *       401:
  *         description: Không có token, truy cập bị từ chối!
+ */
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Yêu cầu đặt lại mật khẩu
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "chuvanhieu357@gmail.com"
+ *               newPassword:
+ *                 type: string
+ *                 example: "654321"
+ *               confirmPassword:
+ *                 type: string
+ *                 example: "654321"
+ *     responses:
+ *       200:
+ *         description: Liên kết xác nhận đã được gửi tới email!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Liên kết xác nhận đã được gửi tới email của bạn!"
+ *       400:
+ *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
+ *       404:
+ *         description: Không tìm thấy user với email đã cung cấp!
  */

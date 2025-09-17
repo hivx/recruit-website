@@ -1,6 +1,9 @@
+const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 const generateToken = require("../utils/generateToken");
 const emailService = require("./emailService");
 
@@ -100,6 +103,62 @@ module.exports = {
         updated_at: user.updated_at,
       },
     };
+  },
+
+  // Đặt lại mật khẩu
+  async requestReset(email, newPassword) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      const error = new Error("Email không tồn tại!");
+      error.status = 404;
+      throw error;
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 60 * 60 * 1000);
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { reset_token: token, reset_token_expiry: expiry },
+    });
+
+    const resetLink = `${process.env.CLIENT_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
+
+    await emailService.sendEmail(
+      email,
+      "Xác nhận đặt lại mật khẩu",
+      `<p>Xin chào ${user.name},</p>
+      <p>Bạn đã yêu cầu đổi mật khẩu. Nhấn link dưới đây để xác nhận:</p>
+      <a href="${resetLink}">${resetLink}</a>
+      <p>Liên kết sẽ hết hạn sau 1 giờ.</p>`,
+    );
+
+    return { message: "Liên kết xác nhận đã được gửi tới email của bạn!" };
+  },
+
+  // xác nhận khi click link
+  async confirmReset(token, hashed) {
+    const user = await prisma.user.findFirst({
+      where: {
+        reset_token: token,
+        reset_token_expiry: { gt: new Date() },
+      },
+    });
+    if (!user) {
+      return null;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: decodeURIComponent(hashed),
+        reset_token: null,
+        reset_token_expiry: null,
+      },
+    });
+
+    return { message: "Mật khẩu đã được đặt lại thành công!" };
   },
 
   // Lấy thông tin cá nhân

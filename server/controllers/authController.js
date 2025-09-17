@@ -59,3 +59,57 @@ exports.verifyEmail = async (req, res) => {
     return res.status(400).send("<h1>Token không hợp lệ hoặc đã hết hạn!</h1>");
   }
 };
+
+// Quên mật khẩu
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmPassword } = req.body;
+    // Check có đủ field
+    if (!newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập mật khẩu và xác nhận mật khẩu!" });
+    }
+    // Check độ dài tối thiểu
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
+    }
+    // Check khớp nhau
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Mật khẩu xác nhận không khớp!" });
+    }
+    const result = await authService.requestReset(email, newPassword);
+    res.json(result);
+  } catch (err) {
+    console.error("[Request Reset Error]", err);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// GET /auth/reset-password?token=xxx&hashed=yyy
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, hashed } = req.query;
+    if (!token || !hashed) {
+      return res.status(400).send("<h1>Thiếu token hoặc mật khẩu!</h1>");
+    }
+
+    const result = await authService.confirmReset(token, hashed);
+    if (!result) {
+      return res
+        .status(400)
+        .send("<h1>Token không hợp lệ hoặc đã hết hạn!</h1>");
+    }
+
+    res.send(
+      "<h1>Mật khẩu đã được cập nhật thành công! Bạn có thể đăng nhập.</h1>",
+    );
+  } catch (err) {
+    console.error("[Reset Password Error]", err);
+    res.status(500).send("<h1>Lỗi server!</h1>");
+  }
+};

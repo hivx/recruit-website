@@ -156,13 +156,13 @@
  *                     $ref: '#/components/schemas/Job'
  *                 total:
  *                   type: integer
- *                   example: 100
+ *                   example: 1
  *                 page:
  *                   type: integer
  *                   example: 1
  *                 totalPages:
  *                   type: integer
- *                   example: 10
+ *                   example: 2
  *       500:
  *         description: Lỗi server khi lấy danh sách việc làm!
  */

@@ -6,10 +6,16 @@ const authMiddleware = require("../middleware/authMiddleware");
 const validateGmail = require("../middleware/validateGmail");
 
 router.post("/register", validateGmail, authController.register);
+
 router.post("/login", authController.login);
+
 router.get("/me", authMiddleware, (req, res) => {
   res.status(200).json(req.user); // Trả về user đã gán từ middleware
 });
+
+router.post("/forgot-password", authController.forgotPassword);
+router.get("/reset-password", authController.resetPassword);
+
 // routes/auth.js
 router.get("/verify-email", authController.verifyEmail);
 

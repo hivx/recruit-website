@@ -90,6 +90,7 @@ module.exports = {
     };
   },
 
+  // Đổi mật khẩu
   async changePassword(userId, oldPassword, newPassword) {
     const user = await prisma.user.findUnique({
       where: { id: BigInt(userId) },
