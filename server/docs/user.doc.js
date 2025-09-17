@@ -33,7 +33,7 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Nguyễn Văn B
+ *           example: Nguyễn Văn Víp
  *         email:
  *           type: string
  *           format: email
@@ -46,7 +46,7 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Nguyễn Văn B
+ *           example: Nguyễn Văn Víp
  *         email:
  *           type: string
  *           example: nguyenvanb@gmail.com
@@ -155,11 +155,11 @@
  *             properties:
  *               name:
  *                 type: string
- *                 example: Nguyễn Văn B
+ *                 example: Nguyễn Văn Víp
  *               email:
  *                 type: string
  *                 format: email
- *                 example: nguyenvanb@gmail.com
+ *                 example: snonamevx@gmail.com
  *               avatar:
  *                 type: string
  *                 format: binary

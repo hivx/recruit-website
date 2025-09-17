@@ -24,7 +24,7 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Chu Văn Hiếu
  *         email:
  *           type: string
  *           format: email
@@ -59,7 +59,7 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Chu Văn Hiếu
  *         email:
  *           type: string
  *           example: chuvanhieu357@gmail.com

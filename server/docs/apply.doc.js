@@ -23,7 +23,7 @@
  *           example: "5"
  *         cover_letter:
  *           type: string
- *           example: Tôi rất quan tâm tới vị trí này và tin rằng mình phù hợp...
+ *           example: Tôi rất hào hứng với cơ hội ứng tuyển vào vị trí này và tin rằng kinh nghiệm cùng kỹ năng chuyên môn của mình, bao gồm khả năng làm việc nhóm và giải quyết vấn đề, sẽ đóng góp tích cực cho sự phát triển của quý công ty.
  *         cv:
  *           type: string
  *           nullable: true
@@ -88,7 +88,7 @@
  *                 example: "1"
  *               coverLetter:
  *                 type: string
- *                 example: Tôi rất quan tâm tới vị trí này và tin rằng mình phù hợp...
+ *                 example: Tôi rất hào hứng với cơ hội ứng tuyển vào vị trí này và tin rằng kinh nghiệm cùng kỹ năng chuyên môn của mình, bao gồm khả năng làm việc nhóm và giải quyết vấn đề, sẽ đóng góp tích cực cho sự phát triển của quý công ty.
  *               phone:
  *                 type: string
  *                 example: "0987654321"
