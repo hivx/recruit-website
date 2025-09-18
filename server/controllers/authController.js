@@ -4,6 +4,14 @@ const authService = require("../services/authService");
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Check mật khẩu tối thiểu 6 ký tự
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
+    }
+
     await authService.register({ name, email, password, role });
     res.status(201).json({
       message:

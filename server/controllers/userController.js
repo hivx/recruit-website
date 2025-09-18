@@ -75,11 +75,20 @@ exports.updateProfile = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
+    // Check có đủ field
     if (!oldPassword || !newPassword) {
       return res
         .status(400)
         .json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới!" });
     }
+
+    // Check mật khẩu tối thiểu 6 ký tự
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
+    }
+
     const result = await userService.changePassword(
       req.user.userId,
       oldPassword,

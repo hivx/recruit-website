@@ -111,7 +111,7 @@
  *                 application:
  *                   $ref: '#/components/schemas/Application'
  *       400:
- *         description: Bạn đã ứng tuyển công việc này rồi hoặc chưa tải lên file CV!
+ *         description: Bạn đã ứng tuyển công việc này rồi hoặc chưa điền đủ thông tin!
  *         content:
  *           application/json:
  *             schema:
