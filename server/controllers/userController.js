@@ -1,4 +1,7 @@
 // controllers/userController.js
+const fs = require("fs");
+const path = require("path");
+
 const userService = require("../services/userService");
 
 exports.toggleFavoriteJob = async (req, res) => {
@@ -31,41 +34,37 @@ exports.getFavoriteJobs = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const avatarPath = req.file ? "uploads/" + req.file.filename : undefined;
     const { name, email } = req.body;
+    const avatarFile = req.file; // multer upload
 
-    if (email && !/\S+@gmail\.com$/.test(email)) {
-      return res
-        .status(400)
-        .json({ message: "Email phải có định dạng @gmail.com!" });
-    }
-
-    if (email) {
-      const existingUser = await userService.getUserByEmail(email, userId);
-      if (existingUser) {
-        return res
-          .status(400)
-          .json({ message: "Email này đã được sử dụng bởi tài khoản khác!" });
-      }
-    }
-
-    const updatedUser = await userService.updateUser(userId, {
-      ...(name && { name }),
-      ...(email && { email }),
-      ...(avatarPath && { avatar: avatarPath }),
+    // Gọi service validate + xử lý avatar
+    const updateData = await userService.validUpdateUser({
+      userId,
+      name,
+      email,
+      avatarFile,
     });
+
+    // Cập nhật DB
+    const updatedUser = await userService.updateUser(userId, updateData);
 
     res.status(200).json({
       message: "Cập nhật thông tin thành công",
-      user: {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        avatar: updatedUser.avatar,
-      },
+      user: updatedUser,
     });
   } catch (err) {
     console.error("[Update Profile Error]", err);
+
+    // Nếu file upload mà lỗi validation → xóa file mới
+    if (req.file) {
+      const failedFile = path.join(__dirname, "../uploads", req.file.filename);
+      fs.unlink(failedFile, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error("Xóa file upload thất bại:", unlinkErr);
+        }
+      });
+    }
+
     res
       .status(err.status || 500)
       .json({ message: err.message || "Lỗi server!" });

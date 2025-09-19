@@ -1,5 +1,9 @@
 // services/userService.js
+const fs = require("fs");
+const path = require("path");
+
 const { PrismaClient } = require("@prisma/client");
+
 const bcrypt = require("bcrypt");
 
 const prisma = new PrismaClient();
@@ -24,6 +28,62 @@ module.exports = {
         ...(data.password && { password: data.password }),
       },
     });
+  },
+
+  // Hàm validate và xử lý update (bao gồm avatar)
+  async validUpdateUser({ userId, name, email, avatarFile }) {
+    // Lấy user hiện tại
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+    });
+    if (!user) {
+      const error = new Error("Người dùng không tồn tại!");
+      error.status = 404;
+      throw error;
+    }
+
+    // Validate email nếu có
+    if (email && !/\S+@gmail\.com$/.test(email)) {
+      const error = new Error("Email phải có định dạng @gmail.com!");
+      error.status = 400;
+      throw error;
+    }
+
+    if (email) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email,
+          NOT: { id: BigInt(userId) },
+        },
+      });
+      if (existingUser) {
+        const error = new Error("Email này đã được sử dụng!");
+        error.status = 400;
+        throw error;
+      }
+    }
+
+    let avatarPath;
+    if (avatarFile) {
+      avatarPath = "uploads/" + avatarFile.filename;
+
+      // Xóa avatar cũ nếu khác default
+      if (user.avatar && user.avatar !== "uploads/pic.jpg") {
+        const oldAvatar = path.join(__dirname, "../", user.avatar);
+        fs.unlink(oldAvatar, (err) => {
+          if (err) {
+            console.error("Xóa avatar cũ thất bại:", err);
+          }
+        });
+      }
+    }
+
+    // Trả dữ liệu để controller dùng updateUser
+    return {
+      name,
+      email,
+      avatar: avatarPath,
+    };
   },
 
   async getUserByEmail(email, excludeUserId) {
