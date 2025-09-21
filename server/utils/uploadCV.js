@@ -21,7 +21,8 @@ const uploadCV = multer({
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase(),
     );
-    const mimetype = filetypes.test(file.mimetype);
+    const mimetype =
+      filetypes.test(file.mimetype) || file.mimetype === "application/msword";
 
     if (extname && mimetype) {
       return cb(null, true);

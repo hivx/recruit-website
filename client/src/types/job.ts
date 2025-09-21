@@ -1,47 +1,62 @@
 // src/types/job.ts
 
-/** Dạng BE trả về (raw) — bám sát Mongoose schema + timestamps */
+/** Dữ liệu raw trả từ BE */
 export interface JobRaw {
-  _id: string;              // ObjectId -> FE dùng string
+  id: number;
   title: string;
-  tags?: string[];          // default []
   company: string;
   location?: string;
   description?: string;
-  salary?: string;          // BE là String
+  salary_min?: number;
+  salary_max?: number;
   requirements?: string;
-  createdBy: string;        // ObjectId -> string
-  createdByName: string;    // required
-  createdAt?: string;       // từ timestamps: true
-  updatedAt?: string;       // từ timestamps: true
+  created_by_name: string;
+  created_at: string;        // ISO date string
+  updated_at: string;       // ISO date string
+  tags?: string[];          // BE cho phép gửi mảng string khi tạo/cập nhật
+  createdAtFormatted?: string; // chỉ có khi gọi GET /jobs/:id
+  isFavorite?: boolean;        // chỉ có khi user login
 }
 
-/** Kiểu FE dùng (đã “chuẩn hóa” optional & luôn là string/array) */
+/** Kiểu chuẩn hóa để FE dùng */
 export interface Job {
-  _id: string;
+  id: number;
   title: string;
-  tags: string[];           // luôn là array (mặc định [])
   company: string;
   location?: string;
   description?: string;
-  salary?: string;
+  salaryMin?: number;
+  salaryMax?: number;
   requirements?: string;
-  createdBy: string;
   createdByName: string;
-  createdAt: string;        // ISO string
-  updatedAt: string;        // ISO string
+  createdAt: string;         // FE convert từ created_at
+  updatedAt: string;         // FE convert từ updated_at
+  tags: string[];
+  createdAtFormatted?: string;
+  isFavorite?: boolean;
 }
 
-/** Payload khi tạo/cập nhật (FE gửi lên BE) */
+/** Payload khi tạo mới Job */
 export interface JobCreatePayload {
   title: string;
   company: string;
-  tags?: string[];
   location?: string;
   description?: string;
-  salary?: string;
+  salary_min?: number;
+  salary_max?: number;
   requirements?: string;
-  // createdBy & createdByName: BE lấy từ token/middleware -> FE không gửi
+  tags?: string[];
+  // created_by_name được BE lấy từ token -> FE không gửi
 }
 
+/** Payload khi cập nhật Job */
 export type JobUpdatePayload = Partial<JobCreatePayload>;
+
+/** Tag phổ biến (theo API /api/jobs/popular-tags) */
+export interface PopularTag {
+  tag: string;
+  count: number;
+}
+
+/** Danh sách tag (theo API /api/jobs/tags) */
+// Use string directly instead of Tag type alias

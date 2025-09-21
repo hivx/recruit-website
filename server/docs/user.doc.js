@@ -33,7 +33,7 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Nguyễn Văn B
+ *           example: Nguyễn Văn Víp
  *         email:
  *           type: string
  *           format: email
@@ -46,7 +46,7 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Nguyễn Văn B
+ *           example: Nguyễn Văn Víp
  *         email:
  *           type: string
  *           example: nguyenvanb@gmail.com
@@ -107,9 +107,9 @@
  *                   type: string
  *                   example: Đã thêm vào danh sách yêu thích
  *       401:
- *         description: Chưa đăng nhập hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng hoặc công việc
+ *         description: Không tìm thấy công việc với ID này!
  */
 
 /**
@@ -133,9 +133,9 @@
  *                   items:
  *                     $ref: '#/components/schemas/FavoriteJob'
  *       401:
- *         description: Chưa đăng nhập hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng
+ *         description: Người dùng không tồn tại!
  */
 
 /**
@@ -155,11 +155,11 @@
  *             properties:
  *               name:
  *                 type: string
- *                 example: Nguyễn Văn B
+ *                 example: Nguyễn Văn Víp
  *               email:
  *                 type: string
  *                 format: email
- *                 example: nguyenvanb@gmail.com
+ *                 example: snonamevx@gmail.com
  *               avatar:
  *                 type: string
  *                 format: binary
@@ -172,11 +172,11 @@
  *             schema:
  *               $ref: '#/components/schemas/UserProfile'
  *       400:
- *         description: Dữ liệu gửi lên không hợp lệ
+ *         description: Email không hợp lệ hoặc đã tồn tại!
  *       401:
- *         description: Chưa đăng nhập hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng
+ *         description: Người dùng không tồn tại!
  */
 
 /**
@@ -205,9 +205,9 @@
  *                   type: string
  *                   example: Đổi mật khẩu thành công
  *       400:
- *         description: Mật khẩu cũ không đúng hoặc dữ liệu không hợp lệ
+ *         description: Vui lòng nhập đầy đủ mật khẩu cũ và mới!
  *       401:
- *         description: Chưa đăng nhập hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng
+ *         description: Người dùng không tồn tại!
  */

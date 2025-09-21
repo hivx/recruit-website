@@ -5,7 +5,7 @@ module.exports = (...allowedRoles) => {
     if (!allowedRoles.includes(userRole)) {
       return res
         .status(403)
-        .json({ message: "Không có quyền thực hiện thao tác này" });
+        .json({ message: "Không có quyền thực hiện thao tác này!" });
     }
     next();
   };

@@ -1,4 +1,6 @@
-// controllers/applicationController.js
+// server/controllers/applicationController.js
+const fs = require("fs");
+const path = require("path");
 const applicationService = require("../services/applicationService");
 
 // POST: Ứng tuyển công việc (coverLetter, cv, phone bắt buộc)
@@ -7,17 +9,25 @@ exports.createApplication = async (req, res) => {
     const { jobId, coverLetter, phone } = req.body;
     const userId = req.user.userId;
 
-    // Đảm bảo CV đã được upload
-    if (!req.file) {
-      return res.status(400).json({ message: "Chưa tải lên file CV" });
-    }
-    const cvPath = `uploads/${req.file.filename}`; // nếu có file upload (avatar) thì lấy path
+    // Validate cơ bản (chưa cần file)
+    await applicationService.validateApply({
+      jobId,
+      userId,
+      phone,
+    });
 
+    // Đảm bảo có file CV
+    if (!req.file) {
+      return res.status(400).json({ message: "Chưa tải lên file CV!" });
+    }
+    const cvPath = `uploads/${req.file.filename}`;
+
+    // Tạo application
     const application = await applicationService.createApplication({
       jobId: BigInt(jobId),
       coverLetter,
       userId: BigInt(userId),
-      cv: cvPath, // đường dẫn file
+      cv: cvPath,
       phone,
     });
 
@@ -27,6 +37,17 @@ exports.createApplication = async (req, res) => {
     });
   } catch (err) {
     console.error("[ApplicationController createApplication]", err.message);
+
+    // Nếu có file nhưng lỗi thì rollback (xóa file)
+    if (req.file) {
+      const filePath = path.join(__dirname, "..", "uploads", req.file.filename);
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error("Rollback xóa file thất bại:", unlinkErr);
+        }
+      });
+    }
+
     res.status(err.statusCode || 500).json({
       message: err.message || "Lỗi server!",
     });
@@ -43,7 +64,7 @@ exports.getApplicantsByJob = async (req, res) => {
 
     if (!applications || applications.length === 0) {
       return res.status(404).json({
-        message: "Không có ứng viên nào ứng tuyển cho công việc này.",
+        message: "Không có ứng viên nào ứng tuyển cho công việc này!",
       });
     }
 

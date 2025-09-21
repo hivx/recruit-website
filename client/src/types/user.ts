@@ -1,35 +1,43 @@
 // src/types/user.ts
-
 export type UserRole = 'admin' | 'recruiter' | 'applicant';
 
 /** Dữ liệu raw trả từ BE */
 export interface UserRaw {
-  _id: string;
+  id: number;
   name: string;
   email: string;
-  password?: string;       // BE thường không gửi, nhưng để optional
   isVerified: boolean;
   role: UserRole;
-  favoriteJobs: string[];  // ObjectId[] -> string[]
-  createdAt: string;       // ISO date string
+  avatar: string;          // BE có avatar
+  created_at: string;      // ISO date string
 }
 
 /** Kiểu chuẩn hóa để FE dùng */
 export interface User {
-  _id: string;
+  id: number;
   name: string;
   email: string;
   isVerified: boolean;
   role: UserRole;
-  favoriteJobs: string[]; // có thể sau này map sang Job[]
-  createdAt: string;
+  avatar: string;
+  createdAt: string;       // FE convert từ created_at sang camelCase
+}
+
+/** Job yêu thích (theo API /api/users/favorite) */
+export interface FavoriteJob {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  created_at: string;      // ISO date string
 }
 
 /** Payload khi đăng ký */
 export interface UserRegisterPayload {
   name: string;
-  email: string;
+  email: string;  // phải là @gmail.com
   password: string;
+  role: UserRole; // bắt buộc chọn role (applicant, recruiter)
 }
 
 /** Payload khi đăng nhập */
@@ -42,8 +50,16 @@ export interface UserLoginPayload {
 export type UserUpdatePayload = Partial<{
   name: string;
   email: string;
-  password: string;
-  isVerified: boolean;
-  role: UserRole;
-  favoriteJobs: string[];
+  avatar: File; // BE nhận multipart/form-data
 }>;
+
+/** Payload đổi mật khẩu */
+export interface ChangePasswordInput {
+  oldPassword: string;
+  newPassword: string;
+}
+
+/** Response khi đổi mật khẩu */
+export interface ChangePasswordResponse {
+  message: string; // "Đổi mật khẩu thành công"
+}

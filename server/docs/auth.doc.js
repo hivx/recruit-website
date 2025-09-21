@@ -24,7 +24,7 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Chu Văn Hiếu
  *         email:
  *           type: string
  *           format: email
@@ -59,7 +59,7 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Nguyễn Văn A
+ *           example: Chu Văn Hiếu
  *         email:
  *           type: string
  *           example: chuvanhieu357@gmail.com
@@ -93,13 +93,15 @@
  *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
- *         description: Đăng ký thành công, vui lòng xác thực email
+ *         description: Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!
  *       400:
- *         description: Email không hợp lệ hoặc không phải @gmail.com
+ *         description: Chỉ chấp nhận email @gmail.com!
+ *       403:
+ *         description: Không thể tự đăng ký với quyền admin!
  *       409:
- *         description: Email đã tồn tại
+ *         description: Email đã tồn tại!
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi server!
  */
 
 /**
@@ -124,13 +126,15 @@
  *               properties:
  *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwicm9sZSI6InJlY3J1aXRlciIsImlhdCI6MTc1ODEyOTAxMywiZXhwIjoxNzU4MjE1NDEzfQ.E85DuUN1ATnCohrAYI0mtlH9u69aRz24g1hmfhcAlaI
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
- *         description: Thông tin đăng nhập không hợp lệ hoặc chưa xác thực email
+ *         description: Email hoặc mật khẩu không đúng!
+ *       403:
+ *         description: Tài khoản chưa được xác thực qua email!
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi server!
  */
 
 /**
@@ -149,5 +153,48 @@
  *             schema:
  *               $ref: '#/components/schemas/UserResponse'
  *       401:
- *         description: Không có hoặc token không hợp lệ
+ *         description: Không có token, truy cập bị từ chối!
+ */
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Yêu cầu đặt lại mật khẩu
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "chuvanhieu357@gmail.com"
+ *               newPassword:
+ *                 type: string
+ *                 example: "654321"
+ *               confirmPassword:
+ *                 type: string
+ *                 example: "654321"
+ *     responses:
+ *       200:
+ *         description: Liên kết xác nhận đã được gửi tới email!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Liên kết xác nhận đã được gửi tới email của bạn!"
+ *       400:
+ *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
+ *       404:
+ *         description: Không tìm thấy user với email đã cung cấp!
  */
