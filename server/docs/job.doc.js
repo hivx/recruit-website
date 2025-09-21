@@ -37,7 +37,7 @@
  *           type: string
  *           example: Nguyễn Văn Víp
  *           description: Tên người tạo bài viết, vẫn lưu ngay cả khi tài khoản bị xoá
- *         created_t:
+ *         created_at:
  *           type: string
  *           format: date-time
  *           example: 2025-09-01T14:30:00Z

@@ -8,8 +8,8 @@ export function TestJobService() {
         const jobs = await getJobs(1, 10); // page=1, limit=5
         console.log(" Danh sách jobs:", jobs);
 
-        if (jobs.data.length > 0) {
-          const firstJobId = jobs.data[0]._id;
+        if (jobs.jobs.length > 0) {
+          const firstJobId = jobs.jobs[0].id;
           const jobDetail = await getJobById(firstJobId);
           console.log(" Chi tiết job:", jobDetail);
         }

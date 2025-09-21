@@ -1,5 +1,6 @@
 // src/pages/JobList.tsx
 import { useJobs } from "@/hooks";
+import type { Job } from "@/types"; // thêm dòng này
 import { JobCard, Loader, ErrorBox } from "@/components";
 import { getAxiosErrorMessage } from "@/utils";
 
@@ -7,13 +8,16 @@ export function JobList() {
   const { data: jobs, isLoading, isError, error, refetch } = useJobs(1, 10);
 
   if (isLoading) return <Loader />;
-  if (isError) return <ErrorBox message={getAxiosErrorMessage(error)} onRetry={refetch} />;
-  if (!jobs?.data?.length) return <p className="p-4">Không có công việc nào.</p>;
+  if (isError)
+    return (
+      <ErrorBox message={getAxiosErrorMessage(error)} onRetry={refetch} />
+    );
+  if (!jobs?.jobs?.length) return <p className="p-4">Không có công việc nào.</p>;
 
   return (
     <div className="space-y-4 p-6">
-      {jobs.data.map((job) => (
-        <JobCard key={job._id} job={job} />
+      {jobs.jobs.map((job: Job) => (
+        <JobCard key={job.id} job={job} />
       ))}
     </div>
   );

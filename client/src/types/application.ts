@@ -1,35 +1,52 @@
 // src/types/application.ts
 
-/** Dạng dữ liệu thô BE trả về (raw) */
+/** Dữ liệu raw trả từ BE */
 export interface ApplicationRaw {
-  _id: string;                // ObjectId -> string
-  job: string;                // ObjectId (ref Job)
-  applicant: string;          // ObjectId (ref User)
-  coverLetter: string;
-  cv?: string;                 // Đường dẫn file CV
-  phone?: string;              // Số điện thoại ứng viên
-  createdAt: string;           // ISO date string
+  id: string;               // BE trả về string ID (vd: "101")
+  job_id: string;           // Job ID
+  applicant_id: string;     // User ID
+  cover_letter: string;
+  cv?: string;              // Đường dẫn file CV (/uploads/...)
+  phone?: string;
+  created_at: string;       // ISO date string
 }
 
-/** Kiểu FE dùng khi đã chuẩn hóa */
+/** Kiểu chuẩn hóa cho FE */
 export interface Application {
-  _id: string;
-  job: string;                // Có thể sau này map sang Job object
-  applicant: string;          // Có thể sau này map sang User object
+  id: string;
+  jobId: string;
+  applicantId: string;
   coverLetter: string;
   cv?: string;
   phone?: string;
-  createdAt: string;
+  createdAt: string;        // FE map từ created_at
 }
 
-/** Payload khi tạo mới Application */
+/** Payload khi tạo Application (FE gửi lên BE) */
 export interface ApplicationCreatePayload {
-  job: string;
+  jobId: string;
   coverLetter: string;
-  cv?: string;
-  phone?: string;
-  // applicant: FE không gửi, BE lấy từ token đăng nhập
+  phone: string;
+  cv?: File; // FE gửi multipart/form-data
+  // applicantId: BE lấy từ token
 }
 
 /** Payload khi cập nhật Application */
 export type ApplicationUpdatePayload = Partial<ApplicationCreatePayload>;
+
+/** Thông tin ứng viên (trả về khi recruiter xem danh sách) */
+export interface ApplicantInfo {
+  applicantName: string;
+  applicantEmail: string;
+  applicantAvatar: string;
+  coverLetter: string;
+  cv: string;
+  phone: string;
+  appliedAt: string; // ISO date string
+}
+
+/** Response khi tạo application thành công */
+export interface ApplicationResponse {
+  message: string;          // "Ứng tuyển thành công!"
+  application: Application;
+}

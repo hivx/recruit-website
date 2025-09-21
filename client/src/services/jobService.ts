@@ -1,37 +1,50 @@
 // src/services/jobService.ts
-import { api } from "@/api";       // dùng axios instance chung
-import { normalizeJob } from "@/types";
-import type { Job, Paginated } from "@/types";
+import { api } from "@/api";
+import { normalizeJob } from "@/types/mappers";
+import type {
+  Job,
+  JobCreatePayload,
+  JobUpdatePayload,
+  PaginatedJobs,
+} from "@/types";
 
+/** Lấy danh sách job với phân trang */
 export async function getJobs(
   page = 1,
   limit = 10
-): Promise<Paginated<Job>> {
+): Promise<PaginatedJobs<Job>> {
   const res = await api.get("/api/jobs", { params: { page, limit } });
 
   return {
-    data: (res.data.jobs ?? []).map(normalizeJob),
+    jobs: (res.data.jobs ?? []).map(normalizeJob),
+    total: res.data.total ?? 0,
     page: res.data.page ?? 1,
-    limit: res.data.limit ?? limit,
-    total: res.data.total ?? (res.data.jobs?.length ?? 0),
+    totalPages: res.data.totalPages ?? 1,
   };
 }
 
-export async function getJobById(id: string): Promise<Job> {
+/** Lấy chi tiết job theo ID */
+export async function getJobById(id: number): Promise<Job> {
   const res = await api.get(`/api/jobs/${id}`);
   return normalizeJob(res.data);
 }
 
-export async function createJob(jobData: Partial<Job>): Promise<Job> {
+/** Tạo job mới */
+export async function createJob(jobData: JobCreatePayload): Promise<Job> {
   const res = await api.post("/api/jobs", jobData);
   return normalizeJob(res.data);
 }
 
-export async function updateJob(id: string, jobData: Partial<Job>): Promise<Job> {
+/** Cập nhật job */
+export async function updateJob(
+  id: number,
+  jobData: JobUpdatePayload
+): Promise<Job> {
   const res = await api.put(`/api/jobs/${id}`, jobData);
   return normalizeJob(res.data);
 }
 
-export async function deleteJob(id: string): Promise<void> {
+/** Xóa job */
+export async function deleteJob(id: number): Promise<void> {
   await api.delete(`/api/jobs/${id}`);
 }

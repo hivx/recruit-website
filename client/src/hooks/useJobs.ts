@@ -10,7 +10,7 @@ export function useJobs(page = 1, limit = 10) {
   });
 }
 
-export function useJobById(id: string) {
+export function useJobById(id: number) {
   return useQuery<Job>({
     queryKey: ['job', id],
     queryFn: () => getJobById(id),
