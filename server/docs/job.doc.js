@@ -9,9 +9,34 @@
  * @swagger
  * components:
  *   schemas:
+ *     Tag:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           example: IT
+ *
+ *     JobTag:
+ *       type: object
+ *       properties:
+ *         jobId:
+ *           type: string
+ *           example: "5"
+ *         tagId:
+ *           type: integer
+ *           example: 1
+ *         tag:
+ *           $ref: '#/components/schemas/Tag'
+ *
  *     Job:
  *       type: object
  *       properties:
+ *         id:
+ *           type: string
+ *           example: "5"
  *         title:
  *           type: string
  *           example: Lập trình viên ReactJS
@@ -23,7 +48,7 @@
  *           example: Hà Nội
  *         description:
  *           type: string
- *           example: Tuyển lập trình viên ReactJS có kinh nghiệm
+ *           example: Mô tả công việc ReactJS
  *         salary_min:
  *           type: number
  *           example: 15000000
@@ -32,30 +57,26 @@
  *           example: 20000000
  *         requirements:
  *           type: string
- *           example: Có ít nhất 1 năm kinh nghiệm.
+ *           example: Kinh nghiệm 1 năm ReactJS
+ *         created_by:
+ *           type: string
+ *           example: "1"
  *         created_by_name:
  *           type: string
- *           example: Nguyễn Văn Víp
+ *           example: Chu Văn Hiếu
  *           description: Tên người tạo bài viết, vẫn lưu ngay cả khi tài khoản bị xoá
  *         created_at:
  *           type: string
  *           format: date-time
- *           example: 2025-09-01T14:30:00Z
+ *           example: 2025-10-06T15:33:52.927Z
  *         updated_at:
  *           type: string
  *           format: date-time
- *           example: 2025-09-02T09:15:00Z
+ *           example: 2025-10-06T15:33:52.927Z
  *         tags:
  *           type: array
  *           items:
- *             type: object
- *             properties:
- *               job_id:
- *                 type: string
- *                 example: "12"
- *               tag:
- *                 type: string
- *                 example: "IT"
+ *             $ref: '#/components/schemas/JobTag'
  */
 
 /**

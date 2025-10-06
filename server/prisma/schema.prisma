@@ -47,13 +47,11 @@ model User {
   reset_token        String?   @db.VarChar(255)
   reset_token_expiry DateTime?
 
-  // Quan hệ cũ
-  favorites    UserFavoriteJobs[]
-  jobs         Job[]              @relation("UserJobs")
-  applications Application[]
-
-  // Quan hệ mới
-  interestHistory  UserInterestHistory[]
+  // Quan hệ
+  favorites       UserFavoriteJobs[]
+  jobs            Job[]              @relation("UserJobs")
+  applications    Application[]
+  interestHistory UserInterestHistory[]
   careerPreference CareerPreference?
   behaviorProfile  UserBehaviorProfile?
   recommendations  JobRecommendation[]
@@ -79,16 +77,13 @@ model Job {
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now())
 
-  // Quan hệ cũ
-  creator   User               @relation("UserJobs", fields: [created_by], references: [id])
-  tags      JobTag[]
-  favorites UserFavoriteJobs[]
-  apps      Application[]
-
-  // Quan hệ mới
-  interestLogs    UserInterestHistory[]
+  // Quan hệ
+  creator        User               @relation("UserJobs", fields: [created_by], references: [id])
+  favorites      UserFavoriteJobs[]
+  apps           Application[]
+  interestLogs   UserInterestHistory[]
   recommendations JobRecommendation[]
-  jobTagsAdvanced JobTagAdvanced[]
+  tags           JobTag[]           // <== Tag mới, dùng bảng chuẩn hóa
 
   @@index([location], map: "idx_jobs_location")
   @@index([updated_at], map: "idx_jobs_updated_at")
@@ -96,24 +91,24 @@ model Job {
 }
 
 // ============================================================
-// TAG (chuẩn hóa để quản lý danh mục Tag cho Job và CareerPreference)
+// TAG (Danh mục Tag chuẩn hóa cho Job & CareerPreference)
 // ============================================================
 
 model Tag {
   id   Int    @id @default(autoincrement())
   name String @unique @db.VarChar(100)
 
-  jobTags        JobTagAdvanced[]
-  preferenceTags PreferenceTag[]
+  jobs        JobTag[]
+  preferences CareerPreferenceTag[]
 
   @@map("tags")
 }
 
 // ============================================================
-// JOB TAG (mới, chuẩn hóa dùng bảng Tag)
+// JOB TAG (chuẩn mới, dùng Tag chuẩn hóa)
 // ============================================================
 
-model JobTagAdvanced {
+model JobTag {
   jobId BigInt @map("job_id")
   tagId Int    @map("tag_id")
 
@@ -121,24 +116,11 @@ model JobTagAdvanced {
   tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([jobId, tagId])
-  @@map("job_tags_advanced")
-}
-
-// ============================================================
-// JOB TAG (phiên bản cũ vẫn giữ nguyên để tương thích dữ liệu cũ)
-// ============================================================
-
-model JobTag {
-  job_id BigInt
-  tag    String
-  job    Job    @relation(fields: [job_id], references: [id])
-
-  @@id([job_id, tag])
   @@map("job_tags")
 }
 
 // ============================================================
-// USER FAVORITE JOBS (cũ)
+// USER FAVORITE JOBS
 // ============================================================
 
 model UserFavoriteJobs {
@@ -152,7 +134,7 @@ model UserFavoriteJobs {
 }
 
 // ============================================================
-// APPLICATION (cũ + thêm status cho tracking)
+// APPLICATION (Ứng tuyển + trạng thái)
 // ============================================================
 
 model Application {
@@ -173,7 +155,7 @@ model Application {
 }
 
 // ============================================================
-// USER INTEREST HISTORY (log hành vi)
+// USER INTEREST HISTORY (Lịch sử tương tác)
 // ============================================================
 
 model UserInterestHistory {
@@ -182,7 +164,7 @@ model UserInterestHistory {
   job_id      BigInt
   job_title   String         @db.VarChar(255)
   avg_salary  Int?
-  tags        String?        @db.VarChar(500)
+  tags        Json?          @map("tags")
   source      InterestSource
   event_type  String?        @default("viewed") @db.VarChar(50)
   recorded_at DateTime       @default(now())
@@ -209,8 +191,8 @@ model CareerPreference {
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
-  user           User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  preferenceTags PreferenceTag[]
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  tags CareerPreferenceTag[]   // <== thêm liên kết Tag ngành nghề mong muốn
 
   @@index([desired_location], map: "idx_cp_location")
   @@index([desired_salary], map: "idx_cp_salary")
@@ -218,23 +200,23 @@ model CareerPreference {
 }
 
 // ============================================================
-// PREFERENCE TAG (liên kết giữa user và tag mong muốn)
+// CAREER PREFERENCE TAG (liên kết user <-> tag mong muốn)
 // ============================================================
 
-model PreferenceTag {
-  user_id BigInt
-  tag_id  Int
+model CareerPreferenceTag {
+  userId BigInt @map("user_id")
+  tagId  Int    @map("tag_id")
 
-  pref CareerPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  tag  Tag              @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+  preference CareerPreference @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  tag        Tag              @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  @@id([user_id, tag_id])
-  @@index([tag_id], map: "idx_pref_tagid")
-  @@map("preference_tags")
+  @@id([userId, tagId])
+  @@index([tagId], map: "idx_cpref_tagid")
+  @@map("career_preference_tags")
 }
 
 // ============================================================
-// USER BEHAVIOR PROFILE (hồ sơ hành vi người dùng)
+// USER BEHAVIOR PROFILE (hồ sơ hành vi)
 // ============================================================
 
 model UserBehaviorProfile {
@@ -250,7 +232,7 @@ model UserBehaviorProfile {
 }
 
 // ============================================================
-// JOB RECOMMENDATION (gợi ý việc làm cho người dùng)
+// JOB RECOMMENDATION (gợi ý việc làm)
 // ============================================================
 
 model JobRecommendation {
