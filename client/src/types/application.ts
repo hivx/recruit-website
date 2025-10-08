@@ -1,33 +1,38 @@
 // src/types/application.ts
 
+/** Trạng thái ứng tuyển (theo schema mới) */
+export type ApplicationStatus = "pending" | "accepted" | "rejected";
+
 /** Dữ liệu raw trả từ BE */
 export interface ApplicationRaw {
-  id: string;               // BE trả về string ID (vd: "101")
-  job_id: string;           // Job ID
-  applicant_id: string;     // User ID
+  id: string;               // BigInt → string
+  job_id: string;           // BigInt → string
+  applicant_id: string;     // BigInt → string
   cover_letter: string;
   cv?: string;              // Đường dẫn file CV (/uploads/...)
   phone?: string;
+  status: ApplicationStatus;
   created_at: string;       // ISO date string
 }
 
 /** Kiểu chuẩn hóa cho FE */
 export interface Application {
-  id: string;
+  id: string;               // FE giữ string để an toàn
   jobId: string;
   applicantId: string;
   coverLetter: string;
   cv?: string;
   phone?: string;
+  status: ApplicationStatus;
   createdAt: string;        // FE map từ created_at
 }
 
 /** Payload khi tạo Application (FE gửi lên BE) */
 export interface ApplicationCreatePayload {
-  jobId: string;
+  jobId: string;            // FE truyền string (BigInt → string)
   coverLetter: string;
   phone: string;
-  cv?: File; // FE gửi multipart/form-data
+  cv?: File;                // FE gửi multipart/form-data
   // applicantId: BE lấy từ token
 }
 
@@ -42,6 +47,7 @@ export interface ApplicantInfo {
   coverLetter: string;
   cv: string;
   phone: string;
+  status: ApplicationStatus;
   appliedAt: string; // ISO date string
 }
 

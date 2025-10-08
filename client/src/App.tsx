@@ -1,7 +1,6 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { JobList } from "@/components";
-import { JobDetail } from "@/pages";
+import { JobDetail, JobList } from "@/pages";
 import { TestJobService } from "@/test";
 
 function App() {

@@ -45,7 +45,7 @@ server/
 
 Phân quyền: ứng viên / nhà tuyển dụng / admin
 
-🧾 Quản lý Job:
+ Quản lý Job:
 
 CRUD job posting (nhà tuyển dụng)
 

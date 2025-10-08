@@ -117,10 +117,20 @@ exports.getAllJobs = async ({
     prisma.job.count({ where }),
   ]);
 
-  // 🔹 Chuẩn hóa dữ liệu trả về (flatten tag.name)
+  // Không làm phẳng tags, giữ nguyên cấu trúc chuẩn hóa
+  // Nếu cần có thêm fallback, có thể map để đảm bảo tags luôn là mảng
   const formattedJobs = jobs.map((job) => ({
     ...job,
-    tags: job.tags.map((t) => t.tag.name),
+    tags: Array.isArray(job.tags)
+      ? job.tags.map((t) => ({
+          jobId: String(t.jobId),
+          tagId: t.tagId,
+          tag: {
+            id: t.tag?.id ?? 0,
+            name: t.tag?.name ?? "",
+          },
+        }))
+      : [],
   }));
 
   return {
@@ -137,8 +147,12 @@ exports.getJobById = async (id) => {
     where: { id: BigInt(id) },
     include: {
       creator: { select: { id: true, name: true, email: true } },
-      tags: true,
-      favorites: true, // nếu muốn biết những ai đã favorite (bảng pivot)
+      tags: {
+        include: {
+          tag: true, // thêm dòng này để lấy tên tag
+        },
+      },
+      favorites: true, // nếu muốn biết ai đã favorite
     },
   });
 };
@@ -266,7 +280,7 @@ exports.getPopularTags = async () => {
 };
 
 //  Lấy tất cả tag (distinct)
-// exports.getAllTags = async () => {
+// exports.getAllTags = async () => { //tất cả tag dù có job hay không
 //   const tags = await prisma.tag.findMany({
 //     orderBy: { id: "asc" }, // sắp xếp cho dễ nhìn
 //     select: { id: true, name: true },

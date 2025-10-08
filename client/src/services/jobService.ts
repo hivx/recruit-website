@@ -16,15 +16,17 @@ export async function getJobs(
   const res = await api.get("/api/jobs", { params: { page, limit } });
 
   return {
-    jobs: (res.data.jobs ?? []).map(normalizeJob),
+    jobs: Array.isArray(res.data.jobs)
+      ? res.data.jobs.map(normalizeJob)
+      : [],
     total: res.data.total ?? 0,
     page: res.data.page ?? 1,
     totalPages: res.data.totalPages ?? 1,
   };
 }
 
-/** Lấy chi tiết job theo ID */
-export async function getJobById(id: number): Promise<Job> {
+/** Lấy chi tiết job theo ID (BigInt → string) */
+export async function getJobById(id: string): Promise<Job> {
   const res = await api.get(`/api/jobs/${id}`);
   return normalizeJob(res.data);
 }
@@ -37,7 +39,7 @@ export async function createJob(jobData: JobCreatePayload): Promise<Job> {
 
 /** Cập nhật job */
 export async function updateJob(
-  id: number,
+  id: string,
   jobData: JobUpdatePayload
 ): Promise<Job> {
   const res = await api.put(`/api/jobs/${id}`, jobData);
@@ -45,6 +47,6 @@ export async function updateJob(
 }
 
 /** Xóa job */
-export async function deleteJob(id: number): Promise<void> {
+export async function deleteJob(id: string): Promise<void> {
   await api.delete(`/api/jobs/${id}`);
 }
