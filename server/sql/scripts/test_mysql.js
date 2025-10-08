@@ -1,8 +1,7 @@
 // scripts/test_mysql.js
-const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
-const prisma = new PrismaClient();
+const prisma = require("../../utils/prisma");
 
 (async () => {
   try {

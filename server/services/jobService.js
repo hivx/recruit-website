@@ -1,7 +1,5 @@
 // services/jobService.js
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const prisma = require("../utils/prisma");
 
 //  Tạo Job (kèm tags)
 exports.createJob = async (jobData) => {

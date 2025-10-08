@@ -1,13 +1,11 @@
 const crypto = require("crypto");
-const { PrismaClient } = require("@prisma/client");
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const generateToken = require("../utils/generateToken");
+const prisma = require("../utils/prisma");
 const emailService = require("./emailService");
-
-const prisma = new PrismaClient();
 
 module.exports = {
   // Đăng ký user mới
