@@ -1,4 +1,5 @@
 // services/applicationService.js
+const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 
 module.exports = {
@@ -38,8 +39,8 @@ module.exports = {
   },
 
   // Tạo đơn ứng tuyển
-  async createApplication({ jobId, coverLetter, userId, cv, phone }) {
-    return await prisma.application.create({
+  async createApplication({ userId, jobId, coverLetter, cv, phone }) {
+    const application = await prisma.application.create({
       data: {
         job_id: BigInt(jobId),
         applicant_id: BigInt(userId),
@@ -48,6 +49,23 @@ module.exports = {
         phone: phone || null,
       },
     });
+
+    const job = await prisma.job.findUnique({
+      where: { id: BigInt(jobId) },
+      include: { tags: { include: { tag: true } } },
+    });
+
+    if (job) {
+      //  Ghi log hành vi ứng tuyển
+      logUserInterest({
+        userId,
+        job,
+        source: "applied",
+        eventType: "apply_with_cv",
+      });
+    }
+
+    return application;
   },
 
   // Lấy danh sách đơn ứng tuyển của 1 user

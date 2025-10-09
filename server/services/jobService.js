@@ -65,7 +65,7 @@ exports.getAllJobs = async ({
 }) => {
   const skip = (page - 1) * limit;
 
-  // 🔹 Lọc theo tag (dựa vào bảng chuẩn hóa Tag)
+  //  Lọc theo tag (dựa vào bảng chuẩn hóa Tag)
   const tagFilter =
     Array.isArray(filter.tags) && filter.tags.length > 0
       ? {
@@ -79,7 +79,7 @@ exports.getAllJobs = async ({
         }
       : {};
 
-  // 🔹 Điều kiện search (tìm trong nhiều cột)
+  //  Điều kiện search (tìm trong nhiều cột)
   const searchConditions = search
     ? [
         { title: { contains: search } },
@@ -91,13 +91,13 @@ exports.getAllJobs = async ({
       ]
     : [];
 
-  // 🔹 Gom tất cả điều kiện lại
+  //  Gom tất cả điều kiện lại
   const where = {
     ...tagFilter,
     ...(searchConditions.length ? { OR: searchConditions } : {}),
   };
 
-  // 🔹 Truy vấn song song: danh sách và tổng
+  //  Truy vấn song song: danh sách và tổng
   const [jobs, total] = await Promise.all([
     prisma.job.findMany({
       where,
@@ -159,7 +159,7 @@ exports.getJobById = async (id) => {
 exports.updateJob = async (id, data) => {
   const { tags, ...fields } = data;
 
-  // 🔹 Nếu có danh sách tags mới: tạo nếu chưa tồn tại, rồi gắn vào
+  //  Nếu có danh sách tags mới: tạo nếu chưa tồn tại, rồi gắn vào
   if (Array.isArray(tags) && tags.length > 0) {
     const uniqueTags = [...new Set(tags.map((t) => t.trim()))];
 
@@ -175,7 +175,7 @@ exports.updateJob = async (id, data) => {
     );
   }
 
-  // 🔹 Cập nhật job
+  //  Cập nhật job
   const updated = await prisma.job.update({
     where: { id: BigInt(id) },
     data: {
@@ -216,7 +216,7 @@ exports.updateJob = async (id, data) => {
     },
   });
 
-  // 🔹 Ép kiểu BigInt → String để JSON không lỗi
+  //  Ép kiểu BigInt → String để JSON không lỗi
   return {
     ...updated,
     id: updated.id.toString(),
