@@ -4,6 +4,7 @@ const path = require("path");
 
 const bcrypt = require("bcrypt");
 
+const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 
 module.exports = {
@@ -98,7 +99,9 @@ module.exports = {
     // Kiểm tra job tồn tại
     const job = await prisma.job.findUnique({
       where: { id: BigInt(jobId) },
+      include: { tags: { include: { tag: true } } }, // cần lấy tag để log
     });
+
     if (!job) {
       const error = new Error("Không tìm thấy công việc với ID này!");
       error.status = 404;
@@ -115,6 +118,7 @@ module.exports = {
       },
     });
 
+    // Nếu đã có → gỡ khỏi danh sách
     if (exists) {
       await prisma.userFavoriteJobs.delete({
         where: {
@@ -124,15 +128,34 @@ module.exports = {
           },
         },
       });
+
+      //  Ghi log hành vi “remove_favorite”
+      logUserInterest({
+        userId,
+        job,
+        source: "favorite",
+        eventType: "remove_favorite",
+      });
+
       return { message: "Đã gỡ khỏi danh sách yêu thích" };
     }
 
+    // Nếu chưa có → thêm mới
     await prisma.userFavoriteJobs.create({
       data: {
         user_id: BigInt(userId),
         job_id: BigInt(jobId),
       },
     });
+
+    //  Ghi log hành vi “add_favorite”
+    logUserInterest({
+      userId,
+      job,
+      source: "favorite",
+      eventType: "add_favorite",
+    });
+
     return { message: "Đã thêm vào danh sách yêu thích" };
   },
 

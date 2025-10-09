@@ -51,7 +51,7 @@ type RawApplication = {
 };
 
 // ================================
-// 🔹 MAPPER: Job
+//  MAPPER: Job
 // ================================
 export function normalizeJob(raw: RawJob): Job {
   const tags: JobTag[] = Array.isArray(raw.tags)
@@ -85,7 +85,7 @@ export function normalizeJob(raw: RawJob): Job {
 }
 
 // ================================
-// 🔹 MAPPER: User
+//  MAPPER: User
 // ================================
 export function normalizeUser(raw: RawUser): User {
   return {
@@ -101,7 +101,7 @@ export function normalizeUser(raw: RawUser): User {
 }
 
 // ================================
-// 🔹 MAPPER: Application
+//  MAPPER: Application
 // ================================
 export function normalizeApplication(raw: RawApplication): Application {
   return {

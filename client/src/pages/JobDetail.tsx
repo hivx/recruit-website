@@ -44,7 +44,7 @@ export function JobDetail() {
 
   return (
     <div className="p-6 space-y-4">
-      {/* 🔹 Tiêu đề */}
+      {/*  Tiêu đề */}
       <h1 className="text-2xl font-bold">{job.title}</h1>
       <p className="text-lg text-gray-600">{job.company}</p>
       <p className="text-sm text-gray-500">

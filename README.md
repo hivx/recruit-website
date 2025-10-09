@@ -1,4 +1,4 @@
-🔧 Giai đoạn 1: Khởi tạo dự án
+ Giai đoạn 1: Khởi tạo dự án
 1. Cài đặt môi trường
 Cài đặt Node.js
 
@@ -21,7 +21,7 @@ Chia làm 2 folders:
 job-recruitment-app/
 ├── client/       # React frontend
 ├── server/       # Node.js backend
-💻 Giai đoạn 2: Xây dựng Backend với Node.js + Express
+ Giai đoạn 2: Xây dựng Backend với Node.js + Express
 1. Khởi tạo project backend
 
 cd server
@@ -39,7 +39,7 @@ server/
 ├── .env
 ├── server.js
 3. Các chức năng backend chính
-🔐 Auth:
+ Auth:
 
 Đăng ký, đăng nhập người dùng (bcrypt + JWT)
 
@@ -53,15 +53,15 @@ CRUD job posting (nhà tuyển dụng)
 
 Danh sách việc làm
 
-🧑‍💻 Quản lý user profile:
+ Quản lý user profile:
 
 Hồ sơ ứng viên
 
 Hồ sơ nhà tuyển dụng
 
-📊 Dashboard Admin (tuỳ chọn)
+ Dashboard Admin (tuỳ chọn)
 
-🎨 Giai đoạn 3: Xây dựng Frontend với ReactJS
+ Giai đoạn 3: Xây dựng Frontend với ReactJS
 1. Khởi tạo frontend
 
 npx create-react-app client
@@ -95,21 +95,21 @@ Quản lý tin tuyển dụng (của nhà tuyển dụng)
 
 (Tuỳ chọn) Admin dashboard
 
-🌐 Giai đoạn 4: Kết nối Frontend và Backend
+ Giai đoạn 4: Kết nối Frontend và Backend
 Sử dụng axios gọi API từ frontend đến backend
 
 Cấu hình .env ở cả hai phía
 
 Bảo vệ route bằng JWT token
 
-☁️ Giai đoạn 5: Deploy
+ Giai đoạn 5: Deploy
 Backend: deploy lên Render, Railway hoặc VPS (DigitalOcean)
 
 Frontend: deploy lên Vercel hoặc Netlify
 
 Dữ liệu: MongoDB Atlas (cloud) hoặc Railway/PostgreSQL
 
-🚀 Gợi ý thứ tự làm:
+ Gợi ý thứ tự làm:
 Xong backend auth (register, login)
 
 Xong frontend auth (form + gọi API)
@@ -126,14 +126,14 @@ Hoàn thiện trang cá nhân
 
 Triển khai lên production
 
-📌 GIAI ĐOẠN 1: Chuẩn hóa Backend & bảo mật
+ GIAI ĐOẠN 1: Chuẩn hóa Backend & bảo mật
  Bạn đã làm 80% phần này — giờ ta chuẩn hóa lại và hoàn thiện các chi tiết.
 
 Bảo mật API
 
  Đã có JWT + phân quyền, nhưng cần kiểm tra kỹ lại authMiddleware và logic kiểm soát vai trò (role-based access).
 
-🔒 Thêm rate limit, helmet hoặc cors cấu hình chặt hơn nếu deploy ra ngoài.
+ Thêm rate limit, helmet hoặc cors cấu hình chặt hơn nếu deploy ra ngoài.
 
 Hoàn thiện các API hỗ trợ Frontend:
 
