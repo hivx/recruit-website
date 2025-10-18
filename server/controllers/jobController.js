@@ -1,6 +1,5 @@
 // controllers/jobController.js
 const moment = require("moment");
-
 const jobService = require("../services/jobService");
 const userService = require("../services/userService");
 
@@ -8,21 +7,25 @@ const userService = require("../services/userService");
 exports.createJob = async (req, res) => {
   try {
     const jobData = req.body;
-    jobData.createdBy = req.user.userId; // lấy từ middleware auth
+    jobData.createdBy = req.user.userId; // từ auth middleware
+    // company_id: ưu tiên lấy từ body; nếu FE không gửi, dùng công ty của user
+    jobData.company_id = jobData.company_id || req.user.companyId;
+
     const job = await jobService.createJob(jobData);
     res.status(201).json(job);
   } catch (err) {
     console.error("[Create Job Error]", err.message);
-    res.status(500).json({ message: "Lỗi server khi tạo việc làm!" });
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server khi tạo việc làm!" });
   }
 };
 
-// GET /api/jobs
+// GET /api/jobs (chỉ trả job approved)
 exports.getAllJobs = async (req, res) => {
   try {
     const { tag, search = "", page = 1, limit = 10 } = req.query;
 
-    // Chuẩn hóa filter
     const filter = {
       ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
     };
@@ -41,7 +44,7 @@ exports.getAllJobs = async (req, res) => {
   }
 };
 
-// GET /api/jobs/:id
+// GET /api/jobs/:id (chỉ cho job approved)
 exports.getJobById = async (req, res) => {
   try {
     const userId = req.user?.userId || null;
@@ -55,7 +58,9 @@ exports.getJobById = async (req, res) => {
     let isFavorite = false;
     if (req.user) {
       const user = await userService.getUserById(req.user.userId);
-      isFavorite = user?.favorites?.some((fav) => fav.job_id === job.id);
+      isFavorite = user?.favorites?.some(
+        (fav) => fav.job_id === Number(job.id),
+      );
     }
 
     res.json({
@@ -64,8 +69,10 @@ exports.getJobById = async (req, res) => {
       isFavorite,
     });
   } catch (err) {
+    // jobService.getJobById sẽ ném lỗi 403 nếu chưa approved
+    const code = err.statusCode || 500;
     console.error("[Get Job Detail Error]", err.message);
-    res.status(500).json({ message: "Lỗi server!" });
+    res.status(code).json({ message: err.message || "Lỗi server!" });
   }
 };
 

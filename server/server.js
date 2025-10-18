@@ -1,6 +1,6 @@
 // server/server.js
 require("dotenv").config();
-const path = require("path");
+const path = require("node:path");
 
 const cors = require("cors");
 const express = require("express");
@@ -51,6 +51,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/jobs", require("./routes/job"));
 app.use("/api/applications", require("./routes/application"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/companies", require("./routes/company"));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
