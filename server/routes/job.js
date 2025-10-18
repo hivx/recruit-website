@@ -4,12 +4,14 @@ const router = express.Router();
 const jobController = require("../controllers/jobController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authOptional = require("../middleware/authOptional");
+const requireRecruiterWithVerifiedCompany = require("../middleware/requireRecruiterWithVerifiedCompany");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
 // POST: Chỉ recruiter được đăng tin
 router.post(
   "/",
   authMiddleware,
+  requireRecruiterWithVerifiedCompany,
   authorizeRoles("recruiter", "admin"), // chỉ recruiter hoặc admin
   jobController.createJob,
 );

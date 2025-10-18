@@ -14,6 +14,20 @@
  *       scheme: bearer
  *       bearerFormat: JWT
  *   schemas:
+ *     CompanySummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: "9"
+ *         legal_name:
+ *           type: string
+ *           example: "ABC Technology Co., Ltd."
+ *         verificationStatus:
+ *           type: string
+ *           nullable: true
+ *           description: Trạng thái xác thực công ty (submitted|verified|rejected)
+ *           example: "verified"
  *     RegisterInput:
  *       type: object
  *       required:
@@ -56,7 +70,7 @@
  *       properties:
  *         id:
  *           type: integer
- *           example: 1
+ *           example: "1"
  *         name:
  *           type: string
  *           example: Chu Văn Hiếu
@@ -72,18 +86,26 @@
  *           example: true
  *         avatar:
  *           type: string
- *           example: uploads/1_1736625098123.png
+ *           example: uploads/pic.jpg
  *         created_at:
  *           type: string
  *           format: date-time
  *           example: 2025-09-01T10:20:30.000Z
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-10-01T12:34:56.000Z
+ *         company:
+ *           oneOf:
+ *             - $ref: '#/components/schemas/CompanySummary'
+ *             - type: "null"
  */
 
 /**
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Đăng ký tài khoản mới (yêu cầu email @gmail.com)
+ *     summary: Đăng ký tài khoản mới (yêu cầu email @gmail.com).
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -95,7 +117,7 @@
  *       201:
  *         description: Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!
  *       400:
- *         description: Chỉ chấp nhận email @gmail.com!
+ *         description: Chỉ chấp nhận email @gmail.com hoặc mật khẩu không hợp lệ!
  *       403:
  *         description: Không thể tự đăng ký với quyền admin!
  *       409:
@@ -108,7 +130,7 @@
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Đăng nhập tài khoản
+ *     summary: Đăng nhập tài khoản (chỉ khi tài khoản đã xác minh email)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -147,7 +169,7 @@
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Trả về thông tin người dùng
+ *         description: Trả về thông tin người dùng hiện tại
  *         content:
  *           application/json:
  *             schema:
@@ -160,7 +182,7 @@
  * @swagger
  * /api/auth/forgot-password:
  *   post:
- *     summary: Yêu cầu đặt lại mật khẩu
+ *     summary: Yêu cầu đặt lại mật khẩu (gửi email xác nhận)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -196,5 +218,7 @@
  *       400:
  *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
  *       404:
- *         description: Không tìm thấy user với email đã cung cấp!
+ *         description: Email không tồn tại!
+ *       500:
+ *         description: Lỗi server!
  */

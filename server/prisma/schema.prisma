@@ -7,9 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// ENUMS
-// ============================================================
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
 
 enum Role {
   admin
@@ -17,30 +19,45 @@ enum Role {
   applicant
 }
 
-enum InterestSource {
-  favorite
-  applied
-  viewed
-}
-
-enum Status {
+enum ApplicationStatus {
   pending
   accepted
   rejected
 }
 
-// ============================================================
-// USER
-// ============================================================
+enum CompanyVerificationStatus {
+  submitted
+  verified
+  rejected
+}
+
+enum JobApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum InterestSource {
+  viewed
+  applied
+  favorite
+  recommended
+}
+
+/**
+ * =========================
+ * USER
+ * =========================
+ */
 
 model User {
   id         BigInt   @id @default(autoincrement())
   name       String   @db.VarChar(100)
-  avatar     String   @default("uploads\\pic.jpg") @db.VarChar(500)
+  avatar     String   @default("uploads/pic.jpg") @db.VarChar(255)
   email      String   @unique @db.VarChar(100)
   password   String   @db.VarChar(100)
-  isVerified Boolean  @default(false)
   role       Role     @default(applicant)
+  isVerified Boolean  @default(false)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -48,65 +65,152 @@ model User {
   reset_token_expiry DateTime?
 
   // Quan hệ
-  favorites       UserFavoriteJobs[]
-  jobs            Job[]              @relation("UserJobs")
-  applications    Application[]
-  interestHistory UserInterestHistory[]
+  jobs             Job[]                 @relation("UserJobs") // NTD tạo job
+  favorites        UserFavoriteJobs[]
+  applications     Application[]
+  interestHistory  UserInterestHistory[]
   careerPreference CareerPreference?
   behaviorProfile  UserBehaviorProfile?
   recommendations  JobRecommendation[]
 
+  // Tiêu chí tuyển dụng của NTD
+  recruiterPreference RecruiterPreference?
+
+  // Công ty do recruiter sở hữu (1-1)
+  company Company?
+
+  // Kỹ năng cá nhân ứng viên
+  userSkills UserSkill[]
+
   @@map("users")
 }
 
-// ============================================================
-// JOB
-// ============================================================
+/**
+ * =========================
+ * COMPANY + VERIFICATION
+ * =========================
+ */
+
+model Company {
+  id                  BigInt    @id @default(autoincrement())
+  legal_name          String    @db.VarChar(255)
+  registration_number String    @db.VarChar(100)
+  tax_id              String?   @db.VarChar(100)
+  country_code        String    @db.VarChar(2) // ISO-3166-1 alpha-2
+  registered_address  String    @db.VarChar(255)
+  incorporation_date  DateTime?
+
+  owner_id BigInt @unique
+  owner    User   @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+
+  verification CompanyVerification?
+
+  // Danh sách job theo công ty
+  jobs Job[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([registration_number, country_code], map: "uq_company_reg_country")
+  @@map("companies")
+}
+
+model CompanyVerification {
+  id               BigInt                    @id @default(autoincrement())
+  company_id       BigInt                    @unique
+  status           CompanyVerificationStatus @default(submitted)
+  rejection_reason String?                   @db.VarChar(255)
+  submitted_at     DateTime                  @default(now())
+  verified_at      DateTime?
+  reviewed_by      BigInt?
+
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([status], map: "idx_companyver_status")
+  @@map("company_verifications")
+}
+
+/**
+ * =========================
+ * JOB + PHÊ DUYỆT JOB
+ * =========================
+ */
 
 model Job {
-  id              BigInt   @id @default(autoincrement())
-  title           String   @db.VarChar(200)
-  company         String   @db.VarChar(200)
-  location        String?  @db.VarChar(100)
-  description     String?  @db.VarChar(500)
-  salary_min      Int?
-  salary_max      Int?
-  requirements    String?  @db.VarChar(500)
+  id    BigInt @id @default(autoincrement())
+  title String @db.VarChar(200)
+
+  // Company của user tạo job
+  company_id BigInt
+  company    Company @relation(fields: [company_id], references: [id], onDelete: Restrict)
+
+  // Người tạo job (recruiter)
   created_by      BigInt
-  created_by_name String   @db.VarChar(500)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @default(now())
+  created_by_name String @db.VarChar(200)
+  creator         User   @relation("UserJobs", fields: [created_by], references: [id])
 
-  // Quan hệ
-  creator        User               @relation("UserJobs", fields: [created_by], references: [id])
-  favorites      UserFavoriteJobs[]
-  apps           Application[]
-  interestLogs   UserInterestHistory[]
+  // Nội dung JD
+  location     String? @db.VarChar(100)
+  description  String? @db.VarChar(500)
+  salary_min   Int?
+  salary_max   Int?
+  requirements String? @db.VarChar(500)
+
+  quality_score     Float? @default(0)
+  application_count Int    @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Quan hệ khác
+  favorites       UserFavoriteJobs[]
+  tags            JobTag[]
+  applications    Application[]
+  interestLogs    UserInterestHistory[]
   recommendations JobRecommendation[]
-  tags           JobTag[]           // <== Tag mới, dùng bảng chuẩn hóa
 
+  // Phê duyệt job
+  approval JobApproval?
+
+  // Index hay dùng
+  @@index([company_id], map: "idx_jobs_company")
+  @@index([created_by], map: "idx_jobs_creator")
   @@index([location], map: "idx_jobs_location")
   @@index([updated_at], map: "idx_jobs_updated_at")
+  @@index([created_at], map: "idx_jobs_created_at")
   @@map("jobs")
 }
 
-// ============================================================
-// TAG (Danh mục Tag chuẩn hóa cho Job & CareerPreference)
-// ============================================================
+model JobApproval {
+  id         BigInt            @id @default(autoincrement())
+  job_id     BigInt            @unique
+  status     JobApprovalStatus @default(pending)
+  reason     String?           @db.VarChar(255)
+  auditor_id BigInt?
+  audited_at DateTime?
+
+  job Job @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@index([status, audited_at], map: "idx_jobapproval_status_time")
+  @@map("job_approvals")
+}
+
+/**
+ * =========================
+ * TAGS
+ * =========================
+ */
 
 model Tag {
   id   Int    @id @default(autoincrement())
   name String @unique @db.VarChar(100)
 
-  jobs        JobTag[]
-  preferences CareerPreferenceTag[]
+  jobs      JobTag[]
+  candPrefs CareerPreferenceTag[]
+  recPrefs  RecruiterPreferenceTag[]
 
   @@map("tags")
 }
-
-// ============================================================
-// JOB TAG (chuẩn mới, dùng Tag chuẩn hóa)
-// ============================================================
 
 model JobTag {
   jobId BigInt @map("job_id")
@@ -116,47 +220,53 @@ model JobTag {
   tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([jobId, tagId])
+  @@index([tagId], map: "idx_jobtag_tag")
   @@map("job_tags")
 }
-
-// ============================================================
-// USER FAVORITE JOBS
-// ============================================================
 
 model UserFavoriteJobs {
   user_id BigInt
   job_id  BigInt
-  user    User   @relation(fields: [user_id], references: [id])
-  job     Job    @relation(fields: [job_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, job_id])
   @@map("user_favorite_jobs")
 }
 
-// ============================================================
-// APPLICATION (Ứng tuyển + trạng thái)
-// ============================================================
+/**
+ * =========================
+ * APPLICATION
+ * =========================
+ */
 
 model Application {
-  id           BigInt   @id @default(autoincrement())
+  id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String   @db.VarChar(500)
-  cv           String?  @db.VarChar(500)
-  phone        String?  @db.VarChar(100)
-  status       Status   @default(pending)
-  created_at   DateTime @default(now())
+  cover_letter String            @db.VarChar(500)
+  cv           String?           @db.VarChar(500)
+  phone        String?           @db.VarChar(100)
+  status       ApplicationStatus @default(pending)
+  fit_score    Float?            @default(0)
+  created_at   DateTime          @default(now())
 
-  job       Job  @relation(fields: [job_id], references: [id])
-  applicant User @relation(fields: [applicant_id], references: [id])
+  job       Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  applicant User @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
 
+  @@index([job_id, status], map: "idx_app_job_status")
+  @@index([job_id], map: "idx_app_job")
   @@index([status], map: "idx_app_status")
+  @@index([applicant_id], map: "idx_app_applicant")
   @@map("applications")
 }
 
-// ============================================================
-// USER INTEREST HISTORY (Lịch sử tương tác)
-// ============================================================
+/**
+ * =========================
+ * USER INTEREST HISTORY
+ * =========================
+ */
 
 model UserInterestHistory {
   id          BigInt         @id @default(autoincrement())
@@ -164,7 +274,7 @@ model UserInterestHistory {
   job_id      BigInt
   job_title   String         @db.VarChar(255)
   avg_salary  Int?
-  tags        Json?          @map("tags")
+  tags        Json?
   source      InterestSource
   event_type  String?        @default("viewed") @db.VarChar(50)
   recorded_at DateTime       @default(now())
@@ -178,9 +288,11 @@ model UserInterestHistory {
   @@map("user_interest_history")
 }
 
-// ============================================================
-// CAREER PREFERENCE (mong muốn nghề nghiệp)
-// ============================================================
+/**
+ * =========================
+ * CAREER PREFERENCE (ứng viên) + TAGs
+ * =========================
+ */
 
 model CareerPreference {
   user_id          BigInt   @id
@@ -191,17 +303,11 @@ model CareerPreference {
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  tags CareerPreferenceTag[]   // <== thêm liên kết Tag ngành nghề mong muốn
+  user User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  tags CareerPreferenceTag[]
 
-  @@index([desired_location], map: "idx_cp_location")
-  @@index([desired_salary], map: "idx_cp_salary")
   @@map("career_preferences")
 }
-
-// ============================================================
-// CAREER PREFERENCE TAG (liên kết user <-> tag mong muốn)
-// ============================================================
 
 model CareerPreferenceTag {
   userId BigInt @map("user_id")
@@ -211,13 +317,60 @@ model CareerPreferenceTag {
   tag        Tag              @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([userId, tagId])
-  @@index([tagId], map: "idx_cpref_tagid")
   @@map("career_preference_tags")
 }
 
-// ============================================================
-// USER BEHAVIOR PROFILE (hồ sơ hành vi)
-// ============================================================
+/**
+ * =========================
+ * RECRUITER PREFERENCE (NTD)
+ * =========================
+ */
+
+model RecruiterPreference {
+  user_id            BigInt   @id
+  desired_location   String?
+  desired_salary_avg Int?
+  updated_at         DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  requiredSkills RecruiterRequiredSkill[]
+  desiredTags    RecruiterPreferenceTag[]
+
+  @@map("recruiter_preferences")
+}
+
+model RecruiterRequiredSkill {
+  user_id        BigInt
+  skill_id       Int
+  years_required Int?
+  must_have      Boolean @default(true)
+
+  preference RecruiterPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  skill      Skill               @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, skill_id])
+  @@index([skill_id], map: "idx_rec_req_skill")
+  @@map("recruiter_required_skills")
+}
+
+model RecruiterPreferenceTag {
+  user_id BigInt
+  tag_id  Int
+
+  preference RecruiterPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tag        Tag                 @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, tag_id])
+  @@index([tag_id], map: "idx_rec_pref_tag")
+  @@map("recruiter_preference_tags")
+}
+
+/**
+ * =========================
+ * USER BEHAVIOR PROFILE
+ * =========================
+ */
 
 model UserBehaviorProfile {
   user_id       BigInt   @id
@@ -231,25 +384,58 @@ model UserBehaviorProfile {
   @@map("user_behavior_profile")
 }
 
-// ============================================================
-// JOB RECOMMENDATION (gợi ý việc làm)
-// ============================================================
+/**
+ * =========================
+ * JOB RECOMMENDATION
+ * =========================
+ */
 
 model JobRecommendation {
   id             BigInt    @id @default(autoincrement())
   user_id        BigInt
   job_id         BigInt
-  recommended_at DateTime  @default(now())
+  fit_score      Float?    @default(0)
   reason         String?   @db.VarChar(255)
   is_sent        Boolean   @default(false)
   sent_at        DateTime?
   status         String?   @db.VarChar(50)
-  note           String?   @db.Text
+  recommended_at DateTime  @default(now())
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   job  Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, job_id])
-  @@index([user_id, is_sent], map: "idx_jobrec_user_sent")
   @@map("job_recommendations")
+}
+
+/**
+ * =========================
+ * SKILL + USER SKILL
+ * =========================
+ */
+
+model Skill {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(100)
+
+  users               UserSkill[]
+  recruiterRequiredBy RecruiterRequiredSkill[]
+
+  @@map("skills")
+}
+
+model UserSkill {
+  user_id  BigInt
+  skill_id Int
+  level    Int? // Mức độ chuyên môn, 1->10
+  years    Int? // số năm kinh nghiệm
+  note     String? @db.VarChar(255)
+  verified Boolean @default(false)
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, skill_id])
+  @@index([skill_id], map: "idx_userskill_skill")
+  @@map("user_skills")
 }

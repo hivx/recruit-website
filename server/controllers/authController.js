@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// Lấy thông tin user hiện tại
+// Lấy thông tin user hiện tại (đã cập nhật để trả company nếu có)
 exports.getMe = async (req, res) => {
   try {
     const user = await authService.getMe(req.user.userId);

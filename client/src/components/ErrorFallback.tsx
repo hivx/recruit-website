@@ -14,7 +14,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: Readonly<FallbackPr
           Thử lại
         </button>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => globalThis.location.reload()}
           className="px-4 py-2 rounded-lg bg-red-600 text-black"
         >
           Tải lại trang

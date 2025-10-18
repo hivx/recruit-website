@@ -16,7 +16,7 @@ router.get("/me", authMiddleware, (req, res) => {
 router.post("/forgot-password", authController.forgotPassword);
 router.get("/reset-password", authController.resetPassword);
 
-// routes/auth.js
+// Xác minh email
 router.get("/verify-email", authController.verifyEmail);
 
 module.exports = router;

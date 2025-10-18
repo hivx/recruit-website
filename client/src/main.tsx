@@ -13,7 +13,7 @@ createRoot(document.getElementById("root")!).render(
         FallbackComponent={ErrorFallback}
         onReset={() => {
           // Có thể thêm logic reset state toàn cục nếu cần
-          window.location.reload();
+          globalThis.location.reload();
         }}
       >
         <App />

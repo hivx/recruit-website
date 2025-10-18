@@ -1,4 +1,5 @@
 // services/jobService.js
+const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 
 //  Tạo Job (kèm tags)
@@ -140,19 +141,34 @@ exports.getAllJobs = async ({
 };
 
 //  Lấy Job theo ID (kèm creator, tags, favorites)
-exports.getJobById = async (id) => {
-  return prisma.job.findUnique({
+exports.getJobById = async (id, userId = null) => {
+  // Lấy thông tin job
+  const job = await prisma.job.findUnique({
     where: { id: BigInt(id) },
     include: {
       creator: { select: { id: true, name: true, email: true } },
-      tags: {
-        include: {
-          tag: true, // thêm dòng này để lấy tên tag
-        },
-      },
-      favorites: true, // nếu muốn biết ai đã favorite
+      tags: { include: { tag: true } },
+      favorites: true,
     },
   });
+
+  if (!job) {
+    const error = new Error("Không tìm thấy công việc!");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Ghi log hành vi "viewed" nếu có user đăng nhập
+  if (userId) {
+    logUserInterest({
+      userId,
+      job,
+      source: "viewed",
+      eventType: "open_detail",
+    });
+  }
+
+  return job;
 };
 
 //Cập nhật Job (thay toàn bộ tags nếu truyền vào)

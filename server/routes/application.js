@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const applicationController = require("../controllers/applicationController");
 const auth = require("../middleware/authMiddleware");
+const requireJobApproved = require("../middleware/requireJobApproved");
 const authorizeRoles = require("../middleware/roleMiddleware");
 const uploadCV = require("../utils/uploadCV");
 
@@ -11,6 +12,7 @@ const uploadCV = require("../utils/uploadCV");
 router.post(
   "/",
   auth,
+  requireJobApproved,
   authorizeRoles("applicant", "admin"), // chỉ applicant hoặc admin
   uploadCV.single("cv"), // middleware Multer xử lý tệp tải lên
   applicationController.createApplication,
@@ -21,7 +23,7 @@ router.post(
 router.get(
   "/job/:jobId",
   auth,
-  authorizeRoles("recuiter", "admin"),
+  authorizeRoles("recruiter", "admin"),
   applicationController.getApplicantsByJob,
 );
 

@@ -1,5 +1,4 @@
-const crypto = require("crypto");
-
+const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -8,7 +7,7 @@ const prisma = require("../utils/prisma");
 const emailService = require("./emailService");
 
 module.exports = {
-  // Đăng ký user mới
+  // Đăng ký user mới (giữ nguyên logic cũ: gửi mail verify bằng JWT)
   async register({ name, email, password, role }) {
     if (!email.toLowerCase().endsWith("@gmail.com")) {
       const error = new Error("Chỉ chấp nhận email @gmail.com!");
@@ -45,13 +44,12 @@ module.exports = {
       },
     });
 
-    // Tạo token xác thực email
+    // Tạo token xác thực email (JWT) + gửi email
     const verifyToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
     const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
 
-    // Gửi email xác thực
     await emailService.sendEmail(
       email,
       "Xác thực tài khoản",
@@ -64,7 +62,7 @@ module.exports = {
     return user;
   },
 
-  // Đăng nhập
+  // Đăng nhập (giữ nguyên)
   async login(email, password) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -103,7 +101,7 @@ module.exports = {
     };
   },
 
-  // Đặt lại mật khẩu
+  // Đặt lại mật khẩu (giữ nguyên cơ chế gửi link kèm hash)
   async requestReset(email, newPassword) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -121,7 +119,9 @@ module.exports = {
       data: { reset_token: token, reset_token_expiry: expiry },
     });
 
-    const resetLink = `${process.env.CLIENT_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
+    const resetLink = `${process.env.CLIENT_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(
+      hashed,
+    )}`;
 
     await emailService.sendEmail(
       email,
@@ -135,7 +135,7 @@ module.exports = {
     return { message: "Liên kết xác nhận đã được gửi tới email của bạn!" };
   },
 
-  // xác nhận khi click link
+  // xác nhận khi click link (giữ nguyên)
   async confirmReset(token, hashed) {
     const user = await prisma.user.findFirst({
       where: {
@@ -159,29 +159,45 @@ module.exports = {
     return { message: "Mật khẩu đã được đặt lại thành công!" };
   },
 
-  // Lấy thông tin cá nhân
+  // Lấy thông tin cá nhân — CẬP NHẬT: include company + verification, map BigInt → string
   async getMe(userId) {
-    const user = await prisma.user.findUnique({
+    const u = await prisma.user.findUnique({
       where: { id: BigInt(userId) },
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        email: true,
-        role: true,
-        isVerified: true,
-        created_at: true,
+      include: {
+        company: {
+          include: {
+            verification: true, // lấy trạng thái xác thực công ty
+          },
+        },
       },
     });
-    if (!user) {
+    if (!u) {
       const error = new Error("Không tìm thấy người dùng");
       error.status = 404;
       throw error;
     }
-    return user;
+
+    // Chuẩn hoá dữ liệu trả về (giữ field cũ, bổ sung company nếu cần)
+    return {
+      id: u.id.toString(),
+      name: u.name,
+      avatar: u.avatar,
+      email: u.email,
+      role: u.role,
+      isVerified: u.isVerified,
+      created_at: u.created_at,
+      updated_at: u.updated_at,
+      company: u.company
+        ? {
+            id: u.company.id.toString(),
+            legal_name: u.company.legal_name,
+            verificationStatus: u.company.verification?.status || null,
+          }
+        : null,
+    };
   },
 
-  // Xác thực email
+  // Xác thực email (JWT trong link) — giữ nguyên
   async verifyEmail(token) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({

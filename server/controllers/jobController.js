@@ -44,7 +44,8 @@ exports.getAllJobs = async (req, res) => {
 // GET /api/jobs/:id
 exports.getJobById = async (req, res) => {
   try {
-    const job = await jobService.getJobById(Number(req.params.id));
+    const userId = req.user?.userId || null;
+    const job = await jobService.getJobById(Number(req.params.id), userId);
     if (!job) {
       return res
         .status(404)

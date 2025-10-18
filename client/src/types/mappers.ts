@@ -3,7 +3,7 @@ import type { Job, Application, User, JobTag, Tag } from "@/types";
 
 // helper: parse date an toàn
 const safeDate = (val?: string | null) =>
-  val && !isNaN(Date.parse(val)) ? new Date(val).toISOString() : "";
+  val && !Number.isNaN(Date.parse(val)) ? new Date(val).toISOString() : "";
 
 /** Raw types từ BE (swagger / Prisma raw JSON) */
 type RawJob = {
