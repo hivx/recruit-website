@@ -39,4 +39,18 @@ router.delete(
   jobController.deleteJob,
 );
 
+// admin duyệt job
+router.patch(
+  "/admin/:id/approve",
+  authMiddleware,
+  authorizeRoles("admin"),
+  jobController.approveJob,
+);
+router.patch(
+  "/admin/:id/reject",
+  authMiddleware,
+  authorizeRoles("admin"),
+  jobController.rejectJob,
+);
+
 module.exports = router;

@@ -148,3 +148,36 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ message: "Lỗi server khi xóa công việc!" });
   }
 };
+
+// ADMIN: approve job
+exports.approveJob = async (req, res) => {
+  try {
+    const jobId = Number(req.params.id);
+    const adminId = req.user.userId;
+
+    const result = await jobService.approveJob(jobId, adminId);
+    res.json(result);
+  } catch (err) {
+    console.error("[Approve Job]", err);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi duyệt job" });
+  }
+};
+
+// ADMIN: reject job
+exports.rejectJob = async (req, res) => {
+  try {
+    const jobId = Number(req.params.id);
+    const adminId = req.user.userId;
+    const reason = req.body.reason || "Không đạt yêu cầu";
+
+    const result = await jobService.rejectJob(jobId, adminId, reason);
+    res.json(result);
+  } catch (err) {
+    console.error("[Reject Job]", err);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi từ chối job" });
+  }
+};

@@ -1,6 +1,7 @@
 // services/jobService.js
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
+const emailService = require("./emailService");
 
 // helper: chuyển BigInt -> string cho các field khoá
 function normalizeJob(job) {
@@ -58,7 +59,7 @@ exports.createJob = async (jobData) => {
   const job = await prisma.job.create({
     data: {
       title: jobData.title,
-      company_id: BigInt(companyId), // ✅ FK mới
+      company_id: BigInt(companyId), //  FK mới
       location: jobData.location ?? null,
       description: jobData.description ?? null,
       salary_min: jobData.salary_min ?? null,
@@ -133,7 +134,7 @@ exports.getAllJobs = async ({
         { requirements: { contains: search } },
         { location: { contains: search } },
         { created_by_name: { contains: search } },
-        { company: { legal_name: { contains: search } } }, // ✅ search theo tên công ty
+        { company: { legal_name: { contains: search } } }, //  search theo tên công ty
       ]
     : [];
 
@@ -322,4 +323,122 @@ exports.getAllTags = async () => {
     name: t.name,
     jobCount: t._count.jobs,
   }));
+};
+
+// ADMIN duyệt job
+exports.approveJob = async (jobId, adminId) => {
+  const job = await prisma.job.findUnique({
+    where: { id: BigInt(jobId) },
+    include: {
+      approval: true,
+      creator: { select: { id: true, name: true, email: true } }, // lấy chủ job để gửi mail
+      company: { select: { legal_name: true } },
+    },
+  });
+  if (!job) {
+    const e = new Error("Không tìm thấy job.");
+    e.status = 404;
+    throw e;
+  }
+
+  const approval = await prisma.jobApproval.upsert({
+    where: { job_id: job.id },
+    update: {
+      status: "approved",
+      reason: null,
+      auditor_id: BigInt(adminId),
+      audited_at: new Date(),
+    },
+    create: {
+      job_id: job.id,
+      status: "approved",
+      auditor_id: BigInt(adminId),
+      audited_at: new Date(),
+    },
+  });
+
+  // Gửi email thông báo cho recruiter
+  try {
+    const manageUrl = `${process.env.CLIENT_URL}/dashboard/jobs/${job.id.toString()}`;
+    await emailService.sendEmail(
+      job.creator.email,
+      "Bài đăng tuyển dụng đã được DUYỆT",
+      `
+        <p>Chào ${job.creator.name},</p>
+        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã được <b>DUYỆT</b>.</p>
+        <p>Bạn có thể xem chi tiết tại: <a href="${manageUrl}">${manageUrl}</a></p>
+        <p>Trân trọng,</p>
+        <p>Recruit System</p>
+      `,
+    );
+  } catch (error_) {
+    console.error("[Email Approve Job] send failed:", error_?.message);
+    // không throw để tránh làm fail API duyệt
+  }
+
+  return {
+    job_id: job.id.toString(),
+    status: approval.status,
+    audited_at: approval.audited_at,
+  };
+};
+
+// ADMIN từ chối job
+exports.rejectJob = async (jobId, adminId, reason) => {
+  const job = await prisma.job.findUnique({
+    where: { id: BigInt(jobId) },
+    include: {
+      approval: true,
+      creator: { select: { id: true, name: true, email: true } },
+      company: { select: { legal_name: true } },
+    },
+  });
+  if (!job) {
+    const e = new Error("Không tìm thấy job.");
+    e.status = 404;
+    throw e;
+  }
+
+  const approval = await prisma.jobApproval.upsert({
+    where: { job_id: job.id },
+    update: {
+      status: "rejected",
+      reason,
+      auditor_id: BigInt(adminId),
+      audited_at: new Date(),
+    },
+    create: {
+      job_id: job.id,
+      status: "rejected",
+      reason,
+      auditor_id: BigInt(adminId),
+      audited_at: new Date(),
+    },
+  });
+
+  // Gửi email thông báo từ chối cho recruiter
+  try {
+    const manageUrl = `${process.env.CLIENT_URL}/dashboard/jobs/${job.id.toString()}/edit`;
+    await emailService.sendEmail(
+      job.creator.email,
+      "Bài đăng tuyển dụng bị TỪ CHỐI",
+      `
+        <p>Chào ${job.creator.name},</p>
+        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã bị <b>TỪ CHỐI</b>.</p>
+        <p><b>Lý do:</b> ${reason || "Không có lý do cụ thể."}</p>
+        <p>Vui lòng chỉnh sửa và nộp lại: <a href="${manageUrl}">${manageUrl}</a></p>
+        <p>Trân trọng,</p>
+        <p>Recruit System</p>
+      `,
+    );
+  } catch (error_) {
+    console.error("[Email Reject Job] send failed:", error_?.message);
+    // không throw để tránh làm fail API
+  }
+
+  return {
+    job_id: job.id.toString(),
+    status: approval.status,
+    reason: approval.reason,
+  };
 };
