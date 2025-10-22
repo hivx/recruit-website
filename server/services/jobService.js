@@ -1,29 +1,8 @@
 // services/jobService.js
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
+const { toJobDTO } = require("../utils/serializers/job");
 const emailService = require("./emailService");
-
-// helper: chuyển BigInt -> string cho các field khoá
-function normalizeJob(job) {
-  if (!job) {
-    return job;
-  }
-  return {
-    ...job,
-    id: job.id?.toString?.() ?? job.id,
-    created_by: job.created_by?.toString?.() ?? job.created_by,
-    company_id: job.company_id?.toString?.() ?? job.company_id,
-    // format tags (giữ nguyên cấu trúc chuẩn hoá)
-    tags: Array.isArray(job.tags)
-      ? job.tags.map((jt) => ({
-          jobId: (jt.jobId ?? job.id)?.toString?.() ?? jt.jobId,
-          tagId: jt.tagId,
-          tag: jt.tag ? { id: jt.tag.id, name: jt.tag.name } : null,
-        }))
-      : [],
-    // company/approval giữ nguyên (không BigInt)
-  };
-}
 
 //  Tạo Job (kèm tags) + tạo JobApproval(pending)
 exports.createJob = async (jobData) => {
@@ -102,7 +81,7 @@ exports.createJob = async (jobData) => {
     },
   });
 
-  return normalizeJob(fresh);
+  return toJobDTO(fresh);
 };
 
 // Lấy danh sách Job với lọc + search + phân trang (chỉ trả job approved)
@@ -134,7 +113,7 @@ exports.getAllJobs = async ({
         { requirements: { contains: search } },
         { location: { contains: search } },
         { created_by_name: { contains: search } },
-        { company: { legal_name: { contains: search } } }, //  search theo tên công ty
+        { company: { is: { legal_name: { contains: search } } } },
       ]
     : [];
 
@@ -163,7 +142,7 @@ exports.getAllJobs = async ({
   ]);
 
   return {
-    jobs: jobs.map(normalizeJob),
+    jobs: jobs.map(toJobDTO),
     total,
     page,
     totalPages: Math.ceil(total / limit),
@@ -207,7 +186,7 @@ exports.getJobById = async (id, userId = null) => {
     });
   }
 
-  return normalizeJob(job);
+  return toJobDTO(job);
 };
 
 // Cập nhật Job (thay toàn bộ tags nếu truyền vào)
@@ -264,7 +243,7 @@ exports.updateJob = async (id, data) => {
     },
   });
 
-  return normalizeJob(updated);
+  return toJobDTO(updated);
 };
 
 // Xóa Job (dọn phụ thuộc trước để tránh lỗi FK)

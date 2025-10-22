@@ -4,31 +4,31 @@ const express = require("express");
 const router = express.Router();
 
 const companyController = require("../controllers/companyController");
-const auth = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
 // recruiter
 router.post(
   "/",
-  auth,
+  authMiddleware,
   authorizeRoles("recruiter", "admin"),
   companyController.createCompany,
 );
 router.get(
   "/me",
-  auth,
+  authMiddleware,
   authorizeRoles("recruiter", "admin"),
   companyController.getMyCompany,
 );
 router.patch(
   "/me",
-  auth,
+  authMiddleware,
   authorizeRoles("recruiter", "admin"),
   companyController.updateMyCompany,
 );
 router.post(
   "/me/submit",
-  auth,
+  authMiddleware,
   authorizeRoles("recruiter", "admin"),
   companyController.submitForReview,
 );
@@ -36,7 +36,7 @@ router.post(
 // admin
 router.patch(
   "/admin/:id/verify",
-  auth,
+  authMiddleware,
   authorizeRoles("admin"),
   companyController.verifyCompany,
 );

@@ -1,35 +1,6 @@
 // services/companyService.js
 const prisma = require("../utils/prisma");
-
-// helper: map BigInt -> string
-function toCompanyDTO(c) {
-  if (!c) {
-    return null;
-  }
-  return {
-    id: c.id.toString(),
-    legal_name: c.legal_name,
-    registration_number: c.registration_number,
-    tax_id: c.tax_id,
-    country_code: c.country_code,
-    registered_address: c.registered_address,
-    incorporation_date: c.incorporation_date,
-    owner_id: c.owner_id.toString(),
-    created_at: c.created_at,
-    updated_at: c.updated_at,
-    verification: c.verification
-      ? {
-          status: c.verification.status,
-          rejection_reason: c.verification.rejection_reason || null,
-          submitted_at: c.verification.submitted_at,
-          verified_at: c.verification.verified_at || null,
-          reviewed_by: c.verification.reviewed_by
-            ? c.verification.reviewed_by.toString()
-            : null,
-        }
-      : null,
-  };
-}
+const { toCompanyDTO } = require("../utils/serializers/company");
 
 /**
  * Recruiter tạo company (1-1). Sau khi tạo, tạo luôn CompanyVerification(status = submitted).
