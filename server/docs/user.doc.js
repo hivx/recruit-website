@@ -8,6 +8,12 @@
 /**
  * @swagger
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *
  *   schemas:
  *     FavoriteJob:
  *       type: object
@@ -17,27 +23,29 @@
  *           example: 1
  *         title:
  *           type: string
- *           example: Lập trình viên Backend Node.js
+ *           example: "Lập trình viên Backend Node.js"
  *         company:
  *           type: string
- *           example: Công ty TNHH ABC
+ *           example: "Công ty TNHH ABC"
  *         location:
  *           type: string
- *           example: Hà Nội
+ *           example: "Hà Nội"
  *         created_at:
  *           type: string
  *           format: date-time
- *           example: 2025-09-01T12:34:56.789Z
+ *           example: "2025-09-01T12:34:56.789Z"
+ *
  *     UpdateUserInput:
  *       type: object
  *       properties:
  *         name:
  *           type: string
- *           example: Nguyễn Văn Víp
+ *           example: "Nguyễn Văn Víp"
  *         email:
  *           type: string
  *           format: email
- *           example: nguyenvanb@gmail.com
+ *           example: "nguyenvanb@gmail.com"
+ *
  *     UserProfile:
  *       type: object
  *       properties:
@@ -46,24 +54,25 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Nguyễn Văn Víp
+ *           example: "Nguyễn Văn Víp"
  *         email:
  *           type: string
- *           example: nguyenvanb@gmail.com
+ *           example: "nguyenvanb@gmail.com"
  *         role:
  *           type: string
  *           enum: [admin, recruiter, applicant]
- *           example: applicant
+ *           example: "applicant"
  *         isVerified:
  *           type: boolean
  *           example: true
  *         avatar:
  *           type: string
- *           example: /uploads/avatars/1_1736625098123.png
+ *           example: "/uploads/avatars/1_1736625098123.png"
  *         created_at:
  *           type: string
  *           format: date-time
- *           example: 2025-09-01T10:20:30.000Z
+ *           example: "2025-09-01T10:20:30.000Z"
+ *
  *     ChangePasswordInput:
  *       type: object
  *       required:
@@ -73,11 +82,11 @@
  *         oldPassword:
  *           type: string
  *           format: password
- *           example: 123456
+ *           example: "123456"
  *         newPassword:
  *           type: string
  *           format: password
- *           example: newpass789
+ *           example: "newpass789"
  */
 
 /**
@@ -105,7 +114,15 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Đã thêm vào danh sách yêu thích
+ *                   examples:
+ *                     added:
+ *                       summary: Thêm yêu thích
+ *                       value: "Đã thêm vào danh sách yêu thích"
+ *                     removed:
+ *                       summary: Gỡ yêu thích
+ *                       value: "Đã gỡ khỏi danh sách yêu thích"
+ *       400:
+ *         description: ID công việc không hợp lệ!
  *       401:
  *         description: Không có token, truy cập bị từ chối!
  *       404:
@@ -143,6 +160,7 @@
  * /api/users/me:
  *   put:
  *     summary: Cập nhật thông tin cá nhân người dùng
+ *     description: Nhận multipart/form-data để hỗ trợ upload avatar. Email (nếu đổi) phải hợp lệ và chưa bị sử dụng.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -155,11 +173,11 @@
  *             properties:
  *               name:
  *                 type: string
- *                 example: Nguyễn Văn Víp
+ *                 example: "Nguyễn Văn Víp"
  *               email:
  *                 type: string
  *                 format: email
- *                 example: snonamevx@gmail.com
+ *                 example: "snonamevx@gmail.com"
  *               avatar:
  *                 type: string
  *                 format: binary
@@ -172,11 +190,13 @@
  *             schema:
  *               $ref: '#/components/schemas/UserProfile'
  *       400:
- *         description: Email không hợp lệ hoặc đã tồn tại!
+ *         description: Email không hợp lệ hoặc đã tồn tại / dữ liệu sai
  *       401:
  *         description: Không có token, truy cập bị từ chối!
  *       404:
  *         description: Người dùng không tồn tại!
+ *       415:
+ *         description: Định dạng file avatar không được hỗ trợ!
  */
 
 /**
@@ -203,9 +223,9 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Đổi mật khẩu thành công
+ *                   example: "Đổi mật khẩu thành công!"
  *       400:
- *         description: Vui lòng nhập đầy đủ mật khẩu cũ và mới!
+ *         description: Thiếu dữ liệu hoặc mật khẩu cũ không đúng!
  *       401:
  *         description: Không có token, truy cập bị từ chối!
  *       404:

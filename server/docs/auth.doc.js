@@ -13,13 +13,14 @@
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *
  *   schemas:
  *     CompanySummary:
  *       type: object
  *       properties:
  *         id:
  *           type: integer
- *           example: "9"
+ *           example: 9
  *         legal_name:
  *           type: string
  *           example: "ABC Technology Co., Ltd."
@@ -28,6 +29,7 @@
  *           nullable: true
  *           description: Trạng thái xác thực công ty (submitted|verified|rejected)
  *           example: "verified"
+ *
  *     RegisterInput:
  *       type: object
  *       required:
@@ -38,19 +40,20 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Chu Văn Hiếu
+ *           example: "Chu Văn Hiếu"
  *         email:
  *           type: string
  *           format: email
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         password:
  *           type: string
  *           format: password
- *           example: 123456
+ *           example: "123456"
  *         role:
  *           type: string
  *           enum: [admin, recruiter, applicant]
- *           example: applicant
+ *           example: "applicant"
+ *
  *     LoginInput:
  *       type: object
  *       required:
@@ -60,33 +63,34 @@
  *         email:
  *           type: string
  *           format: email
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         password:
  *           type: string
  *           format: password
- *           example: 123456
+ *           example: "123456"
+ *
  *     UserResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: integer
- *           example: "1"
+ *           example: 1
  *         name:
  *           type: string
- *           example: Chu Văn Hiếu
+ *           example: "Chu Văn Hiếu"
  *         email:
  *           type: string
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         role:
  *           type: string
  *           enum: [admin, recruiter, applicant]
- *           example: applicant
+ *           example: "applicant"
  *         isVerified:
  *           type: boolean
  *           example: true
  *         avatar:
  *           type: string
- *           example: uploads/pic.jpg
+ *           example: "uploads/pic.jpg"
  *         created_at:
  *           type: string
  *           format: date-time
@@ -105,7 +109,7 @@
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Đăng ký tài khoản mới (yêu cầu email @gmail.com).
+ *     summary: Đăng ký tài khoản mới (yêu cầu email @gmail.com)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -116,8 +120,33 @@
  *     responses:
  *       201:
  *         description: Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!"
  *       400:
- *         description: Chỉ chấp nhận email @gmail.com hoặc mật khẩu không hợp lệ!
+ *         description: Dữ liệu không hợp lệ!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   examples:
+ *                     notGmail:
+ *                       summary: Chỉ chấp nhận @gmail.com
+ *                       value: "Chỉ chấp nhận email @gmail.com!"
+ *                     weakPwd:
+ *                       summary: Mật khẩu yếu
+ *                       value: "Mật khẩu phải có ít nhất 6 ký tự!"
+ *                     missing:
+ *                       summary: Thiếu trường
+ *                       value: "Thiếu name/email/password!"
  *       403:
  *         description: Không thể tự đăng ký với quyền admin!
  *       409:
@@ -148,7 +177,7 @@
  *               properties:
  *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwicm9sZSI6InJlY3J1aXRlciIsImlhdCI6MTc1ODEyOTAxMywiZXhwIjoxNzU4MjE1NDEzfQ.E85DuUN1ATnCohrAYI0mtlH9u69aRz24g1hmfhcAlaI
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
@@ -180,6 +209,32 @@
 
 /**
  * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Xác minh email qua liên kết gửi trong mail
+ *     description: Endpoint được nhúng trong email xác minh. Trả về HTML thông báo thành công/thất bại.
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Xác minh thành công (trả về HTML)
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Token không hợp lệ hoặc đã hết hạn (trả về HTML)
+ *       500:
+ *         description: Lỗi server!
+ */
+
+/**
+ * @swagger
  * /api/auth/forgot-password:
  *   post:
  *     summary: Yêu cầu đặt lại mật khẩu (gửi email xác nhận)
@@ -197,12 +252,15 @@
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *                 example: "chuvanhieu357@gmail.com"
  *               newPassword:
  *                 type: string
+ *                 format: password
  *                 example: "654321"
  *               confirmPassword:
  *                 type: string
+ *                 format: password
  *                 example: "654321"
  *     responses:
  *       200:
@@ -219,6 +277,32 @@
  *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
  *       404:
  *         description: Email không tồn tại!
+ *       500:
+ *         description: Lỗi server!
+ */
+
+/**
+ * @swagger
+ * /api/auth/reset-password/confirm:
+ *   get:
+ *     summary: Xác nhận đặt lại mật khẩu qua liên kết trong email
+ *     description: Endpoint mở từ email để xác nhận reset. Trả về HTML thông báo thành công/thất bại.
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Đặt lại mật khẩu thành công (trả về HTML)
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Token không hợp lệ hoặc đã hết hạn (trả về HTML)
  *       500:
  *         description: Lỗi server!
  */

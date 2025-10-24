@@ -1,158 +1,231 @@
 /**
  * @swagger
  * tags:
- *   - name: Jobs
- *     description: API quản lý bài tuyển dụng
+ *   name: Jobs
+ *   description: Quản lý bài đăng tuyển dụng (public & recruiter)
  */
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Tag:
+ *     JobCompany:
  *       type: object
  *       properties:
  *         id:
- *           type: integer
- *           example: 1
- *         name:
  *           type: string
- *           example: IT
+ *           example: "1"
+ *         legal_name:
+ *           type: string
+ *           example: "Công ty TNHH ABC Tech"
  *
- *     JobTag:
+ *     JobTagItem:
  *       type: object
  *       properties:
  *         jobId:
  *           type: string
- *           example: "5"
+ *           example: "12"
  *         tagId:
  *           type: integer
- *           example: 1
+ *           example: 5
  *         tag:
- *           $ref: '#/components/schemas/Tag'
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 5
+ *             name:
+ *               type: string
+ *               example: "Node.js"
+ *
+ *     JobApproval:
+ *       type: object
+ *       nullable: true
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *           example: approved
+ *         reason:
+ *           type: string
+ *           nullable: true
+ *           example: "Mô tả chưa đầy đủ"
+ *         auditor_id:
+ *           type: string
+ *           nullable: true
+ *           example: "2"
+ *         audited_at:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
  *
  *     Job:
  *       type: object
+ *       description: Bản ghi công việc trả về từ API
  *       properties:
  *         id:
  *           type: string
- *           example: "5"
+ *           example: "12"
  *         title:
  *           type: string
- *           example: Lập trình viên ReactJS
- *         company:
+ *           example: "Lập trình viên Backend Node.js"
+ *         company_id:
  *           type: string
- *           example: Công ty ABC
+ *           example: "1"
+ *         company:
+ *           $ref: '#/components/schemas/JobCompany'
+ *         created_by:
+ *           type: string
+ *           example: "4"
+ *         created_by_name:
+ *           type: string
+ *           example: "Nguyễn Văn B"
  *         location:
  *           type: string
- *           example: Hà Nội
+ *           example: "TP.HCM"
  *         description:
  *           type: string
- *           example: Mô tả công việc ReactJS
+ *           example: "Phát triển API cho hệ thống tuyển dụng"
  *         salary_min:
  *           type: number
  *           example: 15000000
  *         salary_max:
  *           type: number
- *           example: 20000000
+ *           example: 25000000
  *         requirements:
  *           type: string
- *           example: Kinh nghiệm 1 năm ReactJS
- *         created_by:
- *           type: string
- *           example: "1"
- *         created_by_name:
- *           type: string
- *           example: Chu Văn Hiếu
- *           description: Tên người tạo bài viết, vẫn lưu ngay cả khi tài khoản bị xoá
+ *           example: "Có kinh nghiệm Node.js 2 năm trở lên"
+ *         quality_score:
+ *           type: number
+ *           format: float
+ *           example: 0
+ *         application_count:
+ *           type: integer
+ *           example: 3
  *         created_at:
  *           type: string
  *           format: date-time
- *           example: 2025-10-06T15:33:52.927Z
  *         updated_at:
  *           type: string
  *           format: date-time
- *           example: 2025-10-06T15:33:52.927Z
+ *         approval:
+ *           $ref: '#/components/schemas/JobApproval'
  *         tags:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/JobTag'
- */
-
-/**
- * @swagger
- * /api/jobs:
- *   post:
- *     summary: Tạo bài tuyển dụng mới (chỉ recruiter hoặc admin)
- *     tags: [Jobs]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - company
- *             properties:
- *               title:
- *                 type: string
- *                 example: Lập trình viên ReactJS
- *               company:
- *                 type: string
- *                 example: Công ty ABC
- *               location:
- *                 type: string
- *                 example: Hà Nội
- *               description:
- *                 type: string
- *                 example: Mô tả công việc ReactJS
- *               salary_min:
- *                 type: number
- *                 example: 15000000
- *               salary_max:
- *                 type: number
- *                 example: 20000000
- *               requirements:
- *                 type: string
- *                 example: Kinh nghiệm 1 năm ReactJS
- *               tags:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["IT", "Marketing"]
- *     responses:
- *       201:
- *         description: Bài tuyển dụng đã được tạo
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Job'
- *       401:
- *         description: Không có token, truy cập bị từ chối!
- *       403:
- *         description: Không có quyền thực hiện thao tác này!
+ *             $ref: '#/components/schemas/JobTagItem'
+ *         # Các field dưới đây chỉ xuất hiện tùy trường hợp (khi controller bổ sung)
+ *         createdAtFormatted:
+ *           type: string
+ *           example: "19/10/2025 10:30"
+ *           description: "Chỉ có khi controller format thêm"
+ *         isFavorite:
+ *           type: boolean
+ *           description: "Chỉ có khi người dùng đã đăng nhập"
+ *
+ *     JobCreateRequest:
+ *       type: object
+ *       required:
+ *         - title
+ *       properties:
+ *         title:
+ *           type: string
+ *           example: "Lập trình viên Backend Node.js"
+ *         company_id:
+ *           type: string
+ *           example: "1"
+ *           description: "Có thể bỏ qua, hệ thống lấy từ công ty của recruiter"
+ *         location:
+ *           type: string
+ *           example: "TP.HCM"
+ *         description:
+ *           type: string
+ *           example: "Phát triển API cho hệ thống tuyển dụng"
+ *         salary_min:
+ *           type: number
+ *           example: 15000000
+ *         salary_max:
+ *           type: number
+ *           example: 25000000
+ *         requirements:
+ *           type: string
+ *           example: "Kinh nghiệm Node.js 2 năm"
+ *         tags:
+ *           type: array
+ *           example: ["Node.js", "Express", "MySQL"]
+ *           items:
+ *             type: string
+ *
+ *     JobUpdateRequest:
+ *       allOf:
+ *         - $ref: '#/components/schemas/JobCreateRequest'
+ *       description: "Cập nhật nội dung job (không cho đổi company_id qua API này)"
+ *
+ *     JobListResponse:
+ *       type: object
+ *       properties:
+ *         jobs:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Job'
+ *         total:
+ *           type: integer
+ *           example: 48
+ *         page:
+ *           type: integer
+ *           example: 1
+ *         totalPages:
+ *           type: integer
+ *           example: 5
+ *
+ *     TagItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 5
+ *         name:
+ *           type: string
+ *           example: "Node.js"
+ *         jobCount:
+ *           type: integer
+ *           example: 12
+ *
+ *     PopularTagItem:
+ *       type: object
+ *       properties:
+ *         tagId:
+ *           type: integer
+ *           example: 5
+ *         tagName:
+ *           type: string
+ *           example: "Node.js"
+ *         count:
+ *           type: integer
+ *           example: 20
  */
 
 /**
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Lấy danh sách việc làm (có thể lọc theo tag, tìm kiếm, phân trang)
+ *     summary: Danh sách job public (chỉ job đã được duyệt)
  *     tags: [Jobs]
  *     parameters:
- *       - in: query
- *         name: tag
- *         schema:
- *           type: string
- *         description: "Lọc theo tag (VD: IT, Y tế, Marketing)"
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: "Tìm kiếm theo từ khóa (VD: tiêu đề, công ty, mô tả)"
+ *         description: Từ khoá tìm kiếm (tiêu đề, mô tả, yêu cầu, địa điểm, tên công ty)
+ *       - in: query
+ *         name: tag
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Lọc theo nhiều tag (ví dụ ?tag=Node.js&tag=React)
  *       - in: query
  *         name: page
  *         schema:
@@ -165,107 +238,70 @@
  *           default: 10
  *     responses:
  *       200:
- *         description: Danh sách các bài tuyển dụng kèm phân trang
+ *         description: Danh sách job đã duyệt
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 jobs:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Job'
- *                 total:
- *                   type: integer
- *                   example: 1
- *                 page:
- *                   type: integer
- *                   example: 1
- *                 totalPages:
- *                   type: integer
- *                   example: 2
- *       500:
- *         description: Lỗi server khi lấy danh sách việc làm!
+ *               $ref: '#/components/schemas/JobListResponse'
  */
 
 /**
  * @swagger
  * /api/jobs/{id}:
  *   get:
- *     summary: Lấy chi tiết bài tuyển dụng theo ID
+ *     summary: Chi tiết 1 job (chỉ hiển thị khi đã được duyệt)
  *     tags: [Jobs]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID của bài tuyển dụng
  *         schema:
- *           type: integer
+ *           type: string
  *     responses:
  *       200:
- *         description: Chi tiết bài tuyển dụng
+ *         description: Thông tin job
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/Job'
- *                 - type: object
- *                   properties:
- *                     createdAtFormatted:
- *                       type: string
- *                       example: "01/09/2025 14:30"
- *                       description: Ngày giờ định dạng DD/MM/YYYY HH:mm
- *                     isFavorite:
- *                       type: boolean
- *                       description: Có được user login đánh dấu yêu thích không?
+ *               $ref: '#/components/schemas/Job'
+ *       403:
+ *         description: Công việc chưa được duyệt
  *       404:
- *         description: Không tìm thấy việc làm cho ID này!
+ *         description: Không tìm thấy job
  */
 
 /**
  * @swagger
- * /api/jobs/popular-tags:
- *   get:
- *     summary: Lấy các tag phổ biến nhất
+ * /api/jobs:
+ *   post:
+ *     summary: Tạo job mới (recruiter có công ty đã xác thực)
  *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/JobCreateRequest'
  *     responses:
- *       200:
- *         description: Danh sách tag phổ biến
+ *       201:
+ *         description: Tạo job thành công (approval mặc định là pending)
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   tag:
- *                     type: string
- *                   count:
- *                     type: integer
- */
-
-/**
- * @swagger
- * /api/jobs/tags:
- *   get:
- *     summary: Lấy danh sách các lĩnh vực (tag) đang được sử dụng
- *     tags: [Jobs]
- *     responses:
- *       200:
- *         description: Trả về danh sách tag
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: string
+ *               $ref: '#/components/schemas/Job'
+ *       400:
+ *         description: Thiếu company_id hoặc dữ liệu không hợp lệ
+ *       403:
+ *         description: Công ty chưa được xác thực / không đủ quyền
  */
 
 /**
  * @swagger
  * /api/jobs/{id}:
  *   put:
- *     summary: Cập nhật thông tin công việc theo ID
+ *     summary: Cập nhật job (chủ job hoặc admin)
  *     tags: [Jobs]
  *     security:
  *       - bearerAuth: []
@@ -274,63 +310,31 @@
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *                 example: Kỹ sư phần mềm ERP
- *               company:
- *                 type: string
- *                 example: Công ty IVIP
- *               location:
- *                 type: string
- *                 example: Thành phố Đà Nẵng
- *               description:
- *                 type: string
- *                 example: Công việc phát triển phần mềm ERP cần rất nhiều kỹ năng
- *               salary_min:
- *                 type: number
- *                 example: 10000000
- *               salary_max:
- *                 type: number
- *                 example: 35000000
- *               requirements:
- *                 type: string
- *                 example: Yêu cầu có kinh nghiệm với các hệ thống ERP
- *               tags:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["IT", "Kinh doanh"]
- *             required:
- *               - title
- *               - company
+ *             $ref: '#/components/schemas/JobUpdateRequest'
  *     responses:
  *       200:
- *         description: Cập nhật công việc thành công!
+ *         description: Cập nhật thành công
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Job'
  *       403:
- *         description: Bạn không có quyền sửa công việc này!
+ *         description: Không có quyền sửa job này
  *       404:
- *         description: Không tìm thấy việc làm cho ID này!
- *       500:
- *         description: Lỗi server khi cập nhật công việc!
+ *         description: Không tìm thấy job
  */
 
 /**
  * @swagger
  * /api/jobs/{id}:
  *   delete:
- *     summary: Xóa công việc theo ID
+ *     summary: Xoá job (chủ job hoặc admin)
  *     tags: [Jobs]
  *     security:
  *       - bearerAuth: []
@@ -339,121 +343,54 @@
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *     responses:
  *       200:
- *         description: Xóa công việc thành công!
- *       403:
- *         description: Bạn không có quyền xóa công việc này!
- *       404:
- *         description: Không tìm thấy việc làm cho ID này!
- *       500:
- *         description: Lỗi server khi xóa công việc!
- */
-
-/**
- * @swagger
- * tags:
- *   name: JobApproval
- *   description: Admin duyệt hoặc từ chối bài đăng tuyển dụng
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     JobApprovalResponse:
- *       type: object
- *       properties:
- *         job_id:
- *           type: string
- *           example: "3"
- *         status:
- *           type: string
- *           enum: [pending, approved, rejected]
- *           example: approved
- *         reason:
- *           type: string
- *           nullable: true
- *           example: "Mô tả chưa đầy đủ"
- *         audited_at:
- *           type: string
- *           format: date-time
- *           example: 2025-10-19T09:15:00.000Z
- */
-
-/**
- * @swagger
- * /api/jobs/admin/{id}/approve:
- *   patch:
- *     summary: Admin duyệt bài đăng tuyển dụng
- *     tags: [JobApproval]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của job cần duyệt
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: string
- *                 example: approved
- *     responses:
- *       200:
- *         description: Duyệt job thành công
+ *         description: Xoá thành công
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/JobApprovalResponse'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Xóa công việc thành công!"
  *       403:
- *         description: Không có quyền
+ *         description: Không có quyền xoá
  *       404:
  *         description: Không tìm thấy job
  */
 
 /**
  * @swagger
- * /api/jobs/admin/{id}/reject:
- *   patch:
- *     summary: Admin từ chối bài đăng tuyển dụng
- *     tags: [JobApproval]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của job cần từ chối
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - reason
- *             properties:
- *               reason:
- *                 type: string
- *                 example: "Mô tả công việc chưa rõ ràng."
+ * /api/jobs/tags:
+ *   get:
+ *     summary: Lấy tất cả tag đang được job sử dụng
+ *     tags: [Jobs]
  *     responses:
  *       200:
- *         description: Từ chối job thành công
+ *         description: Danh sách tag + số lượng job đang dùng
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/JobApprovalResponse'
- *       404:
- *         description: Không tìm thấy job
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TagItem'
+ */
+
+/**
+ * @swagger
+ * /api/jobs/popular-tags:
+ *   get:
+ *     summary: Top tag phổ biến (đếm theo số lượng job gắn tag)
+ *     tags: [Jobs]
+ *     responses:
+ *       200:
+ *         description: Top tag phổ biến
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PopularTagItem'
  */
