@@ -6,82 +6,110 @@ const emailService = require("./emailService");
 
 //  Tạo Job (kèm tags) + tạo JobApproval(pending)
 exports.createJob = async (jobData) => {
-  let createdByName = jobData.createdByName;
-
-  // Nếu chưa có createdByName thì lấy từ user
-  if (!createdByName && jobData.createdBy) {
-    const user = await prisma.user.findUnique({
-      where: { id: BigInt(jobData.createdBy) },
-      select: { name: true },
-    });
-    if (user) {
-      createdByName = user.name;
-    }
+  // 0) Validate input cơ bản
+  const title = (jobData.title || "").trim();
+  if (!title) {
+    const err = new Error("Thiếu tiêu đề công việc (title)!");
+    err.status = 400;
+    throw err;
   }
-
-  // Lấy danh sách tags (nếu là mảng)
-  const tags = Array.isArray(jobData.tags) ? [...new Set(jobData.tags)] : [];
-
-  // company_id là bắt buộc theo schema mới
-  const companyId =
-    jobData.company_id ??
-    jobData.companyId ?? // nếu FE gửi companyId
-    null;
-
-  if (!companyId) {
-    const err = new Error("Thiếu company_id khi tạo công việc!");
+  if (!jobData.createdBy) {
+    const err = new Error("Thiếu createdBy (ID người tạo)!");
     err.status = 400;
     throw err;
   }
 
-  // Tạo job
-  const job = await prisma.job.create({
-    data: {
-      title: jobData.title,
-      company_id: BigInt(companyId), //  FK mới
-      location: jobData.location ?? null,
-      description: jobData.description ?? null,
-      salary_min: jobData.salary_min ?? null,
-      salary_max: jobData.salary_max ?? null,
-      requirements: jobData.requirements ?? null,
-      created_by: BigInt(jobData.createdBy),
-      created_by_name: createdByName,
-      // Tạo/gắn tag
-      tags: tags.length
-        ? {
-            create: tags.map((t) => ({
-              tag: {
-                connectOrCreate: {
-                  where: { name: t },
-                  create: { name: t },
+  const createdBy = BigInt(String(jobData.createdBy));
+
+  // 1) Lấy tên người tạo nếu thiếu
+  let createdByName = jobData.createdByName;
+  if (!createdByName) {
+    const u = await prisma.user.findUnique({
+      where: { id: createdBy },
+      select: { name: true },
+    });
+    createdByName = u?.name || null;
+  }
+
+  // 2) Xác định company_id:
+  //    - nếu payload có: dùng luôn
+  //    - nếu không: tự tìm company mà user sở hữu (owner_id = createdBy)
+  let companyId = jobData.company_id ?? jobData.companyId ?? null;
+
+  if (!companyId) {
+    const ownedCompany = await prisma.company.findFirst({
+      where: { owner_id: createdBy },
+      select: { id: true },
+    });
+    if (ownedCompany) {
+      companyId = ownedCompany.id; // BigInt
+    }
+  }
+
+  if (!companyId) {
+    const err = new Error(
+      "Thiếu company_id khi tạo công việc hoặc bạn không thuộc công ty này!",
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  // 3) Chuẩn hoá tags
+  const tags = Array.isArray(jobData.tags)
+    ? [...new Set(jobData.tags.map((t) => String(t).trim()).filter(Boolean))]
+    : [];
+
+  // 4) Tạo job + approval trong transaction để nhất quán
+  const result = await prisma.$transaction(async (tx) => {
+    const job = await tx.job.create({
+      data: {
+        title,
+        company_id:
+          typeof companyId === "bigint" ? companyId : BigInt(companyId),
+        location: jobData.location ?? null,
+        description: jobData.description ?? null,
+        salary_min: jobData.salary_min ?? null,
+        salary_max: jobData.salary_max ?? null,
+        requirements: jobData.requirements ?? null,
+        created_by: createdBy,
+        created_by_name: createdByName,
+        tags: tags.length
+          ? {
+              create: tags.map((t) => ({
+                tag: {
+                  connectOrCreate: {
+                    where: { name: t }, // cần unique trên Tag.name
+                    create: { name: t },
+                  },
                 },
-              },
-            })),
-          }
-        : undefined,
-    },
-    include: {
-      company: { select: { id: true, legal_name: true } },
-      tags: { include: { tag: true } },
-    },
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        company: { select: { id: true, legal_name: true } },
+        tags: { include: { tag: true } },
+      },
+    });
+
+    await tx.jobApproval.create({
+      data: { job_id: job.id }, // status mặc định "pending" theo schema
+    });
+
+    // Lấy lại kèm approval
+    const fresh = await tx.job.findUnique({
+      where: { id: job.id },
+      include: {
+        company: { select: { id: true, legal_name: true } },
+        tags: { include: { tag: true } },
+        approval: true,
+      },
+    });
+
+    return fresh;
   });
 
-  // Tạo bản ghi phê duyệt pending
-  await prisma.jobApproval.create({
-    data: { job_id: job.id },
-  });
-
-  // Lấy lại job kèm approval
-  const fresh = await prisma.job.findUnique({
-    where: { id: job.id },
-    include: {
-      company: { select: { id: true, legal_name: true } },
-      tags: { include: { tag: true } },
-      approval: true,
-    },
-  });
-
-  return toJobDTO(fresh);
+  return toJobDTO(result);
 };
 
 // Lấy danh sách Job với lọc + search + phân trang (chỉ trả job approved)
@@ -118,7 +146,7 @@ exports.getAllJobs = async ({
     : [];
 
   // Chỉ lấy job đã duyệt
-  const approvalFilter = { approval: { status: "approved" } };
+  const approvalFilter = { approval: { is: { status: "approved" } } };
 
   const where = {
     ...tagFilter,
@@ -151,7 +179,8 @@ exports.getAllJobs = async ({
 
 //  Lấy Job theo ID (kèm creator, company, approval, tags, favorites)
 //  Mặc định chỉ trả job approved (route admin có thể làm riêng)
-exports.getJobById = async (id, userId = null) => {
+exports.getJobById = async (id, userId = null, opts = {}) => {
+  const { allowOwnerDraft = false } = opts;
   const job = await prisma.job.findUnique({
     where: { id: BigInt(id) },
     include: {
@@ -159,7 +188,7 @@ exports.getJobById = async (id, userId = null) => {
       company: { select: { id: true, legal_name: true } },
       approval: true,
       tags: { include: { tag: true } },
-      favorites: true,
+      favorites: true, // có thể thêm xử lý riêng favorite nếu cần
     },
   });
 
@@ -169,21 +198,36 @@ exports.getJobById = async (id, userId = null) => {
     throw error;
   }
 
-  // Chỉ public khi đã duyệt
-  if (job.approval?.status !== "approved") {
-    const error = new Error("Công việc chưa được duyệt!");
-    error.statusCode = 403;
-    throw error;
+  // Quyền xem job chưa duyệt
+  const approved = job.approval?.status === "approved";
+  if (!approved) {
+    const isOwner =
+      userId && job.created_by?.toString() === userId.id?.toString();
+
+    if (!((allowOwnerDraft && isOwner) /* || isAdmin*/)) {
+      const error = new Error(
+        "Công việc chưa được duyệt hoặc bạn không có quyền với công việc này!",
+      );
+      error.statusCode = 403;
+      throw error;
+    }
   }
 
-  // Ghi log hành vi "viewed" nếu có user đăng nhập
+  // Ghi log xem job và thêm job chưa public nhưng người xem là owner/admin ko ghi log
   if (userId) {
-    logUserInterest({
-      userId,
-      job,
-      source: "viewed",
-      eventType: "open_detail",
-    });
+    if (
+      approved ||
+      (allowOwnerDraft &&
+        (userId.role === "admin" ||
+          job.created_by?.toString() === userId.id?.toString()))
+    ) {
+      logUserInterest({
+        userId: userId.id,
+        job,
+        source: "viewed",
+        eventType: "open_detail",
+      });
+    }
   }
 
   return toJobDTO(job);

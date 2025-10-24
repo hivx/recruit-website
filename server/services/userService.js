@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
+const { toJobDTO } = require("../utils/serializers/job");
 
 module.exports = {
   async getUserById(userId) {
@@ -24,7 +25,6 @@ module.exports = {
         ...(data.name && { name: data.name }),
         ...(data.email && { email: data.email }),
         ...(data.avatar && { avatar: data.avatar }),
-        ...(data.password && { password: data.password }),
       },
     });
   },
@@ -162,13 +162,22 @@ module.exports = {
   async getFavoriteJobs(userId) {
     const favorites = await prisma.userFavoriteJobs.findMany({
       where: { user_id: BigInt(userId) },
-      include: { job: true },
+      include: {
+        job: {
+          include: {
+            approval: true,
+            tags: { include: { tag: true } },
+            company: { select: { id: true, legal_name: true } }, // <-- bỏ logo_url
+          },
+        },
+      },
     });
 
-    return {
-      jobs: favorites.map((f) => f.job),
-      total: favorites.length,
-    };
+    const jobs = favorites
+      .filter((f) => !!f.job) // phòng trường hợp job bị xoá
+      .map((f) => toJobDTO(f.job)); // DTO đã xử lý BigInt -> string
+
+    return { jobs, total: jobs.length };
   },
 
   // Đổi mật khẩu

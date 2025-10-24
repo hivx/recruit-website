@@ -19,7 +19,7 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
 
     // Đọc env an toàn + fallback
     const windowMin = Number.parseInt(
-      process.env.LOG_DUPLICATE_WINDOW_MINUTES || "5",
+      process.env.LOG_DUPLICATE_WINDOW_MINUTES || "15",
       10,
     );
     const recent = await prisma.userInterestHistory.findFirst({

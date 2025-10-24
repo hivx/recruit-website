@@ -105,6 +105,11 @@ module.exports = {
       // chỉ log; không throw để tránh làm hỏng flow apply
       console.warn("[logUserInterest] failed:", e?.message || e);
     }
+    // Tăng application_count trên Job (chưa có giảm đi nếu có xoá ứng tuyển)
+    await prisma.job.update({
+      where: { id: BigInt(jobId) },
+      data: { application_count: { increment: 1 } },
+    });
 
     return toApplicationDTO(application);
   },

@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Lập trình viên ReactJS",
+    "company": "Công ty ABC",
+    "location": "Hà Nội",
+    "description": "Phát triển ứng dụng web với ReactJS, tối ưu hóa giao diện.",
+    "salary_min": 15000000,
+    "salary_max": 20000000,
+    "requirements": "Kinh nghiệm 1 năm với ReactJS, kỹ năng JavaScript.",
+    "tags": ["IT", "Web Development"]
+  },
+  {
+    "title": "Kỹ sư DevOps",
+    "company": "Công ty XYZ",
+    "location": "TP. Hồ Chí Minh",
+    "description": "Quản lý hạ tầng CI/CD, triển khai hệ thống đám mây.",
+    "salary_min": 20000000,
+    "salary_max": 30000000,
+    "requirements": "2 năm kinh nghiệm với AWS, Docker.",
+    "tags": ["DevOps", "Cloud", "IT"]
+  },
+  {
+    "title": "Nhân viên Marketing Online",
+    "company": "Công ty DEF",
+    "location": "Đà Nẵng",
+    "description": "Thực hiện chiến dịch quảng cáo trên mạng xã hội.",
+    "salary_min": 10000000,
+    "salary_max": 15000000,
+    "requirements": "1 năm kinh nghiệm SEO, SEM.",
+    "tags": ["Marketing", "Digital"]
+  },
+  {
+    "title": "Thiết kế đồ họa",
+    "company": "Công ty GHI",
+    "location": "Cần Thơ",
+    "description": "Thiết kế banner, logo, và nội dung hình ảnh sáng tạo.",
+    "salary_min": 12000000,
+    "salary_max": 18000000,
+    "requirements": "Thành thạo Photoshop, Illustrator.",
+    "tags": ["Design", "Creative"]
+  },
+  {
+    "title": "Phát triển Python Backend",
+    "company": "Công ty JKL",
+    "location": "Hải Phòng",
+    "description": "Xây dựng API và hệ thống backend với Python.",
+    "salary_min": 18000000,
+    "salary_max": 25000000,
+    "requirements": "2 năm kinh nghiệm Python, Flask/Django.",
+    "tags": ["IT", "Backend"]
+  },
+  {
+    "title": "Chuyên viên Tài chính",
+    "company": "Công ty MNO",
+    "location": "Hà Nội",
+    "description": "Phân tích báo cáo tài chính, lập kế hoạch ngân sách.",
+    "salary_min": 20000000,
+    "salary_max": 30000000,
+    "requirements": "Kinh nghiệm 3 năm tài chính, Excel nâng cao.",
+    "tags": ["Finance", "Accounting"]
+  },
+  {
+    "title": "Nhân viên Kinh doanh Bất động sản",
+    "company": "Công ty PQR",
+    "location": "TP. Hồ Chí Minh",
+    "description": "Tư vấn và bán bất động sản, tìm kiếm khách hàng.",
+    "salary_min": 15000000,
+    "salary_max": 25000000,
+    "requirements": "Kinh nghiệm 1 năm kinh doanh, kỹ năng giao tiếp.",
+    "tags": ["Sales", "Real Estate"]
+  },
+  {
+    "title": "Kiểm thử phần mềm QA",
+    "company": "Công ty STU",
+    "location": "Đà Nẵng",
+    "description": "Thực hiện kiểm thử phần mềm, báo cáo lỗi.",
+    "salary_min": 13000000,
+    "salary_max": 19000000,
+    "requirements": "1 năm kinh nghiệm QA, hiểu biết cơ bản về lập trình.",
+    "tags": ["IT", "QA"]
+  },
+  {
+    "title": "Chuyên viên Nhân sự",
+    "company": "Công ty VWX",
+    "location": "Hà Nội",
+    "description": "Tuyển dụng, đào tạo và quản lý nhân viên.",
+    "salary_min": 14000000,
+    "salary_max": 20000000,
+    "requirements": "Kinh nghiệm 2 năm nhân sự, kỹ năng tổ chức.",
+    "tags": ["HR", "Management"]
+  },
+  {
+    "title": "Phát triển Ứng dụng Di động",
+    "company": "Công ty YZA",
+    "location": "Cần Thơ",
+    "description": "Xây dựng ứng dụng iOS/Android với Flutter.",
+    "salary_min": 20000000,
+    "salary_max": 28000000,
+    "requirements": "2 năm kinh nghiệm Flutter, Dart.",
+    "tags": ["Mobile", "IT"]
+  }
+]
