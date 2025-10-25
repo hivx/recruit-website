@@ -11,6 +11,8 @@ const toUserDTO = (u) => {
     avatar: u.avatar,
     role: u.role,
     isVerified: u.isVerified,
+    created_at: u.created_at,
+    updated_at: u.updated_at,
     company: u.company
       ? {
           id: toStr(u.company.id),

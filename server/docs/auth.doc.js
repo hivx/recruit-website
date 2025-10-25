@@ -209,32 +209,6 @@
 
 /**
  * @swagger
- * /api/auth/verify-email:
- *   get:
- *     summary: Xác minh email qua liên kết gửi trong mail
- *     description: Endpoint được nhúng trong email xác minh. Trả về HTML thông báo thành công/thất bại.
- *     tags: [Auth]
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Xác minh thành công (trả về HTML)
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *       400:
- *         description: Token không hợp lệ hoặc đã hết hạn (trả về HTML)
- *       500:
- *         description: Lỗi server!
- */
-
-/**
- * @swagger
  * /api/auth/forgot-password:
  *   post:
  *     summary: Yêu cầu đặt lại mật khẩu (gửi email xác nhận)
@@ -277,32 +251,6 @@
  *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
  *       404:
  *         description: Email không tồn tại!
- *       500:
- *         description: Lỗi server!
- */
-
-/**
- * @swagger
- * /api/auth/reset-password/confirm:
- *   get:
- *     summary: Xác nhận đặt lại mật khẩu qua liên kết trong email
- *     description: Endpoint mở từ email để xác nhận reset. Trả về HTML thông báo thành công/thất bại.
- *     tags: [Auth]
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Đặt lại mật khẩu thành công (trả về HTML)
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *       400:
- *         description: Token không hợp lệ hoặc đã hết hạn (trả về HTML)
  *       500:
  *         description: Lỗi server!
  */

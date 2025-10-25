@@ -38,27 +38,6 @@
  *               type: string
  *               example: "Node.js"
  *
- *     JobApproval:
- *       type: object
- *       nullable: true
- *       properties:
- *         status:
- *           type: string
- *           enum: [pending, approved, rejected]
- *           example: approved
- *         reason:
- *           type: string
- *           nullable: true
- *           example: "Mô tả chưa đầy đủ"
- *         auditor_id:
- *           type: string
- *           nullable: true
- *           example: "2"
- *         audited_at:
- *           type: string
- *           format: date-time
- *           nullable: true
- *
  *     Job:
  *       type: object
  *       description: Bản ghi công việc trả về từ API

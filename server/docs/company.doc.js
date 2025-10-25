@@ -15,29 +15,6 @@
  *       bearerFormat: JWT
  *
  *   schemas:
- *     CompanyVerification:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           enum: [submitted, verified, rejected]
- *           example: "verified"
- *         rejection_reason:
- *           type: string
- *           nullable: true
- *           example: "Thiếu giấy phép kinh doanh"
- *         submitted_at:
- *           type: string
- *           format: date-time
- *           example: "2025-10-18T17:00:49.174Z"
- *         verified_at:
- *           type: string
- *           format: date-time
- *           example: "2025-10-18T17:15:00.000Z"
- *         reviewed_by:
- *           type: string
- *           nullable: true
- *           example: "2"
  *
  *     CompanyResponse:
  *       type: object
@@ -220,68 +197,6 @@
  *                   example: "2025-10-19T08:40:00.000Z"
  *       403:
  *         description: Công ty đã được xác thực, không thể nộp lại
- *       404:
- *         description: Không tìm thấy công ty
- */
-
-/**
- * @swagger
- * /api/companies/admin/{id}/verify:
- *   patch:
- *     summary: Admin phê duyệt hoặc từ chối công ty
- *     tags: [Company]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID công ty cần duyệt
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [verified, rejected]
- *                 example: "verified"
- *               reason:
- *                 type: string
- *                 description: Lý do từ chối (bắt buộc nếu status = rejected)
- *                 example: "Thiếu giấy phép kinh doanh"
- *     responses:
- *       200:
- *         description: Kết quả duyệt công ty
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 company_id:
- *                   type: string
- *                   example: "1"
- *                 status:
- *                   type: string
- *                   example: "verified"
- *                 rejection_reason:
- *                   type: string
- *                   nullable: true
- *                   example: null
- *                 verified_at:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-10-18T17:15:00.000Z"
- *       400:
- *         description: Trạng thái không hợp lệ hoặc thiếu lý do khi từ chối
- *       403:
- *         description: Không có quyền admin
  *       404:
  *         description: Không tìm thấy công ty
  */
