@@ -20,4 +20,18 @@ router.put(
   preferenceController.upsertCareerPreference,
 );
 
+// GET và UPSERT recruiter preference của chính mình
+router.get(
+  "/recruiter",
+  authMiddleware,
+  preferenceController.getMyRecruiterPref,
+);
+
+// PUT để tạo hoặc cập nhật recruiter preference
+router.put(
+  "/recruiter",
+  authMiddleware,
+  preferenceController.upsertMyRecruiterPref,
+);
+
 module.exports = router;
