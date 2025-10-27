@@ -211,3 +211,118 @@
  *       500:
  *         description: Lỗi server khi lấy danh sách ứng viên!
  */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     CompanyLite:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "5"
+ *         legal_name:
+ *           type: string
+ *           example: "Acme Company Ltd."
+ *
+ *     JobLite:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "88"
+ *         title:
+ *           type: string
+ *           example: "Backend Engineer"
+ *         company:
+ *           $ref: '#/components/schemas/CompanyLite'
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Node.js", "PostgreSQL", "AWS"]
+ *
+ *     MyApplication:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "123"
+ *         status:
+ *           $ref: '#/components/schemas/ApplicationStatus'
+ *         fit_score:
+ *           type: number
+ *           format: float
+ *           nullable: true
+ *           example: 0.72
+ *         applied_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-10-20T09:15:22.000Z
+ *         job:
+ *           $ref: '#/components/schemas/JobLite'
+ */
+
+/**
+ * @swagger
+ * /api/applications/me:
+ *   get:
+ *     summary: Ứng viên xem danh sách đơn ứng tuyển của chính mình
+ *     description: Trả về toàn bộ đơn ứng tuyển của user hiện tại (theo JWT). Không phân trang ở phiên bản đầu.
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách đơn ứng tuyển (có thể rỗng)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   example: 2
+ *                 applications:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MyApplication'
+ *             examples:
+ *               emptyList:
+ *                 summary: Không có đơn nào
+ *                 value:
+ *                   total: 0
+ *                   applications: []
+ *               hasData:
+ *                 summary: Có dữ liệu
+ *                 value:
+ *                   total: 2
+ *                   applications:
+ *                     - id: "123"
+ *                       status: "pending"
+ *                       fit_score: 0.78
+ *                       applied_at: "2025-10-20T09:15:22.000Z"
+ *                       job:
+ *                         id: "88"
+ *                         title: "Backend Engineer"
+ *                         company:
+ *                           id: "5"
+ *                           legal_name: "Acme Company Ltd."
+ *                         tags: ["Node.js", "PostgreSQL", "AWS"]
+ *                     - id: "124"
+ *                       status: "accepted"
+ *                       fit_score: 0.65
+ *                       applied_at: "2025-10-22T08:01:10.000Z"
+ *                       job:
+ *                         id: "91"
+ *                         title: "Data Engineer"
+ *                         company:
+ *                           id: "5"
+ *                           legal_name: "Acme Company Ltd."
+ *                         tags: ["Python", "Airflow", "GCP"]
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       500:
+ *         description: Lỗi server khi lấy danh sách đơn ứng tuyển
+ */

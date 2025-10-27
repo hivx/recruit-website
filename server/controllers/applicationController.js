@@ -104,3 +104,16 @@ exports.getApplicantsByJob = async (req, res) => {
       .json({ message: "Lỗi server khi lấy danh sách ứng viên!" });
   }
 };
+
+// GET /api/applications/me
+exports.getMyApplications = async (req, res) => {
+  try {
+    const apps = await applicationService.getApplicationsByUser(
+      req.user.userId,
+    );
+    return res.json({ total: apps.length, applications: apps });
+  } catch (err) {
+    console.error("[Get My Applications]", err.message);
+    return res.status(500).json({ message: "Lỗi server!" });
+  }
+};

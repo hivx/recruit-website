@@ -27,4 +27,8 @@ router.get(
   applicationController.getApplicantsByJob,
 );
 
+// @route   GET /api/applications/me
+// GET: Lấy danh sách ứng dụng của chính mình (applicant)
+router.get("/me", authMiddleware, applicationController.getMyApplications);
+
 module.exports = router;
