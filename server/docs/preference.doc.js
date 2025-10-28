@@ -90,7 +90,7 @@
 
 /**
  * @swagger
- * /api/preference/career-preference:
+ * /api/preferences/career-preference:
  *   get:
  *     summary: Lấy tiêu chí nghề nghiệp của chính người dùng hiện tại
  *     description: Dựa trên JWT, trả về hồ sơ Career Preference. Có thể rỗng nếu người dùng chưa thiết lập.
@@ -286,7 +286,7 @@
 
 /**
  * @swagger
- * /api/preference/recruiter:
+ * /api/preferences/recruiter:
  *   get:
  *     summary: Lấy tiêu chí tuyển dụng của chính nhà tuyển dụng
  *     description: Chỉ dành cho user có role recruiter hoặc admin. Trả về `{}` nếu chưa thiết lập.

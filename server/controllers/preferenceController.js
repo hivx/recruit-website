@@ -1,6 +1,6 @@
 const preferenceService = require("../services/preferenceService");
 
-// GET /api/me/career-preference
+// GET /api/preferences/career-preference
 exports.getCareerPreference = async (req, res) => {
   try {
     const data = await preferenceService.getCareerPreference(req.user.userId);
@@ -11,7 +11,7 @@ exports.getCareerPreference = async (req, res) => {
   }
 };
 
-// PUT /api/me/career-preference
+// PUT /api/preferences/career-preference
 exports.upsertCareerPreference = async (req, res) => {
   try {
     const data = await preferenceService.upsertCareerPreference(
@@ -25,7 +25,7 @@ exports.upsertCareerPreference = async (req, res) => {
   }
 };
 
-// GET /api/recruiter/preferences/me
+// GET /api/preferences/recruiter
 exports.getMyRecruiterPref = async (req, res) => {
   try {
     if (req.user.role !== "recruiter" && req.user.role !== "admin") {
@@ -43,7 +43,7 @@ exports.getMyRecruiterPref = async (req, res) => {
   }
 };
 
-// PUT /api/recruiter/preferences/me
+// PUT /api/preferences/recruiter
 exports.upsertMyRecruiterPref = async (req, res) => {
   try {
     if (req.user.role !== "recruiter" && req.user.role !== "admin") {

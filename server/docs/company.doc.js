@@ -1,7 +1,7 @@
 /**
  * @swagger
  * tags:
- *   name: Company
+ *   name: Companies
  *   description: Quản lý công ty của nhà tuyển dụng và xác thực công ty
  */
 
@@ -98,7 +98,7 @@
  * /api/companies:
  *   post:
  *     summary: Tạo công ty mới (chỉ recruiter hoặc admin)
- *     tags: [Company]
+ *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -127,7 +127,7 @@
  * /api/companies/me:
  *   get:
  *     summary: Lấy thông tin công ty của recruiter hiện tại
- *     tags: [Company]
+ *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -146,7 +146,7 @@
  * /api/companies/me:
  *   patch:
  *     summary: Cập nhật thông tin công ty (chỉ khi trạng thái chưa verified)
- *     tags: [Company]
+ *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -174,7 +174,7 @@
  *   post:
  *     summary: Nộp (hoặc nộp lại) yêu cầu xác thực công ty
  *     description: Chỉ cho phép nộp khi hiện tại không ở trạng thái verified. Nếu đang rejected sẽ chuyển sang submitted và reset rejection_reason.
- *     tags: [Company]
+ *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
  *     responses:
