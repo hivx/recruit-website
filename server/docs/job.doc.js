@@ -18,6 +18,22 @@
  *         legal_name:
  *           type: string
  *           example: "Công ty TNHH ABC Tech"
+ *     JobApproval:
+ *       type: object
+ *       description: Thông tin phê duyệt job (chỉ hiển thị cho admin)
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *           example: "approved"
+ *         reason:
+ *           type: string
+ *           nullable: true
+ *           example: "Mô tả công việc chưa đầy đủ"
+ *         audited_at:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-10-19T09:15:00.000Z"
  *
  *     JobTagItem:
  *       type: object

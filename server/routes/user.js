@@ -2,6 +2,7 @@
 const express = require("express");
 
 const router = express.Router();
+const profileController = require("../controllers/profileController");
 const userController = require("../controllers/userController");
 const authMiddleware = require("../middleware/authMiddleware");
 const uploadAvatar = require("../utils/uploadAvatar");
@@ -25,6 +26,16 @@ router.post(
   "/favorite/:jobId",
   authMiddleware,
   userController.toggleFavoriteJob,
+);
+
+// GET: Lấy hồ sơ hành vi của chính mình
+router.get("/behavior-profile", authMiddleware, profileController.getMyProfile);
+
+// POST: Xây dựng lại hồ sơ hành vi cho chính mình
+router.post(
+  "/behavior-profile/rebuild",
+  authMiddleware,
+  profileController.rebuildMyProfile,
 );
 
 module.exports = router;

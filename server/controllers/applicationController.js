@@ -2,6 +2,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const applicationService = require("../services/applicationService");
+const profileBuilder = require("../services/profileBuilderService");
 const prisma = require("../utils/prisma");
 
 // POST: Ứng tuyển công việc (cv, phone, coverLetter theo business)
@@ -31,6 +32,14 @@ exports.createApplication = async (req, res) => {
       userId,
       cv: cvPath,
       phone,
+    });
+    // sau khi ứng tuyển thành công
+    setImmediate(() => {
+      profileBuilder
+        .rebuildForUser(req.user.userId)
+        .catch((err) =>
+          console.warn("[Profile Rebuild after APPLY]", err.message),
+        );
     });
 
     return res.status(201).json({

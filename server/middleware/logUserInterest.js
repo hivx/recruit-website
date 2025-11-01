@@ -26,7 +26,7 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
       where: {
         user_id: BigInt(userId),
         job_id: BigInt(job.id),
-        source, // 'viewed' | 'applied' | 'favorite' | 'recommended'
+        source, // 'viewed' | 'applied' 'add_favorite' | 'remove_favorite'
         event_type: eventType, // schema cho phép null
         recorded_at: {
           gte: new Date(Date.now() - windowMin * 60 * 1000),

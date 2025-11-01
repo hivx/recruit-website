@@ -391,7 +391,7 @@ exports.approveJob = async (jobId, adminId) => {
         <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã được <b>DUYỆT</b>.</p>
         <p>Bạn có thể xem chi tiết tại: <a href="${manageUrl}">${manageUrl}</a></p>
         <p>Trân trọng,</p>
-        <p>Recruit System</p>
+        <p>Recruitment System</p>
       `,
     );
   } catch (error_) {
@@ -451,7 +451,7 @@ exports.rejectJob = async (jobId, adminId, reason) => {
         <p><b>Lý do:</b> ${reason || "Không có lý do cụ thể."}</p>
         <p>Vui lòng chỉnh sửa và nộp lại: <a href="${manageUrl}">${manageUrl}</a></p>
         <p>Trân trọng,</p>
-        <p>Recruit System</p>
+        <p>Recruitment System</p>
       `,
     );
   } catch (error_) {
