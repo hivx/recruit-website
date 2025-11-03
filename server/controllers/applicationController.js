@@ -34,12 +34,13 @@ exports.createApplication = async (req, res) => {
       phone,
     });
     // sau khi ứng tuyển thành công
-    setImmediate(() => {
-      profileBuilder
-        .rebuildForUser(req.user.userId)
-        .catch((err) =>
-          console.warn("[Profile Rebuild after APPLY]", err.message),
-        );
+    setImmediate(async () => {
+      try {
+        const result = await profileBuilder.rebuildForUser(req.user.userId);
+        console.log("[ProfileBuilder triggered after APPLY]", result);
+      } catch (err) {
+        console.warn("[Profile Rebuild after APPLY]", err.message);
+      }
     });
 
     return res.status(201).json({

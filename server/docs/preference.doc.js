@@ -40,7 +40,7 @@
  *         desired_salary:
  *           type: number
  *           nullable: true
- *           example: 2500
+ *           example: 20000000
  *         tags:
  *           type: array
  *           description: Danh sách tag kỹ năng/sở thích đã được chuẩn hoá và gán vào hồ sơ
@@ -70,7 +70,7 @@
  *         desired_salary:
  *           type: number
  *           description: Mức lương mong muốn (USD hoặc VND quy đổi tùy business rule)
- *           example: 2500
+ *           example: 20000000
  *         tags:
  *           type: array
  *           description: Danh sách tag ở dạng chuỗi, service sẽ upsert Tag và gán bảng nối
@@ -118,7 +118,7 @@
  *                   desired_title: "Backend Developer"
  *                   desired_company: "Tech Unicorn VN"
  *                   desired_location: "TP.HCM"
- *                   desired_salary: 2500
+ *                   desired_salary: 20000000
  *                   tags:
  *                     - { "id": 10, "name": "Node.js" }
  *                     - { "id": 11, "name": "PostgreSQL" }
@@ -149,7 +149,7 @@
  *                 desired_title: "Backend Developer"
  *                 desired_company: "Tech Unicorn VN"
  *                 desired_location: "TP.HCM"
- *                 desired_salary: 2500
+ *                 desired_salary: 20000000
  *                 tags: ["Node.js", "PostgreSQL", "AWS"]
  *             minimal:
  *               summary: Cập nhật một phần
@@ -173,7 +173,7 @@
  *                     desired_title: "Backend Developer"
  *                     desired_company: "Tech Unicorn VN"
  *                     desired_location: "TP.HCM"
- *                     desired_salary: 2500
+ *                     desired_salary: 20000000
  *                     tags:
  *                       - { "id": 10, "name": "Node.js" }
  *                       - { "id": 11, "name": "PostgreSQL" }
@@ -228,7 +228,7 @@
  *         desired_salary_avg:
  *           type: number
  *           nullable: true
- *           example: 1500
+ *           example: 15000000
  *         desired_tags:
  *           type: array
  *           items:
@@ -250,7 +250,7 @@
  *           example: "Hà Nội"
  *         desired_salary_avg:
  *           type: number
- *           example: 1500
+ *           example: 15000000
  *         desired_tags:
  *           type: array
  *           description: Mảng tên tag; service sẽ upsert Tag và THAY THẾ toàn bộ set hiện có
@@ -312,7 +312,7 @@
  *                 value:
  *                   user_id: "12"
  *                   desired_location: "Hà Nội"
- *                   desired_salary_avg: 1500
+ *                   desired_salary_avg: 15000000
  *                   desired_tags:
  *                     - { "id": 3, "name": "ReactJS" }
  *                     - { "id": 7, "name": "Node.js" }
@@ -344,7 +344,7 @@
  *               summary: Payload đầy đủ
  *               value:
  *                 desired_location: "Hà Nội"
- *                 desired_salary_avg: 1500
+ *                 desired_salary_avg: 15000000
  *                 desired_tags: ["ReactJS", "Node.js"]
  *                 required_skills:
  *                   - { "name": "JavaScript", "years_required": 2, "must_have": true }
@@ -369,7 +369,7 @@
  *                   data:
  *                     user_id: "12"
  *                     desired_location: "Hà Nội"
- *                     desired_salary_avg: 1500
+ *                     desired_salary_avg: 15000000
  *                     desired_tags:
  *                       - { "id": 3, "name": "ReactJS" }
  *                       - { "id": 7, "name": "Node.js" }
