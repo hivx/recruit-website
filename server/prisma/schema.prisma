@@ -13,7 +13,7 @@ datasource db {
  * =========================
  */
 
-enum Role {
+enum UserRole {
   admin
   recruiter
   applicant
@@ -56,32 +56,29 @@ model User {
   avatar     String   @default("uploads/pic.jpg") @db.VarChar(255)
   email      String   @unique @db.VarChar(100)
   password   String   @db.VarChar(100)
-  role       Role     @default(applicant)
+  role       UserRole     @default(applicant)
   isVerified Boolean  @default(false)
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   reset_token        String?   @db.VarChar(255)
   reset_token_expiry DateTime?
 
   // Quan hệ
-  jobs             Job[]                 @relation("UserJobs") // NTD tạo job
-  favorites        UserFavoriteJobs[]
-  applications     Application[]
-  interestHistory  UserInterestHistory[]
-  careerPreference CareerPreference?
-  behaviorProfile  UserBehaviorProfile?
-  recommendations  JobRecommendation[]
+  jobs                 Job[]                 @relation("UserJobs")
+  favorites            UserFavoriteJobs[]
+  applications         Application[]
+  interestHistory      UserInterestHistory[]
+  careerPreference     CareerPreference?
+  behaviorProfile      UserBehaviorProfile?
+  recruiterPreference  RecruiterPreference?
+  company              Company?
+  recommendations      JobRecommendation[]
+  candidateRecommends  CandidateRecommendation[] @relation("CandidateAsApplicant")
+  recruiterRecommends  CandidateRecommendation[] @relation("CandidateAsRecruiter")
+  userSkills           UserSkill[]
 
-  // Tiêu chí tuyển dụng của NTD
-  recruiterPreference RecruiterPreference?
-
-  // Công ty do recruiter sở hữu (1-1)
-  company Company?
-
-  // Kỹ năng cá nhân ứng viên
-  userSkills UserSkill[]
-
+  @@index([email], map: "idx_user_email")
   @@map("users")
 }
 
@@ -96,7 +93,7 @@ model Company {
   legal_name          String    @db.VarChar(255)
   registration_number String    @db.VarChar(100)
   tax_id              String?   @db.VarChar(100)
-  country_code        String    @db.VarChar(2) // ISO-3166-1 alpha-2
+  country_code        String    @db.VarChar(2)
   registered_address  String    @db.VarChar(255)
   incorporation_date  DateTime?
 
@@ -104,14 +101,13 @@ model Company {
   owner    User   @relation(fields: [owner_id], references: [id], onDelete: Cascade)
 
   verification CompanyVerification?
-
-  // Danh sách job theo công ty
-  jobs Job[]
+  jobs         Job[]
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   @@unique([registration_number, country_code], map: "uq_company_reg_country")
+  @@index([country_code], map: "idx_company_country")
   @@map("companies")
 }
 
@@ -140,16 +136,13 @@ model Job {
   id    BigInt @id @default(autoincrement())
   title String @db.VarChar(200)
 
-  // Company của user tạo job
   company_id BigInt
   company    Company @relation(fields: [company_id], references: [id], onDelete: Restrict)
 
-  // Người tạo job (recruiter)
   created_by      BigInt
   created_by_name String @db.VarChar(200)
   creator         User   @relation("UserJobs", fields: [created_by], references: [id])
 
-  // Nội dung JD
   location     String? @db.VarChar(100)
   description  String? @db.VarChar(500)
   salary_min   Int?
@@ -160,24 +153,20 @@ model Job {
   application_count Int    @default(0)
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
-  // Quan hệ khác
   favorites       UserFavoriteJobs[]
   tags            JobTag[]
   applications    Application[]
   interestLogs    UserInterestHistory[]
   recommendations JobRecommendation[]
+  approval        JobApproval?
+  requiredSkills  JobRequiredSkill[]
 
-  // Phê duyệt job
-  approval JobApproval?
-
-  // Index hay dùng
   @@index([company_id], map: "idx_jobs_company")
   @@index([created_by], map: "idx_jobs_creator")
   @@index([location], map: "idx_jobs_location")
-  @@index([updated_at], map: "idx_jobs_updated_at")
-  @@index([created_at], map: "idx_jobs_created_at")
+  @@index([updated_at], map: "idx_jobs_updated")
   @@map("jobs")
 }
 
@@ -188,11 +177,33 @@ model JobApproval {
   reason     String?           @db.VarChar(255)
   auditor_id BigInt?
   audited_at DateTime?
+  updated_at DateTime @default(now()) @updatedAt
 
   job Job @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
   @@index([status, audited_at], map: "idx_jobapproval_status_time")
   @@map("job_approvals")
+}
+
+/**
+ * =========================
+ * JOB REQUIRED SKILL
+ * =========================
+ */
+
+model JobRequiredSkill {
+  job_id         BigInt
+  skill_id       Int
+  importance     Int?
+  years_required Int?
+  must_have      Boolean @default(true)
+
+  job   Job   @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@id([job_id, skill_id])
+  @@index([skill_id], map: "idx_jobreq_skill")
+  @@map("job_required_skills")
 }
 
 /**
@@ -213,14 +224,14 @@ model Tag {
 }
 
 model JobTag {
-  jobId BigInt @map("job_id")
-  tagId Int    @map("tag_id")
+  job_id BigInt
+  tag_id Int
 
-  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  job Job @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  tag Tag @relation(fields: [tag_id], references: [id], onDelete: Cascade)
 
-  @@id([jobId, tagId])
-  @@index([tagId], map: "idx_jobtag_tag")
+  @@id([job_id, tag_id])
+  @@index([tag_id], map: "idx_jobtag_tag")
   @@map("job_tags")
 }
 
@@ -245,20 +256,22 @@ model Application {
   id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String            @db.VarChar(500)
-  cv           String?           @db.VarChar(500)
-  phone        String?           @db.VarChar(100)
+  cover_letter String
+  cv           String?
+  phone        String?
   status       ApplicationStatus @default(pending)
   fit_score    Float?            @default(0)
+  reviewed_by  BigInt?
+  reviewed_at  DateTime?
+  review_note  String?           @db.VarChar(500)
   created_at   DateTime          @default(now())
+  updated_at   DateTime          @default(now()) @updatedAt
 
   job       Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
   applicant User @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
 
   @@index([job_id, status], map: "idx_app_job_status")
-  @@index([job_id], map: "idx_app_job")
-  @@index([status], map: "idx_app_status")
-  @@index([applicant_id], map: "idx_app_applicant")
+  @@index([fit_score], map: "idx_app_fit")
   @@map("applications")
 }
 
@@ -269,28 +282,27 @@ model Application {
  */
 
 model UserInterestHistory {
-  id          BigInt         @id @default(autoincrement())
+  id          BigInt   @id @default(autoincrement())
   user_id     BigInt
   job_id      BigInt
-  job_title   String         @db.VarChar(255)
+  job_title   String   @db.VarChar(255)
   avg_salary  Int?
   tags        Json?
   source      InterestSource
-  event_type  String?        @default("viewed") @db.VarChar(50)
-  recorded_at DateTime       @default(now())
+  event_type  String?  @default("open_detail") @db.VarChar(50)
+  recorded_at DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   job  Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
   @@index([user_id, recorded_at], map: "idx_uih_user_date")
-  @@index([job_id], map: "idx_uih_job")
-  @@index([source], map: "idx_uih_source")
   @@map("user_interest_history")
 }
 
 /**
  * =========================
- * CAREER PREFERENCE (ứng viên) + TAGs
+ * CAREER PREFERENCE (ứng viên)
  * =========================
  */
 
@@ -301,22 +313,22 @@ model CareerPreference {
   desired_location String?  @db.VarChar(100)
   desired_salary   Int?
   created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  updated_at       DateTime @default(now()) @updatedAt
 
-  user User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tags CareerPreferenceTag[]
 
   @@map("career_preferences")
 }
 
 model CareerPreferenceTag {
-  userId BigInt @map("user_id")
-  tagId  Int    @map("tag_id")
+  user_id BigInt
+  tag_id  Int
 
-  preference CareerPreference @relation(fields: [userId], references: [user_id], onDelete: Cascade)
-  tag        Tag              @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  preference CareerPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tag        Tag              @relation(fields: [tag_id], references: [id], onDelete: Cascade)
 
-  @@id([userId, tagId])
+  @@id([user_id, tag_id])
   @@map("career_preference_tags")
 }
 
@@ -330,10 +342,9 @@ model RecruiterPreference {
   user_id            BigInt   @id
   desired_location   String?
   desired_salary_avg Int?
-  updated_at         DateTime @updatedAt
+  updated_at         DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
   requiredSkills RecruiterRequiredSkill[]
   desiredTags    RecruiterPreferenceTag[]
 
@@ -350,7 +361,6 @@ model RecruiterRequiredSkill {
   skill      Skill               @relation(fields: [skill_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, skill_id])
-  @@index([skill_id], map: "idx_rec_req_skill")
   @@map("recruiter_required_skills")
 }
 
@@ -362,7 +372,6 @@ model RecruiterPreferenceTag {
   tag        Tag                 @relation(fields: [tag_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, tag_id])
-  @@index([tag_id], map: "idx_rec_pref_tag")
   @@map("recruiter_preference_tags")
 }
 
@@ -377,6 +386,7 @@ model UserBehaviorProfile {
   avg_salary    Int?
   main_location String?  @db.VarChar(100)
   tags          Json?
+  embedding     Json?
   updated_at    DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -400,12 +410,38 @@ model JobRecommendation {
   sent_at        DateTime?
   status         String?   @db.VarChar(50)
   recommended_at DateTime  @default(now())
+  updated_at     DateTime  @default(now()) @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   job  Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, job_id])
+  @@index([fit_score], map: "idx_jobreco_fit")
   @@map("job_recommendations")
+}
+
+/**
+ * =========================
+ * CANDIDATE RECOMMENDATION
+ * =========================
+ */
+
+model CandidateRecommendation {
+  id             BigInt   @id @default(autoincrement())
+  recruiter_id   BigInt
+  applicant_id   BigInt
+  fit_score      Float?   @default(0)
+  reason         String?  @db.VarChar(255)
+  recommended_at DateTime @default(now())
+  updated_at     DateTime @default(now()) @updatedAt
+  status         String?  @db.VarChar(50)
+
+  recruiter User @relation("CandidateAsRecruiter", fields: [recruiter_id], references: [id], onDelete: Cascade)
+  applicant User @relation("CandidateAsApplicant", fields: [applicant_id], references: [id], onDelete: Cascade)
+
+  @@unique([recruiter_id, applicant_id])
+  @@index([fit_score], map: "idx_candreco_fit")
+  @@map("candidate_recommendations")
 }
 
 /**
@@ -420,6 +456,7 @@ model Skill {
 
   users               UserSkill[]
   recruiterRequiredBy RecruiterRequiredSkill[]
+  jobRequiredBy       JobRequiredSkill[]
 
   @@map("skills")
 }
@@ -427,10 +464,9 @@ model Skill {
 model UserSkill {
   user_id  BigInt
   skill_id Int
-  level    Int? // Mức độ chuyên môn, 1->10
-  years    Int? // số năm kinh nghiệm
+  level    Int?
+  years    Int?
   note     String? @db.VarChar(255)
-  verified Boolean @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
@@ -438,4 +474,25 @@ model UserSkill {
   @@id([user_id, skill_id])
   @@index([skill_id], map: "idx_userskill_skill")
   @@map("user_skills")
+}
+
+/**
+ * =========================
+ * EMBEDDING VECTOR
+ * =========================
+ */
+
+model EmbeddingVector {
+  id         BigInt   @id @default(autoincrement())
+  ref_type   String   @db.VarChar(50) // 'user' | 'job' | 'recruiter' | 'candidate'
+  ref_id     BigInt
+  vector     Json
+  dimension  Int?
+  model_name String?  @db.VarChar(100)
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@unique([ref_type, ref_id])
+  @@index([ref_type], map: "idx_embed_reftype")
+  @@index([updated_at], map: "idx_embed_updated")
+  @@map("embedding_vectors")
 }
