@@ -153,7 +153,11 @@ function analyzeUserEvents(events) {
 
     const w = baseW * decayFactor(e.recorded_at);
     addTags(tagScore, e.tags, w);
-    addLocation(locScore, e.location, w);
+
+    // ---- LOCATION: lấy từ job.location; nếu null -> bỏ qua ----
+    const locFromJob = e.job?.location || null;
+    addLocation(locScore, locFromJob, w);
+
     ({ salarySumW, weightSum } = addSalary(
       e,
       stdEvent,

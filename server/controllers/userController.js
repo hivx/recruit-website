@@ -4,6 +4,7 @@ const path = require("node:path");
 const profileBuilder = require("../services/profileBuilderService");
 
 const userService = require("../services/userService");
+const { toUserDTO } = require("../utils/serializers/user"); // DTO
 
 exports.toggleFavoriteJob = async (req, res) => {
   try {
@@ -61,7 +62,7 @@ exports.updateProfile = async (req, res) => {
 
     res.status(200).json({
       message: "Cập nhật thông tin thành công",
-      user: updatedUser,
+      user: toUserDTO(updatedUser),
     });
   } catch (err) {
     console.error("[Update Profile Error]", err);

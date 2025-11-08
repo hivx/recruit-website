@@ -105,7 +105,6 @@
  *             required:
  *               - jobId
  *               - coverLetter
- *               - cv
  *             properties:
  *               jobId:
  *                 type: string
