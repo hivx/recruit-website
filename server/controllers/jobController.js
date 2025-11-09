@@ -3,21 +3,22 @@ const moment = require("moment");
 const jobService = require("../services/jobService");
 const prisma = require("../utils/prisma");
 
-// POST /api/jobs
+/* ============================================================
+   CREATE JOB
+   ============================================================ */
 exports.createJob = async (req, res) => {
   try {
     const jobData = req.body;
-    jobData.createdBy = req.user.userId; // từ auth middleware
-    // company_id: ưu tiên lấy từ body; nếu FE không gửi, dùng công ty của user
+    jobData.createdBy = req.user.userId;
     jobData.company_id = jobData.company_id || req.user.companyId;
 
+    // vẫn cho phép gửi thêm requiredSkills từ FE
     const job = await jobService.createJob(jobData);
+
     res.status(201).json(job);
   } catch (err) {
     console.error("[Create Job Error]", err.message);
-    res
-      .status(err.status || 500)
-      .json({ message: err.message || "Lỗi server khi tạo việc làm!" });
+    res.status(err.status || 500).json({ message: err.message });
   }
 };
 
@@ -44,40 +45,33 @@ exports.getAllJobs = async (req, res) => {
   }
 };
 
-// GET /api/jobs/:id (chỉ cho job approved)
+/* ============================================================
+   GET JOB BY ID
+   ============================================================ */
 exports.getJobById = async (req, res) => {
   try {
     const currentUser = req.user
       ? { id: req.user.userId, role: req.user.role }
       : null;
-
-    // ĐỪNG ép Number ở đây; để service tự BigInt()
     const job = await jobService.getJobById(
       String(req.params.id),
       currentUser,
-      { allowOwnerDraft: true },
+      {
+        allowOwnerDraft: true,
+      },
     );
 
-    // service sẽ ném 404/403 khi cần, nên if (!job) gần như không chạy tới
-    // nhưng vẫn giữ cho an toàn:
     if (!job) {
       return res
         .status(404)
         .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
-    // Tính isFavorite nhẹ nhàng, không cần kéo cả user + favorites
-    let isFavorite = false;
-    if (currentUser) {
-      const fav = await prisma.userFavoriteJobs.findFirst({
-        where: {
-          user_id: BigInt(currentUser.id),
-          job_id: BigInt(job.id), // job.id là string từ DTO -> ép BigInt an toàn
-        },
-        select: { user_id: true },
-      });
-      isFavorite = !!fav;
-    }
+    const isFavorite = currentUser
+      ? !!(await prisma.userFavoriteJobs.findFirst({
+          where: { user_id: BigInt(currentUser.id), job_id: BigInt(job.id) },
+        }))
+      : false;
 
     res.json({
       ...job,
@@ -87,7 +81,7 @@ exports.getJobById = async (req, res) => {
   } catch (err) {
     const code = err.statusCode || err.status || 500;
     console.error("[Get Job Detail Error]", err);
-    res.status(code).json({ message: err.message || "Lỗi server!" });
+    res.status(code).json({ message: err.message });
   }
 };
 
@@ -113,7 +107,9 @@ exports.getAllTags = async (req, res) => {
   }
 };
 
-// PUT /api/jobs/:id
+/* ============================================================
+   UPDATE JOB
+   ============================================================ */
 exports.updateJob = async (req, res) => {
   try {
     const idStr = String(req.params.id || "").trim();
@@ -125,12 +121,9 @@ exports.updateJob = async (req, res) => {
       ? { id: req.user.userId, role: req.user.role }
       : null;
 
-    // Cho phép chủ job/admin thao tác cả khi job chưa approved
     const job = await jobService.getJobById(idStr, currentUser, {
       allowOwnerDraft: true,
     });
-
-    // Nếu service return null (dù bình thường sẽ throw 404/403)
     if (!job) {
       return res
         .status(404)
@@ -150,9 +143,7 @@ exports.updateJob = async (req, res) => {
   } catch (err) {
     const code = err.statusCode || err.status || 500;
     console.error("[Update Job Error]", err);
-    return res
-      .status(code)
-      .json({ message: err.message || "Lỗi server khi cập nhật công việc!" });
+    return res.status(code).json({ message: err.message });
   }
 };
 

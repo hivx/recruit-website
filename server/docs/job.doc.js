@@ -18,6 +18,7 @@
  *         legal_name:
  *           type: string
  *           example: "Công ty TNHH ABC Tech"
+ *
  *     JobApproval:
  *       type: object
  *       description: Thông tin phê duyệt job (chỉ hiển thị cho admin)
@@ -53,6 +54,28 @@
  *             name:
  *               type: string
  *               example: "Node.js"
+ *
+ *     RequiredSkillItem:
+ *       type: object
+ *       description: Kỹ năng yêu cầu của công việc
+ *       properties:
+ *         skill_id:
+ *           type: integer
+ *           example: 1
+ *         skill_name:
+ *           type: string
+ *           example: "ReactJS"
+ *         importance:
+ *           type: integer
+ *           nullable: true
+ *           example: 5
+ *         years_required:
+ *           type: integer
+ *           nullable: true
+ *           example: 2
+ *         must_have:
+ *           type: boolean
+ *           example: true
  *
  *     Job:
  *       type: object
@@ -109,6 +132,11 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/JobTagItem'
+ *         requiredSkills:
+ *           type: array
+ *           description: Danh sách kỹ năng yêu cầu cho công việc
+ *           items:
+ *             $ref: '#/components/schemas/RequiredSkillItem'
  *         # Các field dưới đây chỉ xuất hiện tùy trường hợp (khi controller bổ sung)
  *         createdAtFormatted:
  *           type: string
@@ -150,11 +178,37 @@
  *           example: ["Node.js", "Express", "MySQL"]
  *           items:
  *             type: string
+ *         requiredSkills:
+ *           type: array
+ *           description: Danh sách kỹ năng yêu cầu
+ *           example:
+ *             - name: "ReactJS"
+ *               importance: 5
+ *               years_required: 2
+ *               must_have: true
+ *             - name: "NodeJS"
+ *               importance: 3
+ *               years_required: 1
+ *               must_have: false
+ *           items:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "ReactJS"
+ *               importance:
+ *                 type: integer
+ *                 nullable: true
+ *               years_required:
+ *                 type: integer
+ *                 nullable: true
+ *               must_have:
+ *                 type: boolean
  *
  *     JobUpdateRequest:
  *       allOf:
  *         - $ref: '#/components/schemas/JobCreateRequest'
- *       description: "Cập nhật nội dung job (không cho đổi company_id qua API này)"
+ *       description: "Cập nhật nội dung job (chỉ cập nhật các field được gửi lên, không bắt buộc gửi toàn bộ)"
  *
  *     JobListResponse:
  *       type: object

@@ -22,10 +22,23 @@ const toJobDTO = (job) => {
     salary_max: job.salary_max ?? null,
     type: job.type ?? null,
     level: job.level ?? null,
+    requirements: job.requirements,
     created_by: toStr(job.created_by),
     company_id: toStr(job.company_id),
-    created_at: job.created_at,
-    updated_at: job.updated_at,
+
+    company: job.company
+      ? { id: toStr(job.company.id), legal_name: job.company.legal_name }
+      : null,
+    tags: mapTags(job.tags),
+    requiredSkills: job.requiredSkills
+      ? job.requiredSkills.map((r) => ({
+          skill_id: r.skill_id ?? r.skill?.id,
+          skill_name: r.skill?.name || null,
+          importance: r.importance,
+          years_required: r.years_required,
+          must_have: r.must_have,
+        }))
+      : [],
     approval: job.approval
       ? {
           id: toStr(job.approval.id),
@@ -35,10 +48,8 @@ const toJobDTO = (job) => {
           audited_at: job.approval.audited_at ?? null, // <-- sửa tên
         }
       : null,
-    company: job.company
-      ? { id: toStr(job.company.id), legal_name: job.company.legal_name }
-      : null,
-    tags: mapTags(job.tags),
+    created_at: job.created_at,
+    updated_at: job.updated_at,
   };
 };
 
