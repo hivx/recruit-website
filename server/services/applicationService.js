@@ -142,4 +142,157 @@ module.exports = {
     });
     return mapDTO(rows);
   },
+
+  // Đánh giá (review) hồ sơ ứng viên
+  async reviewApplication(applicationId, reviewer, reviewData) {
+    const reviewerId = BigInt(reviewer.id);
+    const isAdmin = reviewer.role === "admin";
+
+    // Lấy application kèm job để kiểm quyền + applicant để trả DTO
+    const app = await prisma.application.findUnique({
+      where: { id: BigInt(applicationId) },
+      include: {
+        job: { select: { id: true, title: true, created_by: true } },
+        applicant: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (!app) {
+      const err = new Error("Không tìm thấy hồ sơ ứng tuyển!");
+      err.status = 404;
+      throw err;
+    }
+
+    // Recruiter chỉ được đánh giá job do mình tạo, admin được phép tất
+    const isOwner = String(app.job.created_by) === String(reviewer.id);
+    if (!isOwner && !isAdmin) {
+      const err = new Error("Bạn không có quyền đánh giá hồ sơ này!");
+      err.status = 403;
+      throw err;
+    }
+
+    // Cập nhật trạng thái review
+    const updated = await prisma.application.update({
+      where: { id: BigInt(applicationId) },
+      data: {
+        status: reviewData?.status ?? "reviewed",
+        review_note: reviewData?.note ?? null,
+        reviewed_by: reviewerId,
+        reviewed_at: new Date(),
+      },
+      include: {
+        job: { select: { id: true, title: true } },
+        applicant: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    // Trả về theo chuẩn DTO của project
+    return toApplicationDTO(updated);
+  },
+
+  // Cập nhật hồ sơ ứng tuyển (partial update — chỉ thay đổi field có trong payload)
+  async updateApplication(applicationId, user, updateData) {
+    const appId = BigInt(applicationId);
+    const isAdmin = user.role === "admin";
+
+    // ===== Helper: kiểm tra quyền và trạng thái =====
+    const validatePermission = (app) => {
+      if (!app) {
+        const err = new Error("Không tìm thấy hồ sơ ứng tuyển!");
+        err.status = 404;
+        throw err;
+      }
+
+      const isApplicant = String(app.applicant_id) === String(user.userId);
+      if (!isApplicant && !isAdmin) {
+        const err = new Error("Bạn không có quyền cập nhật hồ sơ này!");
+        err.status = 403;
+        throw err;
+      }
+
+      if (app.status !== "pending") {
+        const err = new Error("Chỉ có thể chỉnh sửa hồ sơ chưa được duyệt!");
+        err.status = 400;
+        throw err;
+      }
+    };
+
+    // ===== Helper: validate field riêng lẻ =====
+    const validateField = (key, value) => {
+      if (key === "phone" && value && !/^0\d{9}$/.test(String(value))) {
+        const err = new Error("Số điện thoại không hợp lệ!");
+        err.status = 400;
+        throw err;
+      }
+      if (
+        key === "cover_letter" &&
+        typeof value === "string" &&
+        !value.trim()
+      ) {
+        const err = new Error("Thư giới thiệu không được để trống!");
+        err.status = 400;
+        throw err;
+      }
+    };
+
+    // ===== Helper: tạo dữ liệu cập nhật =====
+    const buildUpdateData = (fields) => {
+      const allowed = ["cover_letter", "cv", "phone"];
+      const result = { updated_at: new Date() };
+
+      for (const key of allowed) {
+        if (!Object.hasOwn(fields, key)) {
+          continue;
+        }
+        const value = fields[key];
+
+        // bỏ qua giá trị rỗng/null/undefined
+        if (
+          value === null ||
+          value === undefined ||
+          (typeof value === "string" && value.trim() === "")
+        ) {
+          continue;
+        }
+
+        validateField(key, value);
+        result[key] = value;
+      }
+
+      if (Object.keys(result).length === 1) {
+        const err = new Error("Không có dữ liệu hợp lệ để cập nhật!");
+        err.status = 400;
+        throw err;
+      }
+
+      return result;
+    };
+
+    // ===== Main logic =====
+    const app = await prisma.application.findUnique({
+      where: { id: appId },
+      include: {
+        job: { select: { id: true, title: true, created_by: true } },
+        applicant: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      },
+    });
+
+    validatePermission(app);
+    const dataToUpdate = buildUpdateData(updateData);
+
+    const updated = await prisma.application.update({
+      where: { id: appId },
+      data: dataToUpdate,
+      include: {
+        job: { select: { id: true, title: true } },
+        applicant: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      },
+    });
+
+    return toApplicationDTO(updated);
+  },
 };

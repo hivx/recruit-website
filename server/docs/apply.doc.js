@@ -325,3 +325,165 @@
  *       500:
  *         description: Lỗi server khi lấy danh sách đơn ứng tuyển
  */
+
+/**
+ * @swagger
+ * /api/applications/{id}/review:
+ *   patch:
+ *     summary: Đánh giá hồ sơ ứng viên (recruiter chỉ đánh giá job của mình hoặc admin)
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "14"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 example: "accepted"
+ *               note:
+ *                 type: string
+ *                 example: "Ứng viên phù hợp, có thể mời phỏng vấn."
+ *     responses:
+ *       200:
+ *         description: Đánh giá thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Đánh giá hồ sơ thành công!"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "42"
+ *                     job_id:
+ *                       type: string
+ *                       example: "12"
+ *                     job_title:
+ *                       type: string
+ *                       example: "Backend Developer"
+ *                     status:
+ *                       type: string
+ *                       example: "reviewed"
+ *                     review_note:
+ *                       type: string
+ *                       example: "Ứng viên có kỹ năng tốt, nên mời phỏng vấn."
+ *                     reviewed_by:
+ *                       type: string
+ *                       example: "3"
+ *                     reviewed_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-11-10T09:45:00.000Z"
+ *       403:
+ *         description: Không có quyền đánh giá hồ sơ này
+ *       404:
+ *         description: Không tìm thấy hồ sơ ứng tuyển
+ */
+
+/**
+ * @swagger
+ * /api/applications/{id}:
+ *   put:
+ *     summary: Cập nhật hồ sơ ứng tuyển (chỉ khi trạng thái là "pending")
+ *     description: Ứng viên được phép chỉnh sửa hồ sơ của chính mình khi trạng thái hiện tại là `pending`. Admin có thể chỉnh sửa mọi hồ sơ. Cho phép cập nhật thông tin hoặc tải lại file CV.
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "14"
+ *         description: ID hồ sơ ứng tuyển cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               coverLetter:
+ *                 type: string
+ *                 example: "Tôi muốn bổ sung thêm kinh nghiệm làm việc gần đây..."
+ *               phone:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Số điện thoại (tùy chọn). Nếu gửi lên phải khớp định dạng /^0\\d{9}$/.
+ *                 example: "0987654321"
+ *               cv:
+ *                 type: string
+ *                 format: binary
+ *                 description: File CV (PDF/DOC/DOCX) mới (nếu muốn cập nhật lại).
+ *     responses:
+ *       200:
+ *         description: Cập nhật hồ sơ ứng tuyển thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật hồ sơ ứng tuyển thành công!"
+ *                 application:
+ *                   $ref: '#/components/schemas/Application'
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc hồ sơ không ở trạng thái pending
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   examples:
+ *                     invalidPhone:
+ *                       summary: Số điện thoại sai định dạng
+ *                       value: "Số điện thoại không hợp lệ!"
+ *                     invalidData:
+ *                       summary: Không có dữ liệu hợp lệ để cập nhật
+ *                       value: "Không có dữ liệu hợp lệ để cập nhật!"
+ *                     notPending:
+ *                       summary: Hồ sơ không ở trạng thái pending
+ *                       value: "Chỉ có thể chỉnh sửa hồ sơ khi trạng thái là 'pending'!"
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Không có quyền cập nhật hồ sơ này
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bạn không có quyền cập nhật hồ sơ này!"
+ *       404:
+ *         description: Không tìm thấy hồ sơ ứng tuyển
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy hồ sơ ứng tuyển!"
+ */

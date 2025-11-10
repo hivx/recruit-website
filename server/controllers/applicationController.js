@@ -127,3 +127,67 @@ exports.getMyApplications = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server!" });
   }
 };
+
+// PATCH /api/applications/:id/review
+exports.reviewApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const reviewer = {
+      id: req.user.userId,
+      role: req.user.role,
+    };
+    const { status, note } = req.body;
+
+    const result = await applicationService.reviewApplication(id, reviewer, {
+      status,
+      note,
+    });
+
+    return res.status(200).json({
+      message: "Đánh giá hồ sơ thành công!",
+      data: result,
+    });
+  } catch (err) {
+    console.error("[Review Application Error]", err);
+    const code = err.status || 500;
+    res.status(code).json({ message: err.message || "Lỗi đánh giá hồ sơ!" });
+  }
+};
+
+// PUT /api/applications/:id
+// PUT /api/applications/:id
+exports.updateApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+    const body = req.body;
+
+    // payload: chỉ có field nào FE gửi thì mới có
+    const payload = {};
+
+    if (body.coverLetter !== undefined) {
+      payload.cover_letter = body.coverLetter;
+    }
+    if (body.phone !== undefined) {
+      payload.phone = body.phone;
+    }
+    if (file) {
+      payload.cv = `/uploads/cv/${file.filename}`;
+    }
+
+    const result = await applicationService.updateApplication(
+      id,
+      req.user,
+      payload,
+    );
+
+    res.status(200).json({
+      message: "Cập nhật hồ sơ ứng tuyển thành công!",
+      application: result,
+    });
+  } catch (err) {
+    console.error("[Update Application Error]", err);
+    const code = err.status || 500;
+    res.status(code).json({ message: err.message || "Lỗi cập nhật hồ sơ!" });
+  }
+};

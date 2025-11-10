@@ -12,6 +12,9 @@ const toApplicationDTO = (a) => {
     cv: a.cv ?? null,
     phone: a.phone ?? null,
     status: a.status, // <-- thêm theo schema
+    reviewed_by: a.reviewed_by,
+    reviewed_at: a.reviewed_at,
+    review_note: a.review_note,
     fit_score: a.fit_score ?? 0, // <-- thêm theo schema (nullable, default 0)
     created_at: a.created_at,
     // optional includes
@@ -24,6 +27,7 @@ const toApplicationDTO = (a) => {
           avatar: a.applicant.avatar,
         }
       : undefined,
+    updated_at: a.updated_at,
   };
 };
 

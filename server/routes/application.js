@@ -31,4 +31,21 @@ router.get(
 // GET: Lấy danh sách ứng dụng của chính mình (applicant)
 router.get("/me", authMiddleware, applicationController.getMyApplications);
 
+// @route   PATCH /api/applications/:id/review
+// PATCH: Đánh giá (review) hồ sơ ứng viên (recruiter/admin)
+router.patch(
+  "/:id/review",
+  authMiddleware,
+  applicationController.reviewApplication,
+);
+
+// @route   PUT /api/applications/:id
+// PUT: Cập nhật hồ sơ ứng tuyển (applicant/admin)
+router.put(
+  "/:id",
+  authMiddleware,
+  uploadCV.single("cv"), // xử lý file CV nếu có
+  applicationController.updateApplication,
+);
+
 module.exports = router;
