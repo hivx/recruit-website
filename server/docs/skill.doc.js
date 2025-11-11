@@ -49,10 +49,6 @@
  *           type: string
  *           nullable: true
  *           example: "Đã dùng trong dự án sản xuất"
- *         verified:
- *           type: boolean
- *           description: Kỹ năng đã được xác thực hay chưa
- *           example: false
  *
  *     MySkillsResponse:
  *       type: object

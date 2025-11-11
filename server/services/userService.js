@@ -108,6 +108,13 @@ module.exports = {
       throw error;
     }
 
+    // Chỉ cho phép yêu thích khi job đã được duyệt
+    if (job.approval?.status !== "approved") {
+      const err = new Error("Công việc hiện chưa được duyệt!");
+      err.status = 403;
+      throw err;
+    }
+
     // Kiểm tra đã yêu thích chưa
     const exists = await prisma.userFavoriteJobs.findUnique({
       where: {
@@ -167,16 +174,16 @@ module.exports = {
           include: {
             approval: true,
             tags: { include: { tag: true } },
-            company: { select: { id: true, legal_name: true } }, // <-- bỏ logo_url
+            company: { select: { id: true, legal_name: true } },
+            requiredSkills: {
+              include: { skill: true }, // Bổ sung skill của job
+            },
           },
         },
       },
     });
 
-    const jobs = favorites
-      .filter((f) => !!f.job) // phòng trường hợp job bị xoá
-      .map((f) => toJobDTO(f.job)); // DTO đã xử lý BigInt -> string
-
+    const jobs = favorites.filter((f) => !!f.job).map((f) => toJobDTO(f.job));
     return { jobs, total: jobs.length };
   },
 

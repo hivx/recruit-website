@@ -18,7 +18,6 @@ exports.addOrUpdateUserSkill = async (userId, { name, level, years, note }) => {
     level: level ?? null,
     years: years ?? null,
     note: note ?? null,
-    verified: false,
   };
 
   // upsert bằng delete + create (vì composite PK user_id+skill_id)
@@ -57,6 +56,5 @@ exports.getMySkills = async (userId) => {
     level: r.level,
     years: r.years,
     note: r.note,
-    verified: r.verified,
   }));
 };

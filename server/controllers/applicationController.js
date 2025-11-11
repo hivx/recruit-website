@@ -145,7 +145,7 @@ exports.reviewApplication = async (req, res) => {
 
     return res.status(200).json({
       message: "Đánh giá hồ sơ thành công!",
-      data: result,
+      application: result,
     });
   } catch (err) {
     console.error("[Review Application Error]", err);
@@ -154,7 +154,6 @@ exports.reviewApplication = async (req, res) => {
   }
 };
 
-// PUT /api/applications/:id
 // PUT /api/applications/:id
 exports.updateApplication = async (req, res) => {
   try {
@@ -172,7 +171,7 @@ exports.updateApplication = async (req, res) => {
       payload.phone = body.phone;
     }
     if (file) {
-      payload.cv = `/uploads/cv/${file.filename}`;
+      payload.cv = `uploads/${file.filename}`;
     }
 
     const result = await applicationService.updateApplication(

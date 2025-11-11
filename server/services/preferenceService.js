@@ -31,7 +31,6 @@ exports.upsertCareerPreference = async (userId, payload) => {
     tags = [],
   } = payload || {};
 
-  // chuẩn hoá tag names -> upsert Tag rồi gắn bảng nối
   const uniqueTags = [
     ...new Set(
       tags
@@ -65,7 +64,11 @@ exports.upsertCareerPreference = async (userId, payload) => {
     // tạo hết tags nếu chưa có
     await Promise.all(
       uniqueTags.map((name) =>
-        prisma.tag.upsert({ where: { name }, update: {}, create: { name } }),
+        prisma.tag.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        }),
       ),
     );
 
@@ -73,11 +76,16 @@ exports.upsertCareerPreference = async (userId, payload) => {
       where: { name: { in: uniqueTags } },
     });
 
+    // ✅ sửa ở đây: userId -> user_id
     await prisma.careerPreferenceTag.deleteMany({
-      where: { userId: pref.user_id },
+      where: { user_id: pref.user_id },
     });
+
     await prisma.careerPreferenceTag.createMany({
-      data: tagRows.map((t) => ({ userId: pref.user_id, tagId: t.id })),
+      data: tagRows.map((t) => ({
+        user_id: pref.user_id,
+        tag_id: t.id,
+      })),
       skipDuplicates: true,
     });
   }

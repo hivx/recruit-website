@@ -1,102 +1,212 @@
 [
   {
-    "title": "Lập trình viên ReactJS",
-    "company": "Công ty ABC",
-    "location": "Hà Nội",
-    "description": "Phát triển ứng dụng web với ReactJS, tối ưu hóa giao diện.",
-    "salary_min": 15000000,
-    "salary_max": 20000000,
-    "requirements": "Kinh nghiệm 1 năm với ReactJS, kỹ năng JavaScript.",
-    "tags": ["IT", "Web Development"]
-  },
-  {
-    "title": "Kỹ sư DevOps",
-    "company": "Công ty XYZ",
-    "location": "TP. Hồ Chí Minh",
-    "description": "Quản lý hạ tầng CI/CD, triển khai hệ thống đám mây.",
-    "salary_min": 20000000,
-    "salary_max": 30000000,
-    "requirements": "2 năm kinh nghiệm với AWS, Docker.",
-    "tags": ["DevOps", "Cloud", "IT"]
-  },
-  {
-    "title": "Nhân viên Marketing Online",
-    "company": "Công ty DEF",
-    "location": "Đà Nẵng",
-    "description": "Thực hiện chiến dịch quảng cáo trên mạng xã hội.",
-    "salary_min": 10000000,
-    "salary_max": 15000000,
-    "requirements": "1 năm kinh nghiệm SEO, SEM.",
-    "tags": ["Marketing", "Digital"]
-  },
-  {
-    "title": "Thiết kế đồ họa",
-    "company": "Công ty GHI",
-    "location": "Cần Thơ",
-    "description": "Thiết kế banner, logo, và nội dung hình ảnh sáng tạo.",
-    "salary_min": 12000000,
-    "salary_max": 18000000,
-    "requirements": "Thành thạo Photoshop, Illustrator.",
-    "tags": ["Design", "Creative"]
-  },
-  {
-    "title": "Phát triển Python Backend",
-    "company": "Công ty JKL",
-    "location": "Hải Phòng",
-    "description": "Xây dựng API và hệ thống backend với Python.",
+    "title": "Lập trình viên Backend Node.js",
+    "company_id": "1",
+    "location": "TP.HCM",
+    "description": "Phát triển API RESTful cho nền tảng thương mại điện tử, tối ưu hiệu suất server.",
     "salary_min": 18000000,
-    "salary_max": 25000000,
-    "requirements": "2 năm kinh nghiệm Python, Flask/Django.",
-    "tags": ["IT", "Backend"]
+    "salary_max": 28000000,
+    "requirements": "Tối thiểu 2 năm kinh nghiệm với Node.js, hiểu biết về MongoDB.",
+    "tags": ["Node.js", "Express", "MongoDB"],
+    "requiredSkills": [
+      {"name": "NodeJS", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "MongoDB", "importance": 4, "years_required": 1, "must_have": false}
+    ]
   },
   {
-    "title": "Chuyên viên Tài chính",
-    "company": "Công ty MNO",
+    "title": "Kỹ sư DevOps Trung cấp",
+    "company_id": "2",
     "location": "Hà Nội",
-    "description": "Phân tích báo cáo tài chính, lập kế hoạch ngân sách.",
-    "salary_min": 20000000,
-    "salary_max": 30000000,
-    "requirements": "Kinh nghiệm 3 năm tài chính, Excel nâng cao.",
-    "tags": ["Finance", "Accounting"]
+    "description": "Triển khai và duy trì hệ thống CI/CD trên AWS, giám sát hiệu suất.",
+    "salary_min": 22000000,
+    "salary_max": 32000000,
+    "requirements": "2-3 năm kinh nghiệm với AWS, Docker và Kubernetes.",
+    "tags": ["DevOps", "AWS", "Kubernetes"],
+    "requiredSkills": [
+      {"name": "AWS", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "Docker", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Chuyên viên Marketing Trực tuyến",
+    "company_id": "3",
+    "location": "Đà Nẵng",
+    "description": "Quản lý chiến dịch quảng cáo trên Facebook và Google Ads, phân tích hiệu quả.",
+    "salary_min": 13000000,
+    "salary_max": 19000000,
+    "requirements": "1 năm kinh nghiệm trong marketing số, thành thạo Google Analytics.",
+    "tags": ["Marketing", "Google Ads", "Analytics"],
+    "requiredSkills": [
+      {"name": "Google Ads", "importance": 5, "years_required": 1, "must_have": true},
+      {"name": "SEO", "importance": 3, "years_required": 0, "must_have": false}
+    ]
+  },
+  {
+    "title": "Thiết kế Đồ họa Sáng tạo",
+    "company_id": "4",
+    "location": "Cần Thơ",
+    "description": "Thiết kế banner, logo và tài liệu marketing cho các chiến dịch thương hiệu.",
+    "salary_min": 15000000,
+    "salary_max": 21000000,
+    "requirements": "1-2 năm kinh nghiệm với Photoshop và Illustrator.",
+    "tags": ["Graphic Design", "Adobe", "Branding"],
+    "requiredSkills": [
+      {"name": "Photoshop", "importance": 5, "years_required": 1, "must_have": true},
+      {"name": "Illustrator", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Phát triển Frontend React",
+    "company_id": "5",
+    "location": "Hải Phòng",
+    "description": "Xây dựng giao diện người dùng responsive với React và Tailwind CSS.",
+    "salary_min": 17000000,
+    "salary_max": 23000000,
+    "requirements": "2 năm kinh nghiệm với React, hiểu biết về TypeScript.",
+    "tags": ["React", "Frontend", "TailwindCSS"],
+    "requiredSkills": [
+      {"name": "ReactJS", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "TypeScript", "importance": 3, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Chuyên viên Kế toán Doanh nghiệp",
+    "company_id": "6",
+    "location": "Hà Nội",
+    "description": "Lập báo cáo tài chính hàng quý, quản lý dòng tiền doanh nghiệp.",
+    "salary_min": 16000000,
+    "salary_max": 22000000,
+    "requirements": "2 năm kinh nghiệm kế toán, thành thạo phần mềm MISA.",
+    "tags": ["Accounting", "Finance", "MISA"],
+    "requiredSkills": [
+      {"name": "Accounting", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "MISA", "importance": 3, "years_required": 1, "must_have": false}
+    ]
   },
   {
     "title": "Nhân viên Kinh doanh Bất động sản",
-    "company": "Công ty PQR",
-    "location": "TP. Hồ Chí Minh",
-    "description": "Tư vấn và bán bất động sản, tìm kiếm khách hàng.",
-    "salary_min": 15000000,
-    "salary_max": 25000000,
-    "requirements": "Kinh nghiệm 1 năm kinh doanh, kỹ năng giao tiếp.",
-    "tags": ["Sales", "Real Estate"]
-  },
-  {
-    "title": "Kiểm thử phần mềm QA",
-    "company": "Công ty STU",
-    "location": "Đà Nẵng",
-    "description": "Thực hiện kiểm thử phần mềm, báo cáo lỗi.",
-    "salary_min": 13000000,
-    "salary_max": 19000000,
-    "requirements": "1 năm kinh nghiệm QA, hiểu biết cơ bản về lập trình.",
-    "tags": ["IT", "QA"]
-  },
-  {
-    "title": "Chuyên viên Nhân sự",
-    "company": "Công ty VWX",
-    "location": "Hà Nội",
-    "description": "Tuyển dụng, đào tạo và quản lý nhân viên.",
+    "company_id": "7",
+    "location": "TP.HCM",
+    "description": "Tư vấn khách hàng về căn hộ và đất nền, đạt chỉ tiêu doanh số.",
     "salary_min": 14000000,
     "salary_max": 20000000,
-    "requirements": "Kinh nghiệm 2 năm nhân sự, kỹ năng tổ chức.",
-    "tags": ["HR", "Management"]
+    "requirements": "1 năm kinh nghiệm bán hàng, kỹ năng đàm phán tốt.",
+    "tags": ["Sales", "Real Estate", "Negotiation"],
+    "requiredSkills": [
+      {"name": "Sales", "importance": 5, "years_required": 1, "must_have": true},
+      {"name": "CRM", "importance": 3, "years_required": 0, "must_have": false}
+    ]
   },
   {
-    "title": "Phát triển Ứng dụng Di động",
-    "company": "Công ty YZA",
-    "location": "Cần Thơ",
-    "description": "Xây dựng ứng dụng iOS/Android với Flutter.",
-    "salary_min": 20000000,
-    "salary_max": 28000000,
-    "requirements": "2 năm kinh nghiệm Flutter, Dart.",
-    "tags": ["Mobile", "IT"]
+    "title": "Kiểm thử Phần mềm QA",
+    "company_id": "8",
+    "location": "Đà Nẵng",
+    "description": "Thực hiện kiểm thử thủ công và tự động cho ứng dụng web.",
+    "salary_min": 15000000,
+    "salary_max": 21000000,
+    "requirements": "1-2 năm kinh nghiệm QA, quen thuộc với Selenium.",
+    "tags": ["QA", "Testing", "Selenium"],
+    "requiredSkills": [
+      {"name": "Selenium", "importance": 5, "years_required": 1, "must_have": true},
+      {"name": "JIRA", "importance": 3, "years_required": 0, "must_have": false}
+    ]
+  },
+  {
+    "title": "Chuyên viên Tuyển dụng Nhân sự",
+    "company_id": "9",
+    "location": "Hà Nội",
+    "description": "Tuyển dụng vị trí IT, tổ chức phỏng vấn và đánh giá ứng viên.",
+    "salary_min": 17000000,
+    "salary_max": 24000000,
+    "requirements": "2 năm kinh nghiệm HR, hiểu biết về ATS.",
+    "tags": ["HR", "Recruitment", "ATS"],
+    "requiredSkills": [
+      {"name": "Recruitment", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "Interviewing", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Phát triển Ứng dụng Flutter",
+    "company_id": "10",
+    "location": "Nha Trang",
+    "description": "Xây dựng ứng dụng di động cross-platform cho khách hàng quốc tế.",
+    "salary_min": 22000000,
+    "salary_max": 30000000,
+    "requirements": "2-3 năm kinh nghiệm với Flutter và Dart.",
+    "tags": ["Flutter", "Mobile", "Dart"],
+    "requiredSkills": [
+      {"name": "Flutter", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "Dart", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Kỹ sư AI Machine Learning",
+    "company_id": "11",
+    "location": "TP.HCM",
+    "description": "Phát triển mô hình dự đoán dựa trên dữ liệu khách hàng.",
+    "salary_min": 26000000,
+    "salary_max": 36000000,
+    "requirements": "2 năm kinh nghiệm Python, thành thạo TensorFlow.",
+    "tags": ["AI", "Machine Learning", "Python"],
+    "requiredSkills": [
+      {"name": "Python", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "TensorFlow", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Quản lý Dự án Công nghệ",
+    "company_id": "12",
+    "location": "Hà Nội",
+    "description": "Quản lý đội ngũ phát triển phần mềm, đảm bảo tiến độ dự án.",
+    "salary_min": 23000000,
+    "salary_max": 33000000,
+    "requirements": "3 năm kinh nghiệm PM, chứng chỉ PMP là lợi thế.",
+    "tags": ["Project Management", "IT", "Agile"],
+    "requiredSkills": [
+      {"name": "Agile", "importance": 5, "years_required": 3, "must_have": true},
+      {"name": "PMP", "importance": 3, "years_required": 0, "must_have": false}
+    ]
+  },
+  {
+    "title": "Chuyên viên Pháp lý Doanh nghiệp",
+    "company_id": "13",
+    "location": "TP.HCM",
+    "description": "Soạn thảo hợp đồng và tư vấn pháp lý cho dự án công nghệ.",
+    "salary_min": 19000000,
+    "salary_max": 26000000,
+    "requirements": "2 năm kinh nghiệm pháp lý, hiểu biết về luật CNTT.",
+    "tags": ["Legal", "Contract", "IT Law"],
+    "requiredSkills": [
+      {"name": "Contract Drafting", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "IT Law", "importance": 3, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Phát triển Game Unity 3D",
+    "company_id": "14",
+    "location": "Đà Nẵng",
+    "description": "Phát triển game di động 3D với Unity và tích hợp quảng cáo.",
+    "salary_min": 21000000,
+    "salary_max": 29000000,
+    "requirements": "2 năm kinh nghiệm Unity, thành thạo C#.",
+    "tags": ["Game Development", "Unity", "C#"],
+    "requiredSkills": [
+      {"name": "Unity", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "C#", "importance": 4, "years_required": 1, "must_have": false}
+    ]
+  },
+  {
+    "title": "Chuyên viên Phân tích Dữ liệu",
+    "company_id": "15",
+    "location": "Hà Nội",
+    "description": "Phân tích dữ liệu bán hàng và xây dựng báo cáo KPI.",
+    "salary_min": 23000000,
+    "salary_max": 32000000,
+    "requirements": "2 năm kinh nghiệm Data Analysis, thành thạo SQL.",
+    "tags": ["Data Analysis", "SQL", "BI"],
+    "requiredSkills": [
+      {"name": "SQL", "importance": 5, "years_required": 2, "must_have": true},
+      {"name": "Power BI", "importance": 3, "years_required": 1, "must_have": false}
+    ]
   }
 ]
