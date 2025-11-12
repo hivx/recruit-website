@@ -286,6 +286,7 @@ model UserInterestHistory {
   user_id     BigInt
   job_id      BigInt
   job_title   String   @db.VarChar(255)
+  location    String?  @db.VarChar(100)
   avg_salary  Int?
   tags        Json?
   source      InterestSource
@@ -386,6 +387,7 @@ model UserBehaviorProfile {
   avg_salary    Int?
   main_location String?  @db.VarChar(100)
   tags          Json?
+  keywords      Json?    // tổng hợp từ tiêu đề job & hành vi xem
   embedding     Json?
   updated_at    DateTime @default(now()) @updatedAt
 
