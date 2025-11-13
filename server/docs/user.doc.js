@@ -126,7 +126,7 @@
  *       401:
  *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy công việc với ID này!
+ *         description: Không tìm thấy công việc hoặc công việc chưa được duyệt!
  */
 
 /**

@@ -7,27 +7,39 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
       return;
     }
 
+    const jobId = BigInt(job.id);
+
+    // ====== Chuẩn hóa dữ liệu lương trung bình ======
     const avgSalary =
       job.salary_min && job.salary_max
         ? Math.round((job.salary_min + job.salary_max) / 2)
         : job.salary_min || job.salary_max || null;
 
-    // Lấy tag names và truyền array (JSON field) — KHÔNG stringify
+    // ====== Lấy danh sách tag ======
     const tagNames = Array.isArray(job.tags)
       ? job.tags.map((t) => t.tag?.name || t.name).filter(Boolean)
       : [];
 
-    // Đọc env an toàn + fallback
+    // ====== Lấy danh sách kỹ năng (nếu job có requiredSkills) ======
+    const skillNames = Array.isArray(job.requiredSkills)
+      ? job.requiredSkills
+          .map((r) => r.skill?.name || r.skill_name)
+          .filter(Boolean)
+      : [];
+
+    // ====== Đọc thời gian chống ghi log trùng ======
     const windowMin = Number.parseInt(
       process.env.LOG_DUPLICATE_WINDOW_MINUTES || "15",
       10,
     );
+
+    // ====== Kiểm tra hành vi trùng trong khung thời gian ======
     const recent = await prisma.userInterestHistory.findFirst({
       where: {
         user_id: BigInt(userId),
-        job_id: BigInt(job.id),
-        source, // 'viewed' | 'applied' 'add_favorite' | 'remove_favorite'
-        event_type: eventType, // schema cho phép null
+        job_id: jobId,
+        source, // viewed | applied | favorite | recommended
+        event_type: eventType,
         recorded_at: {
           gte: new Date(Date.now() - windowMin * 60 * 1000),
         },
@@ -38,19 +50,21 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
       return;
     }
 
+    // ====== Ghi log hành vi ======
     await prisma.userInterestHistory.create({
       data: {
         user_id: BigInt(userId),
-        job_id: BigInt(job.id),
+        job_id: jobId,
         job_title: job.title,
+        location: job.location ?? null, // thêm location vào
         avg_salary: avgSalary,
-        tags: tagNames.length ? tagNames : null, // array vào cột Json
+        tags: [...new Set([...tagNames, ...skillNames])], // gộp tags + skills làm keyword hành vi
         source,
         event_type: eventType,
       },
     });
   } catch (err) {
-    console.error("Lỗi khi ghi log hành vi:", err.message);
+    console.error("[UserInterestHistory] Ghi log thất bại:", err.message);
   }
 }
 

@@ -47,7 +47,7 @@ exports.upsertCareerPreference = async (userId, payload) => {
       desired_title,
       desired_company,
       desired_location,
-      desired_salary: desired_salary ?? null,
+      desired_salary,
       updated_at: new Date(),
     },
     create: {

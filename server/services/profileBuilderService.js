@@ -1,8 +1,8 @@
-// services/profileBuilderService.js
 const cfg = require("../config/profile.config");
+const { extractTopKeywords } = require("../utils/keywordExtractor");
 const prisma = require("../utils/prisma");
 
-//event_type in user_interest_history -> EVENT_WEIGHT in /profile.config.js
+// event_type in user_interest_history -> EVENT_WEIGHT in /profile.config.js
 const EVENT_ALIAS = {
   open_detail: "view",
   add_favorite: "favorite",
@@ -16,7 +16,7 @@ const toKey = (s) =>
     .toLowerCase();
 
 // Chuyển tags (TEXT hoặc JSON) -> mảng
-function toArrayTags(val) {
+function toArray(val) {
   if (!val) {
     return [];
   }
@@ -45,7 +45,7 @@ function decayFactor(recordedAt) {
   }
 }
 
-// Lấy top K tag có điểm cao nhất
+// Lấy top K có điểm cao nhất
 function normalizeTopK(map, K) {
   const arr = Object.entries(map)
     .filter(([, v]) => Number.isFinite(v) && v !== 0)
@@ -71,50 +71,43 @@ async function shouldRebuild(userId) {
   return mins >= cfg.MIN_REBUILD_INTERVAL_MINUTES;
 }
 
-// ================== service chính =====================
+// ================== SERVICE CHÍNH =====================
 
 exports.rebuildForUser = async (userId) => {
   const uid = BigInt(userId);
 
-  // Kiểm tra có cần rebuild không
   if (!(await shouldRebuild(uid))) {
     return { skipped: true, reason: "too_soon" };
   }
 
-  // Lấy dữ liệu cần thiết
   const since = calcSince(cfg.HISTORY_WINDOW_DAYS);
   const [pref, events] = await fetchUserSignals(uid, since);
 
-  // Phân tích hành vi từ events
-  const { tagScore, locScore, salarySumW, weightSum } =
+  const { tagScore, keywordScore, locScore, salarySumW, weightSum } =
     analyzeUserEvents(events);
 
-  // Áp dụng CareerPreference
   applyPreferencePrior(pref, tagScore, locScore);
 
-  // Tính toán kết quả tổng hợp
-  const { main_location, avg_salary, topTags } = computeAggregates(
+  const { main_location, avg_salary, topTags, topKeywords } = computeAggregates(
     pref,
     tagScore,
+    keywordScore,
     locScore,
     salarySumW,
     weightSum,
   );
 
-  // Ghi vào DB
   const saved = await upsertBehaviorProfile(uid, {
     main_location,
     avg_salary,
     topTags,
+    topKeywords,
   });
 
-  // Trả kết quả
   return buildResponse(userId, saved);
 };
 
-//
 // ──────────────────────────────── HÀM PHỤ ────────────────────────────────
-//
 
 function calcSince(days) {
   return new Date(Date.now() - days * 24 * 3600 * 1000);
@@ -136,6 +129,7 @@ async function fetchUserSignals(uid, since) {
 
 function analyzeUserEvents(events) {
   const tagScore = Object.create(null);
+  const keywordScore = Object.create(null);
   const locScore = Object.create(null);
   let salarySumW = 0;
   let weightSum = 0;
@@ -152,12 +146,27 @@ function analyzeUserEvents(events) {
     }
 
     const w = baseW * decayFactor(e.recorded_at);
-    addTags(tagScore, e.tags, w);
 
-    // ---- LOCATION: lấy từ job.location; nếu null -> bỏ qua ----
-    const locFromJob = e.job?.location || null;
-    addLocation(locScore, locFromJob, w);
+    // --- TAGS ---
+    addToMap(tagScore, e.tags, w);
 
+    // --- KEYWORDS ---
+    let kwArr = toArray(e.keywords); // e.keywords có thể undefined
+
+    // nếu chưa có keywords → sinh từ job_title
+    if (!kwArr || kwArr.length === 0) {
+      if (e.job_title) {
+        const extracted = extractTopKeywords(e.job_title);
+        kwArr = extracted.map((k) => k.name);
+      }
+    }
+
+    addToMap(keywordScore, kwArr, w);
+
+    // --- LOCATION ---
+    addToMap(locScore, e.location, w);
+
+    // --- SALARY ---
     ({ salarySumW, weightSum } = addSalary(
       e,
       stdEvent,
@@ -167,24 +176,17 @@ function analyzeUserEvents(events) {
     ));
   }
 
-  return { tagScore, locScore, salarySumW, weightSum };
+  return { tagScore, keywordScore, locScore, salarySumW, weightSum };
 }
 
-function addTags(tagScore, tags, weight) {
-  const arr = toArrayTags(tags);
+function addToMap(scoreMap, field, weight) {
+  const arr = toArray(field);
   for (const t of arr) {
     const k = toKey(t);
     if (!k) {
       continue;
     }
-    tagScore[k] = (tagScore[k] || 0) + weight;
-  }
-}
-
-function addLocation(locScore, loc, weight) {
-  const key = toKey(loc);
-  if (key) {
-    locScore[key] = (locScore[key] || 0) + weight;
+    scoreMap[k] = (scoreMap[k] || 0) + weight;
   }
 }
 
@@ -192,7 +194,6 @@ function addSalary(e, stdEvent, weight, sum, wSum) {
   if (!["favorite", "apply"].includes(stdEvent)) {
     return { salarySumW: sum, weightSum: wSum };
   }
-
   const mid = Number(e.avg_salary) || 0;
   if (mid > 0) {
     sum += weight * mid;
@@ -219,11 +220,19 @@ function applyPreferencePrior(pref, tagScore, locScore) {
   }
 }
 
-function computeAggregates(pref, tagScore, locScore, salarySumW, weightSum) {
+function computeAggregates(
+  pref,
+  tagScore,
+  keywordScore,
+  locScore,
+  salarySumW,
+  weightSum,
+) {
   const topTags = normalizeTopK(tagScore, cfg.TOPK_TAGS);
+  const topKeywords = normalizeTopK(keywordScore, cfg.TOPK_KEYWORDS || 10);
   const main_location = computeMainLocation(locScore, pref);
   const avg_salary = computeAvgSalary(salarySumW, weightSum, pref);
-  return { main_location, avg_salary, topTags };
+  return { main_location, avg_salary, topTags, topKeywords };
 }
 
 function computeMainLocation(locScore, pref) {
@@ -234,32 +243,28 @@ function computeMainLocation(locScore, pref) {
   return pref?.desired_location || null;
 }
 
-// HÀM ĐÃ SỬA: blend giữa hành vi và lương mong muốn
+// Blend giữa hành vi và lương mong muốn
 function computeAvgSalary(salarySumW, weightSum, pref) {
   const desiredSalary = Number(pref?.desired_salary) || 0;
+  const ratio = cfg.PRIOR.desSalaryWe ?? 0.3; // 30% mong muốn
 
   if (weightSum > 0 && desiredSalary > 0) {
-    const behaviorSalary = weightSum > 0 ? (salarySumW || 0) / weightSum : 0;
-    const blendRatio = 1 - cfg.PRIOR.desSalaryWe; // 70% hành vi, 30% mong muốn
-    return Math.round(
-      blendRatio * behaviorSalary + (1 - blendRatio) * desiredSalary,
-    );
+    const behaviorSalary = salarySumW / weightSum;
+    return Math.round((1 - ratio) * behaviorSalary + ratio * desiredSalary);
   }
 
   if (weightSum > 0) {
     return Math.round(salarySumW / weightSum);
   }
-
   if (cfg.PRIOR.salaryFallback && desiredSalary > 0) {
     return desiredSalary;
   }
-
   return null;
 }
 
 async function upsertBehaviorProfile(
   uid,
-  { main_location, avg_salary, topTags },
+  { main_location, avg_salary, topTags, topKeywords },
 ) {
   return prisma.userBehaviorProfile.upsert({
     where: { user_id: uid },
@@ -267,6 +272,7 @@ async function upsertBehaviorProfile(
       avg_salary: avg_salary ?? null,
       main_location: main_location || null,
       tags: topTags,
+      keywords: topKeywords, // <── thêm trường keyword
       updated_at: new Date(),
     },
     create: {
@@ -274,6 +280,7 @@ async function upsertBehaviorProfile(
       avg_salary: avg_salary ?? null,
       main_location: main_location || null,
       tags: topTags,
+      keywords: topKeywords,
     },
   });
 }
@@ -284,6 +291,7 @@ function buildResponse(userId, saved) {
     avg_salary: saved.avg_salary ?? null,
     main_location: saved.main_location || null,
     tags: saved.tags || [],
+    keywords: saved.keywords || [],
     skipped: false,
   };
 }

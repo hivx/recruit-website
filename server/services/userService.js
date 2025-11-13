@@ -96,23 +96,24 @@ module.exports = {
 
   // Toggle yêu thích
   async toggleFavoriteJob(userId, jobId) {
-    // Kiểm tra job tồn tại
-    const job = await prisma.job.findUnique({
-      where: { id: BigInt(jobId) },
-      include: { tags: { include: { tag: true } } }, // cần lấy tag để log
+    // Kiểm tra job tồn tại và được duyệt chưa
+    const job = await prisma.job.findFirst({
+      where: {
+        id: BigInt(jobId),
+        approval: { status: "approved" }, // lọc luôn job đã duyệt
+      },
+      include: {
+        approval: { select: { status: true } },
+        tags: { include: { tag: true } },
+      },
     });
 
     if (!job) {
-      const error = new Error("Không tìm thấy công việc với ID này!");
+      const error = new Error(
+        "Không tìm thấy công việc hoặc công việc chưa được duyệt!",
+      );
       error.status = 404;
       throw error;
-    }
-
-    // Chỉ cho phép yêu thích khi job đã được duyệt
-    if (job.approval?.status !== "approved") {
-      const err = new Error("Công việc hiện chưa được duyệt!");
-      err.status = 403;
-      throw err;
     }
 
     // Kiểm tra đã yêu thích chưa
