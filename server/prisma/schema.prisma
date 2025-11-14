@@ -73,6 +73,10 @@ model User {
   behaviorProfile      UserBehaviorProfile?
   recruiterPreference  RecruiterPreference?
   company              Company?
+  vector UserVector?
+  recruiterVector RecruiterVector?
+
+  userJobMatrix UserJobMatrix[]
   recommendations      JobRecommendation[]
   candidateRecommends  CandidateRecommendation[] @relation("CandidateAsApplicant")
   recruiterRecommends  CandidateRecommendation[] @relation("CandidateAsRecruiter")
@@ -155,6 +159,8 @@ model Job {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
+  vector JobVector?
+  userJobMatrix UserJobMatrix[]
   favorites       UserFavoriteJobs[]
   tags            JobTag[]
   applications    Application[]
@@ -196,6 +202,7 @@ model JobRequiredSkill {
   skill_id       Int
   importance     Int?
   years_required Int?
+  fit_weight Float? @default(1.0)
   must_have      Boolean @default(true)
 
   job   Job   @relation(fields: [job_id], references: [id], onDelete: Cascade)
@@ -478,23 +485,67 @@ model UserSkill {
   @@map("user_skills")
 }
 
-/**
- * =========================
- * EMBEDDING VECTOR
- * =========================
- */
+model UserVector {
+  user_id BigInt @id
 
-model EmbeddingVector {
-  id         BigInt   @id @default(autoincrement())
-  ref_type   String   @db.VarChar(50) // 'user' | 'job' | 'recruiter' | 'candidate'
-  ref_id     BigInt
-  vector     Json
-  dimension  Int?
-  model_name String?  @db.VarChar(100)
+  skill_profile Json?
+  tag_profile   Json?
+  title_keywords Json?
+
+  preferred_location String? @db.VarChar(100)
+  salary_expected    Int?
+
   updated_at DateTime @default(now()) @updatedAt
 
-  @@unique([ref_type, ref_id])
-  @@index([ref_type], map: "idx_embed_reftype")
-  @@index([updated_at], map: "idx_embed_updated")
-  @@map("embedding_vectors")
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([updated_at])
+  @@map("user_vector")
+}
+
+model RecruiterVector {
+  user_id BigInt @id
+
+  skill_profile Json?
+  tag_profile   Json?
+
+  preferred_location String? @db.VarChar(100)
+  salary_avg         Int?
+
+  updated_at DateTime @default(now()) @updatedAt
+
+  recruiter User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("recruiter_vector")
+}
+model JobVector {
+  job_id BigInt @id
+
+  skill_profile Json?
+  tag_profile   Json?
+  title_keywords Json?
+
+  location   String? @db.VarChar(100)
+  salary_avg Int?
+
+  updated_at DateTime @default(now()) @updatedAt
+
+  job Job @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@index([updated_at])
+  @@map("job_vector")
+}
+
+model UserJobMatrix {
+  user_id    BigInt
+  job_id     BigInt
+  score      Float
+  updated_at DateTime @default(now()) @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, job_id])
+  @@index([score], map: "idx_userjob_score")
+  @@map("user_job_matrix")
 }
