@@ -26,7 +26,7 @@
  *         status:
  *           type: string
  *           enum: [pending, approved, rejected]
- *           example: "approved"
+ *           example: "approved/rejected"
  *         reason:
  *           type: string
  *           nullable: true

@@ -172,7 +172,7 @@ model Application {
   id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String
+  cover_letter String            @db.VarChar(1000)
   cv           String?
   phone        String?
   status       ApplicationStatus @default(pending)

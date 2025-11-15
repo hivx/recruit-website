@@ -1,15 +1,15 @@
-// server/utils/serializers/job.js
 const { toStr } = require("./_helpers");
 
 const toJobDTO = (job) => {
   if (!job) {
     return null;
   }
+
   const mapTags = (tags) =>
     Array.isArray(tags)
       ? tags.map((jt) => ({
-          jobId: toStr(jt.jobId ?? job.id),
-          tagId: jt.tagId,
+          job_id: toStr(jt.job_id),
+          tag_id: jt.tag_id,
           tag: jt.tag ? { id: jt.tag.id, name: jt.tag.name } : null,
         }))
       : [];
@@ -21,17 +21,20 @@ const toJobDTO = (job) => {
     location: job.location ?? null,
     salary_min: job.salary_min ?? null,
     salary_max: job.salary_max ?? null,
-    type: job.type ?? null,
-    level: job.level ?? null,
     requirements: job.requirements,
     created_by: toStr(job.created_by),
     company_id: toStr(job.company_id),
 
     company: job.company
-      ? { id: toStr(job.company.id), legal_name: job.company.legal_name }
+      ? {
+          id: toStr(job.company.id),
+          legal_name: job.company.legal_name,
+        }
       : null,
+
     tags: mapTags(job.tags),
-    requiredSkills: job.requiredSkills
+
+    requiredSkills: Array.isArray(job.requiredSkills)
       ? job.requiredSkills.map((r) => ({
           skill_id: r.skill_id ?? r.skill?.id,
           skill_name: r.skill?.name || null,
@@ -40,15 +43,29 @@ const toJobDTO = (job) => {
           must_have: r.must_have,
         }))
       : [],
+
     approval: job.approval
       ? {
           id: toStr(job.approval.id),
-          status: job.approval.status, // pending|approved|rejected
-          reason: job.approval.reason ?? null, // <-- thêm theo schema
-          auditor_id: toStr(job.approval.auditor_id), // <-- thêm theo schema
-          audited_at: job.approval.audited_at ?? null, // <-- sửa tên
+          status: job.approval.status,
+          reason: job.approval.reason ?? null,
+          auditor_id: job.approval.auditor_id
+            ? toStr(job.approval.auditor_id)
+            : null,
+          audited_at: job.approval.audited_at ?? null,
         }
       : null,
+
+    vector: job.vector
+      ? {
+          skill_profile: job.vector.skill_profile,
+          tag_profile: job.vector.tag_profile,
+          title_keywords: job.vector.title_keywords,
+          location: job.vector.location,
+          salary_avg: job.vector.salary_avg,
+        }
+      : null,
+
     created_at: job.created_at,
     updated_at: job.updated_at,
   };

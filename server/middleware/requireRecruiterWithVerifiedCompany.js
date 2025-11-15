@@ -13,7 +13,9 @@ module.exports = function requireRecruiterWithVerifiedCompany(req, res, next) {
 
   // Recruiter phải thoả 2 điều kiện dưới
   if (role !== "recruiter") {
-    return res.status(403).json({ message: "Chỉ recruiter mới được thao tác" });
+    return res
+      .status(403)
+      .json({ message: "Bạn không có quyền thực hiện thao tác này!" });
   }
 
   if (!companyId) {

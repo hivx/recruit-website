@@ -299,6 +299,7 @@ exports.updateJob = async (id, data) => {
    ============================================================ */
 exports.getJobById = async (id, user, opts = {}) => {
   const { allowOwnerDraft = false } = opts;
+
   const job = await prisma.job.findUnique({
     where: { id: BigInt(id) },
     include: {
@@ -306,8 +307,9 @@ exports.getJobById = async (id, user, opts = {}) => {
       company: { select: { id: true, legal_name: true } },
       approval: true,
       tags: { include: { tag: true } },
-      favorites: true,
-      requiredSkills: { include: { skill: true } }, // 👈 thêm vào đúng style hiện có
+      favorites: user ? { where: { user_id: BigInt(user.id) } } : false, // tránh trả về list user
+      requiredSkills: { include: { skill: true } },
+      vector: true, // nếu dùng vector
     },
   });
 
@@ -318,31 +320,22 @@ exports.getJobById = async (id, user, opts = {}) => {
   }
 
   const approved = job.approval?.status === "approved";
-  if (!approved) {
-    const isOwner = user && job.created_by?.toString() === user.id?.toString();
-    if (!(allowOwnerDraft && isOwner)) {
-      const err = new Error(
-        "Công việc chưa được duyệt hoặc bạn không có quyền!",
-      );
-      err.statusCode = 403;
-      throw err;
-    }
+
+  const isOwner = user && String(job.created_by) === String(user.id);
+
+  if (!approved && !(allowOwnerDraft && isOwner)) {
+    const err = new Error("Công việc chưa được duyệt hoặc bạn không có quyền!");
+    err.statusCode = 403;
+    throw err;
   }
 
-  if (user) {
-    if (
-      approved ||
-      (allowOwnerDraft &&
-        (user.role === "admin" ||
-          job.created_by?.toString() === user.id?.toString()))
-    ) {
-      logUserInterest({
-        userId: user.id,
-        job,
-        source: "viewed",
-        eventType: "open_detail",
-      });
-    }
+  if (user && (approved || (allowOwnerDraft && isOwner))) {
+    logUserInterest({
+      userId: user.id,
+      job,
+      source: "viewed",
+      eventType: "open_detail",
+    });
   }
 
   return toJobDTO(job);
@@ -357,7 +350,7 @@ exports.getAllJobs = async ({
 }) => {
   const skip = (page - 1) * limit;
 
-  //  Lọc theo tag
+  // Filter tag: dùng tag_id
   const tagFilter =
     Array.isArray(filter.tags) && filter.tags.length > 0
       ? {
@@ -369,7 +362,7 @@ exports.getAllJobs = async ({
         }
       : {};
 
-  //  Điều kiện search (tìm nhiều cột) + theo tên công ty (relation)
+  // Search multi-field (insensitive)
   const searchConditions = search
     ? [
         { title: { contains: search } },
@@ -377,11 +370,15 @@ exports.getAllJobs = async ({
         { requirements: { contains: search } },
         { location: { contains: search } },
         { created_by_name: { contains: search } },
-        { company: { is: { legal_name: { contains: search } } } },
+        {
+          company: {
+            is: { legal_name: { contains: search } },
+          },
+        },
       ]
     : [];
 
-  // Chỉ lấy job đã duyệt
+  // Chỉ lấy job đã approved
   const approvalFilter = { approval: { is: { status: "approved" } } };
 
   const where = {
@@ -400,6 +397,8 @@ exports.getAllJobs = async ({
         company: { select: { id: true, legal_name: true } },
         approval: true,
         tags: { include: { tag: true } },
+        requiredSkills: { include: { skill: true } },
+        vector: true,
       },
     }),
     prisma.job.count({ where }),
