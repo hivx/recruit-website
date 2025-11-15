@@ -1,4 +1,4 @@
-// routes/userRoutes.js hoặc routes/favoriteRoutes.js
+// server/routes/user.js
 const express = require("express");
 
 const router = express.Router();

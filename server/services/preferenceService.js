@@ -1,3 +1,4 @@
+// server/services/preferenceService.js
 const prisma = require("../utils/prisma");
 
 exports.getCareerPreference = async (userId) => {
@@ -76,7 +77,7 @@ exports.upsertCareerPreference = async (userId, payload) => {
       where: { name: { in: uniqueTags } },
     });
 
-    // ✅ sửa ở đây: userId -> user_id
+    // sửa ở đây: userId -> user_id
     await prisma.careerPreferenceTag.deleteMany({
       where: { user_id: pref.user_id },
     });

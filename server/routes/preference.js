@@ -1,3 +1,4 @@
+// server/routes/preference.js
 const express = require("express");
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.put(
 router.get(
   "/recruiter",
   authMiddleware,
+  authorizeRoles("recruiter", "admin"), // chỉ recruiter hoặc admin
   preferenceController.getMyRecruiterPref,
 );
 
@@ -31,6 +33,7 @@ router.get(
 router.put(
   "/recruiter",
   authMiddleware,
+  authorizeRoles("recruiter", "admin"), // chỉ recruiter hoặc admin
   preferenceController.upsertMyRecruiterPref,
 );
 

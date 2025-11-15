@@ -1,3 +1,4 @@
+// server/utils/serializers/user.js
 const { toStr } = require("./_helpers");
 
 const toUserDTO = (u) => {

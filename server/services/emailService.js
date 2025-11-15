@@ -1,3 +1,4 @@
+// server/services/emailService.js
 const transporter = require("../utils/gmailTransport");
 
 exports.sendEmail = async (to, subject, html) => {

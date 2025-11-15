@@ -53,7 +53,7 @@ const JobRequiredSkillService = {
       dataToInsert.push({
         job_id,
         skill_id: skillId,
-        importance: s.importance ?? null,
+        level_required: s.level_required ?? null,
         years_required: s.years_required ?? null,
         must_have: s.must_have ?? true,
       });
@@ -250,7 +250,7 @@ exports.updateJob = async (id, data) => {
       dataToInsert.push({
         job_id: jobId,
         skill_id: skillId,
-        importance: s.importance ?? null,
+        level_required: s.level_required ?? null,
         years_required: s.years_required ?? null,
         must_have: s.must_have ?? true,
       });

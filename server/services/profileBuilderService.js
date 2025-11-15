@@ -1,3 +1,4 @@
+// server/services/profileBuilderService.js
 const cfg = require("../config/profile.config");
 const { extractTopKeywords } = require("../utils/keywordExtractor");
 const prisma = require("../utils/prisma");

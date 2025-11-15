@@ -1,3 +1,4 @@
+// server/utils/serializers/job.js
 const { toStr } = require("./_helpers");
 
 const toJobDTO = (job) => {
@@ -34,7 +35,7 @@ const toJobDTO = (job) => {
       ? job.requiredSkills.map((r) => ({
           skill_id: r.skill_id ?? r.skill?.id,
           skill_name: r.skill?.name || null,
-          importance: r.importance,
+          level_required: r.level_required,
           years_required: r.years_required,
           must_have: r.must_have,
         }))

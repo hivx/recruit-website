@@ -1,3 +1,4 @@
+// server/controllers/preferenceController.js
 const preferenceService = require("../services/preferenceService");
 
 // GET /api/preferences/career-preference

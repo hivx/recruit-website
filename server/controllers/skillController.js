@@ -1,3 +1,4 @@
+// server/controllers/skillController.js
 const service = require("../services/skillService");
 
 // GET /api/skills?q=

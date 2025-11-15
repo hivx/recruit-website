@@ -65,7 +65,7 @@
  *         skill_name:
  *           type: string
  *           example: "ReactJS"
- *         importance:
+ *         level_required:
  *           type: integer
  *           nullable: true
  *           example: 5
@@ -183,11 +183,11 @@
  *           description: Danh sách kỹ năng yêu cầu
  *           example:
  *             - name: "ReactJS"
- *               importance: 5
+ *               level_required: 5
  *               years_required: 2
  *               must_have: true
  *             - name: "NodeJS"
- *               importance: 3
+ *               level_required: 3
  *               years_required: 1
  *               must_have: false
  *           items:
@@ -196,7 +196,7 @@
  *               name:
  *                 type: string
  *                 example: "ReactJS"
- *               importance:
+ *               level_required:
  *                 type: integer
  *                 nullable: true
  *               years_required:

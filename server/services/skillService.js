@@ -1,3 +1,4 @@
+// server/services/skillService.js
 const prisma = require("../utils/prisma");
 
 exports.listSkills = async (q = "") => {

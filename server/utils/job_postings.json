@@ -9,8 +9,8 @@
     "requirements": "Tối thiểu 2 năm kinh nghiệm với Node.js, hiểu biết về MongoDB.",
     "tags": ["Node.js", "Express", "MongoDB"],
     "requiredSkills": [
-      {"name": "NodeJS", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "MongoDB", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "NodeJS", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "MongoDB", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -23,8 +23,8 @@
     "requirements": "2-3 năm kinh nghiệm với AWS, Docker và Kubernetes.",
     "tags": ["DevOps", "AWS", "Kubernetes"],
     "requiredSkills": [
-      {"name": "AWS", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "Docker", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "AWS", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "Docker", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -37,8 +37,8 @@
     "requirements": "1 năm kinh nghiệm trong marketing số, thành thạo Google Analytics.",
     "tags": ["Marketing", "Google Ads", "Analytics"],
     "requiredSkills": [
-      {"name": "Google Ads", "importance": 5, "years_required": 1, "must_have": true},
-      {"name": "SEO", "importance": 3, "years_required": 0, "must_have": false}
+      {"name": "Google Ads", "level_required": 5, "years_required": 1, "must_have": true},
+      {"name": "SEO", "level_required": 3, "years_required": 0, "must_have": false}
     ]
   },
   {
@@ -51,8 +51,8 @@
     "requirements": "1-2 năm kinh nghiệm với Photoshop và Illustrator.",
     "tags": ["Graphic Design", "Adobe", "Branding"],
     "requiredSkills": [
-      {"name": "Photoshop", "importance": 5, "years_required": 1, "must_have": true},
-      {"name": "Illustrator", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "Photoshop", "level_required": 5, "years_required": 1, "must_have": true},
+      {"name": "Illustrator", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -65,8 +65,8 @@
     "requirements": "2 năm kinh nghiệm với React, hiểu biết về TypeScript.",
     "tags": ["React", "Frontend", "TailwindCSS"],
     "requiredSkills": [
-      {"name": "ReactJS", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "TypeScript", "importance": 3, "years_required": 1, "must_have": false}
+      {"name": "ReactJS", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "TypeScript", "level_required": 3, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -79,8 +79,8 @@
     "requirements": "2 năm kinh nghiệm kế toán, thành thạo phần mềm MISA.",
     "tags": ["Accounting", "Finance", "MISA"],
     "requiredSkills": [
-      {"name": "Accounting", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "MISA", "importance": 3, "years_required": 1, "must_have": false}
+      {"name": "Accounting", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "MISA", "level_required": 3, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -93,8 +93,8 @@
     "requirements": "1 năm kinh nghiệm bán hàng, kỹ năng đàm phán tốt.",
     "tags": ["Sales", "Real Estate", "Negotiation"],
     "requiredSkills": [
-      {"name": "Sales", "importance": 5, "years_required": 1, "must_have": true},
-      {"name": "CRM", "importance": 3, "years_required": 0, "must_have": false}
+      {"name": "Sales", "level_required": 5, "years_required": 1, "must_have": true},
+      {"name": "CRM", "level_required": 3, "years_required": 0, "must_have": false}
     ]
   },
   {
@@ -107,8 +107,8 @@
     "requirements": "1-2 năm kinh nghiệm QA, quen thuộc với Selenium.",
     "tags": ["QA", "Testing", "Selenium"],
     "requiredSkills": [
-      {"name": "Selenium", "importance": 5, "years_required": 1, "must_have": true},
-      {"name": "JIRA", "importance": 3, "years_required": 0, "must_have": false}
+      {"name": "Selenium", "level_required": 5, "years_required": 1, "must_have": true},
+      {"name": "JIRA", "level_required": 3, "years_required": 0, "must_have": false}
     ]
   },
   {
@@ -121,8 +121,8 @@
     "requirements": "2 năm kinh nghiệm HR, hiểu biết về ATS.",
     "tags": ["HR", "Recruitment", "ATS"],
     "requiredSkills": [
-      {"name": "Recruitment", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "Interviewing", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "Recruitment", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "Interviewing", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -135,8 +135,8 @@
     "requirements": "2-3 năm kinh nghiệm với Flutter và Dart.",
     "tags": ["Flutter", "Mobile", "Dart"],
     "requiredSkills": [
-      {"name": "Flutter", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "Dart", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "Flutter", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "Dart", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -149,8 +149,8 @@
     "requirements": "2 năm kinh nghiệm Python, thành thạo TensorFlow.",
     "tags": ["AI", "Machine Learning", "Python"],
     "requiredSkills": [
-      {"name": "Python", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "TensorFlow", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "Python", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "TensorFlow", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -163,8 +163,8 @@
     "requirements": "3 năm kinh nghiệm PM, chứng chỉ PMP là lợi thế.",
     "tags": ["Project Management", "IT", "Agile"],
     "requiredSkills": [
-      {"name": "Agile", "importance": 5, "years_required": 3, "must_have": true},
-      {"name": "PMP", "importance": 3, "years_required": 0, "must_have": false}
+      {"name": "Agile", "level_required": 5, "years_required": 3, "must_have": true},
+      {"name": "PMP", "level_required": 3, "years_required": 0, "must_have": false}
     ]
   },
   {
@@ -177,8 +177,8 @@
     "requirements": "2 năm kinh nghiệm pháp lý, hiểu biết về luật CNTT.",
     "tags": ["Legal", "Contract", "IT Law"],
     "requiredSkills": [
-      {"name": "Contract Drafting", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "IT Law", "importance": 3, "years_required": 1, "must_have": false}
+      {"name": "Contract Drafting", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "IT Law", "level_required": 3, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -191,8 +191,8 @@
     "requirements": "2 năm kinh nghiệm Unity, thành thạo C#.",
     "tags": ["Game Development", "Unity", "C#"],
     "requiredSkills": [
-      {"name": "Unity", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "C#", "importance": 4, "years_required": 1, "must_have": false}
+      {"name": "Unity", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "C#", "level_required": 4, "years_required": 1, "must_have": false}
     ]
   },
   {
@@ -205,8 +205,8 @@
     "requirements": "2 năm kinh nghiệm Data Analysis, thành thạo SQL.",
     "tags": ["Data Analysis", "SQL", "BI"],
     "requiredSkills": [
-      {"name": "SQL", "importance": 5, "years_required": 2, "must_have": true},
-      {"name": "Power BI", "importance": 3, "years_required": 1, "must_have": false}
+      {"name": "SQL", "level_required": 5, "years_required": 2, "must_have": true},
+      {"name": "Power BI", "level_required": 3, "years_required": 1, "must_have": false}
     ]
   }
 ]
