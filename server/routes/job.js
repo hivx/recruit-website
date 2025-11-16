@@ -54,4 +54,12 @@ router.patch(
   jobController.rejectJob,
 );
 
+// Build vector cho job
+router.post(
+  "/vector/rebuild/:id",
+  authMiddleware,
+  authorizeRoles("recruiter", "admin"),
+  jobController.buildJobVector,
+);
+
 module.exports = router;

@@ -76,7 +76,7 @@ async function buildUserVector(userId) {
   }));
 
   /** =============================
-   * 2. BUILD TAG PROFILE
+   * 2. BUILD TAG PROFILE (normalized by tag_id)
    * ============================= */
   const mergedTags = {};
 
@@ -92,11 +92,22 @@ async function buildUserVector(userId) {
     }
   }
 
-  // --- Final: convert thành array ---
-  const tag_profile = Object.entries(mergedTags).map(([name, weight]) => ({
-    name,
-    weight: Number(weight.toFixed(4)),
-  }));
+  // --- 2. Convert name → id từ bảng Tag ---
+  const tagNames = Object.keys(mergedTags);
+
+  let tag_profile = [];
+
+  if (tagNames.length > 0) {
+    const dbTags = await prisma.tag.findMany({
+      where: { name: { in: tagNames } },
+      select: { id: true, name: true },
+    });
+
+    tag_profile = dbTags.map((t) => ({
+      id: t.id,
+      weight: Number(mergedTags[t.name.toLowerCase()].toFixed(4)),
+    }));
+  }
 
   /** =============================
    * 3. TITLE KEYWORDS (tạm chưa dùng)

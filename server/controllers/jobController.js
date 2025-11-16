@@ -1,6 +1,8 @@
 // controllers/jobController.js
 const moment = require("moment");
 const jobService = require("../services/jobService");
+const jobVectorService = require("../services/jobVectorService");
+
 const prisma = require("../utils/prisma");
 
 /* ============================================================
@@ -218,5 +220,28 @@ exports.rejectJob = async (req, res) => {
     res
       .status(err.status || 500)
       .json({ message: err.message || "Lỗi từ chối job" });
+  }
+};
+
+/**
+ * Build vector cho JOB
+ */
+exports.buildJobVector = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!jobId) {
+      return res.status(400).json({ message: "Thiếu jobId!" });
+    }
+
+    const vector = await jobVectorService.buildJobVector(jobId);
+
+    return res.json({
+      message: "Vector job đã được cập nhật",
+      vector,
+    });
+  } catch (err) {
+    console.error("[BuildJobVector]", err);
+    return res.status(500).json({ message: err.message || "Lỗi server" });
   }
 };

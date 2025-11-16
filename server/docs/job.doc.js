@@ -443,3 +443,85 @@
  *               items:
  *                 $ref: '#/components/schemas/PopularTagItem'
  */
+
+/**
+ * @swagger
+ * /api/jobs/vector/rebuild/{jobId}:
+ *   post:
+ *     summary: Sinh JobVector cho một công việc
+ *     description:
+ *       Tạo hoặc cập nhật vector của Job dựa trên job_required_skills, job_tags, salary_avg và location.
+ *       API này được dùng sau khi tạo job hoặc khi cần cập nhật lại dữ liệu phục vụ hệ thống recommend.
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID công việc cần build vector
+ *     responses:
+ *       200:
+ *         description: JobVector đã được cập nhật thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Vector job đã được cập nhật"
+ *                 vector:
+ *                   type: object
+ *                   properties:
+ *                     job_id:
+ *                       type: string
+ *                       example: "7"
+ *                     skill_profile:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 12
+ *                           weight:
+ *                             type: number
+ *                             example: 0.73
+ *                           must:
+ *                             type: boolean
+ *                             example: true
+ *                     tag_profile:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 17
+ *                           weight:
+ *                             type: number
+ *                             example: 1
+ *                     title_keywords:
+ *                       type: array
+ *                       nullable: true
+ *                       example: null
+ *                     location:
+ *                       type: string
+ *                       example: "HCM"
+ *                     salary_avg:
+ *                       type: integer
+ *                       example: 18000000
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-11-16T16:02:38.624Z"
+ *       400:
+ *         description: Job không tồn tại hoặc chưa đủ dữ liệu để build vector
+ *       403:
+ *         description: Không có quyền thực hiện thao tác này
+ *       500:
+ *         description: Lỗi server khi build JobVector
+ */
