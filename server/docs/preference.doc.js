@@ -36,7 +36,7 @@
  *         desired_location:
  *           type: string
  *           nullable: true
- *           example: "TP.HCM"
+ *           example: "Hồ Chí Minh"
  *         desired_salary:
  *           type: number
  *           nullable: true
@@ -66,7 +66,7 @@
  *           example: "Tech Unicorn VN"
  *         desired_location:
  *           type: string
- *           example: "TP.HCM"
+ *           example: "Hồ Chí Minh"
  *         desired_salary:
  *           type: number
  *           description: Mức lương mong muốn (USD hoặc VND quy đổi tùy business rule)
@@ -117,7 +117,7 @@
  *                   user_id: "5"
  *                   desired_title: "Backend Developer"
  *                   desired_company: "Tech Unicorn VN"
- *                   desired_location: "TP.HCM"
+ *                   desired_location: "Hồ Chí Minh"
  *                   desired_salary: 20000000
  *                   tags:
  *                     - { "id": 10, "name": "Node.js" }
@@ -148,7 +148,7 @@
  *               value:
  *                 desired_title: "Backend Developer"
  *                 desired_company: "Tech Unicorn VN"
- *                 desired_location: "TP.HCM"
+ *                 desired_location: "Hồ Chí Minh"
  *                 desired_salary: 20000000
  *                 tags: ["Node.js", "PostgreSQL", "AWS"]
  *             minimal:
@@ -172,7 +172,7 @@
  *                     user_id: "5"
  *                     desired_title: "Backend Developer"
  *                     desired_company: "Tech Unicorn VN"
- *                     desired_location: "TP.HCM"
+ *                     desired_location: "Hồ Chí Minh"
  *                     desired_salary: 20000000
  *                     tags:
  *                       - { "id": 10, "name": "Node.js" }
@@ -352,7 +352,7 @@
  *             partial:
  *               summary: Cập nhật một phần
  *               value:
- *                 desired_location: "TP.HCM"
+ *                 desired_location: "Hồ Chí Minh"
  *                 desired_tags: ["Golang"]
  *     responses:
  *       200:

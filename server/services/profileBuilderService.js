@@ -177,7 +177,13 @@ function analyzeUserEvents(events) {
     ));
   }
 
-  return { tagScore, keywordScore, locScore, salarySumW, weightSum };
+  return {
+    tagScore,
+    keywordScore: pickTopKValues(keywordScore),
+    locScore,
+    salarySumW,
+    weightSum,
+  };
 }
 
 function addToMap(scoreMap, field, weight) {
@@ -295,4 +301,23 @@ function buildResponse(userId, saved) {
     keywords: saved.keywords || [],
     skipped: false,
   };
+}
+
+function pickTopKValues(mapObj, k = cfg.TOPK_KEY) {
+  const entries = Object.entries(mapObj); // [ [key, score], ... ]
+  if (entries.length === 0) {
+    return {};
+  }
+
+  // sort từ lớn xuống bé
+  entries.sort((a, b) => b[1] - a[1]);
+
+  // danh sách score không trùng
+  const uniqueScores = [...new Set(entries.map(([_, v]) => v))];
+
+  // lấy K score cao nhất
+  const topKScores = new Set(uniqueScores.slice(0, k));
+
+  // lọc tất cả entry có score thuộc top-K
+  return Object.fromEntries(entries.filter(([_, v]) => topKScores.has(v)));
 }

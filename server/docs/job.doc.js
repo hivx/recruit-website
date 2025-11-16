@@ -100,7 +100,7 @@
  *           example: "Nguyễn Văn B"
  *         location:
  *           type: string
- *           example: "TP.HCM"
+ *           example: "Hồ Chí Minh"
  *         description:
  *           type: string
  *           example: "Phát triển API cho hệ thống tuyển dụng"
@@ -160,7 +160,7 @@
  *           description: "Có thể bỏ qua, hệ thống lấy từ công ty của recruiter"
  *         location:
  *           type: string
- *           example: "TP.HCM"
+ *           example: "Hồ Chí Minh"
  *         description:
  *           type: string
  *           example: "Phát triển API cho hệ thống tuyển dụng"

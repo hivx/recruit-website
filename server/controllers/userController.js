@@ -4,6 +4,7 @@ const path = require("node:path");
 const profileBuilder = require("../services/profileBuilderService");
 
 const userService = require("../services/userService");
+const userVectorService = require("../services/userVectorService");
 const { toUserDTO } = require("../utils/serializers/user"); // DTO
 
 exports.toggleFavoriteJob = async (req, res) => {
@@ -111,5 +112,19 @@ exports.changePassword = async (req, res) => {
     res
       .status(err.status || 500)
       .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// Build user vector
+exports.rebuildUserVector = async (req, res) => {
+  try {
+    const vector = await userVectorService.buildUserVector(req.user.userId);
+
+    res.json({
+      message: "Vector user đã được cập nhật",
+      vector,
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };

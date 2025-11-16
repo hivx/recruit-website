@@ -231,3 +231,64 @@
  *       404:
  *         description: Người dùng không tồn tại!
  */
+
+/**
+ * @swagger
+ * /api/users/vector/rebuild:
+ *   post:
+ *     summary: Tính lại vector người dùng (skills + hành vi)
+ *     description: Kết hợp user_skills và user_behavior_profile để sinh UserVector cho user đang đăng nhập.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Vector đã được tính lại thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Tính lại vector người dùng thành công!"
+ *                 vector:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       example: "4"
+ *                     skill_profile:
+ *                       type: array
+ *                       description: Danh sách kỹ năng dạng {id, w}
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 1
+ *                           w:
+ *                             type: number
+ *                             format: float
+ *                             example: 0.85
+ *                     tag_profile:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["backend", "nodejs"]
+ *                     title_keywords:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["backend", "nodejs"]
+ *                     preferred_location:
+ *                       type: string
+ *                       example: "Hồ Chí Minh"
+ *                     salary_expected:
+ *                       type: integer
+ *                       example: 20000000
+ *       400:
+ *         description: Chưa có behavior profile hoặc dữ liệu không hợp lệ
+ *       401:
+ *         description: Chưa đăng nhập
+ */

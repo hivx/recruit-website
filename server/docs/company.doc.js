@@ -36,7 +36,7 @@
  *           example: "VN"
  *         registered_address:
  *           type: string
- *           example: "123 Nguyễn Văn Linh, Quận 7, TP.HCM"
+ *           example: "123 Nguyễn Văn Linh, Quận 7, Hồ Chí Minh"
  *         incorporation_date:
  *           type: string
  *           format: date-time
@@ -69,7 +69,7 @@
  *           example: "VN"
  *         registered_address:
  *           type: string
- *           example: "123 Nguyễn Văn Linh, Quận 7, TP.HCM"
+ *           example: "123 Nguyễn Văn Linh, Quận 7, Hồ Chí Minh"
  *         incorporation_date:
  *           type: string
  *           format: date
@@ -83,7 +83,7 @@
  *           example: "Công ty TNHH ABC Tech Việt Nam"
  *         registered_address:
  *           type: string
- *           example: "456 Nguyễn Trãi, Quận 5, TP.HCM"
+ *           example: "456 Nguyễn Trãi, Quận 5, Hồ Chí Minh"
  *         tax_id:
  *           type: string
  *           example: "9876543210"

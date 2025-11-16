@@ -1,7 +1,7 @@
 [
   {
     "title": "Lập trình viên Backend Node.js",
-    "location": "TP.HCM",
+    "location": "Hồ Chí Minh",
     "description": "Phát triển API RESTful cho nền tảng thương mại điện tử, tối ưu hiệu suất server.",
     "salary_min": 18000000,
     "salary_max": 28000000,
@@ -82,7 +82,7 @@
   {
     "title": "Nhân viên Kinh doanh Bất động sản",
     "company_id": "2",
-    "location": "TP.HCM",
+    "location": "Hồ Chí Minh",
     "description": "Tư vấn khách hàng về căn hộ và đất nền, đạt chỉ tiêu doanh số.",
     "salary_min": 14000000,
     "salary_max": 20000000,
@@ -134,7 +134,7 @@
   },
   {
     "title": "Kỹ sư AI Machine Learning",
-    "location": "TP.HCM",
+    "location": "Hồ Chí Minh",
     "description": "Phát triển mô hình dự đoán dựa trên dữ liệu khách hàng.",
     "salary_min": 26000000,
     "salary_max": 36000000,
@@ -160,7 +160,7 @@
   },
   {
     "title": "Chuyên viên Pháp lý Doanh nghiệp",
-    "location": "TP.HCM",
+    "location": "Hồ Chí Minh",
     "description": "Soạn thảo hợp đồng và tư vấn pháp lý cho dự án công nghệ.",
     "salary_min": 19000000,
     "salary_max": 26000000,

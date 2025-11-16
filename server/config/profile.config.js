@@ -21,4 +21,7 @@ module.exports = {
 
   // Khoảng thời gian tối thiểu giữa 2 lần rebuild profile liên tiếp (phút)
   MIN_REBUILD_INTERVAL_MINUTES: 0,
+
+  // Lấy bao nhiêu keyword có điểm cao nhất để làm profile
+  TOPK_KEY: 2,
 };

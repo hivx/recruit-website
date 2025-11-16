@@ -38,4 +38,10 @@ router.post(
   profileController.rebuildMyProfile,
 );
 
+router.post(
+  "/vector/rebuild",
+  authMiddleware, // hoặc auth, tuỳ bạn đang dùng gì cho JWT
+  userController.rebuildUserVector,
+);
+
 module.exports = router;
