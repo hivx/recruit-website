@@ -1,6 +1,8 @@
 // services/applicationService.js
 const { logUserInterest } = require("../middleware/logUserInterest");
+const { computeFitScore } = require("../utils/fitScore");
 const prisma = require("../utils/prisma");
+
 // Giữ nguyên đường dẫn import DTO đúng theo cây của bạn
 const { toApplicationDTO } = require("../utils/serializers/application");
 
@@ -76,23 +78,25 @@ module.exports = {
    * - Trả về Application đã được DTO hoá
    */
   async createApplication({ userId, jobId, coverLetter, cv, phone }) {
-    const application = await prisma.application.create({
+    const app = await prisma.application.create({
       data: {
         job_id: BigInt(jobId),
         applicant_id: BigInt(userId),
-        cover_letter: coverLetter, // NOT NULL theo schema
-        cv: cv || null, // optional
-        phone: phone || null, // optional
-        // status / fit_score để Prisma tự set theo default của schema (nếu có)
+        cover_letter: coverLetter,
+        cv: cv || null,
+        phone: phone || null,
       },
     });
 
-    // Ghi log hành vi ứng tuyển (không block luồng chính nếu thất bại)
+    // ============================
+    // 1) Log hành vi
+    // ============================
     try {
       const job = await prisma.job.findUnique({
         where: { id: BigInt(jobId) },
         include: { tags: { include: { tag: true } } },
       });
+
       if (job) {
         logUserInterest({
           userId,
@@ -102,16 +106,48 @@ module.exports = {
         });
       }
     } catch (e) {
-      // chỉ log; không throw để tránh làm hỏng flow apply
       console.warn("[logUserInterest] failed:", e?.message || e);
     }
-    // Tăng application_count trên Job (chưa có giảm đi nếu có xoá ứng tuyển)
+
+    // ============================
+    // 2) Tăng application_count
+    // ============================
     await prisma.job.update({
       where: { id: BigInt(jobId) },
       data: { application_count: { increment: 1 } },
     });
 
-    return toApplicationDTO(application);
+    // ============================
+    // 3) Tính fit_score
+    // ============================
+    try {
+      const userVector = await prisma.userVector.findUnique({
+        where: { user_id: BigInt(userId) },
+      });
+
+      const jobVector = await prisma.jobVector.findUnique({
+        where: { job_id: BigInt(jobId) },
+      });
+
+      if (userVector && jobVector) {
+        const fit = computeFitScore(userVector, jobVector);
+
+        await prisma.application.update({
+          where: { id: app.id },
+          data: { fit_score: fit },
+        });
+
+        app.fit_score = fit;
+      } else {
+        console.warn(
+          "[Application] Vector không tồn tại → bỏ qua tính fit_score",
+        );
+      }
+    } catch (err) {
+      console.warn("[Application] Lỗi tính fit_score:", err.message);
+    }
+
+    return toApplicationDTO(app);
   },
 
   /**
