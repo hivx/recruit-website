@@ -54,6 +54,7 @@ app.use("/api/users", require("./routes/user"));
 app.use("/api/companies", require("./routes/company"));
 app.use("/api/preferences", require("./routes/preference"));
 app.use("/api/skills", require("./routes/skill"));
+app.use("/api/recommendations", require("./routes/recommendation"));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

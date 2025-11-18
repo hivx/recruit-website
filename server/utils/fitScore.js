@@ -127,10 +127,74 @@ function computeFitScore(userVector, jobVector) {
   return Number(finalScore.toFixed(4));
 }
 
+function computeJobFitScore(userVector, jobVector) {
+  const skill = computeSkillMatch(
+    userVector.skill_profile ?? [],
+    jobVector.skill_profile ?? [],
+  );
+
+  const tag = computeTagMatch(
+    userVector.tag_profile ?? [],
+    jobVector.tag_profile ?? [],
+  );
+
+  const location = computeLocationMatch(
+    userVector.preferred_location,
+    jobVector.location,
+  );
+
+  const salary = computeSalaryMatch(
+    userVector.salary_expected,
+    jobVector.salary_avg,
+  );
+
+  // USER-CENTRIC WEIGHTS
+  const finalScore =
+    0.15 * skill + // user thiếu skill vẫn có thể apply job, nên giảm
+    0.4 * tag + // user thích ngành nào thì gợi ý ngành đó
+    0.3 * salary + // phù hợp lương
+    0.15 * location; // user muốn làm ở đâu
+
+  return Number(finalScore.toFixed(4));
+}
+
+function computeCandidateFitScore(userVector, jobVector) {
+  const skill = computeSkillMatch(
+    userVector.skill_profile ?? [],
+    jobVector.skill_profile ?? [],
+  );
+
+  const tag = computeTagMatch(
+    userVector.tag_profile ?? [],
+    jobVector.tag_profile ?? [],
+  );
+
+  const location = computeLocationMatch(
+    userVector.preferred_location,
+    jobVector.location,
+  );
+
+  const salary = computeSalaryMatch(
+    userVector.salary_expected,
+    jobVector.salary_avg,
+  );
+
+  // JOB-CENTRIC WEIGHTS
+  const finalScore =
+    0.5 * skill + // trọng số cao nhất: job yêu cầu skill
+    0.2 * tag +
+    0.15 * salary +
+    0.15 * location;
+
+  return Number(finalScore.toFixed(4));
+}
+
 module.exports = {
   computeFitScore,
   computeSkillMatch,
   computeTagMatch,
   computeLocationMatch,
   computeSalaryMatch,
+  computeJobFitScore,
+  computeCandidateFitScore,
 };
