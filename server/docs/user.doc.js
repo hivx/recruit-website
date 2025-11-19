@@ -236,14 +236,17 @@
  * @swagger
  * /api/users/vector/rebuild:
  *   post:
- *     summary: Tính lại vector người dùng (skills + hành vi)
- *     description: Kết hợp user_skills và user_behavior_profile để sinh UserVector cho user đang đăng nhập.
+ *     summary: Tính  UserVector cho người dùng đang đăng nhập
+ *     description: |
+ *       Tính toán lại vector người dùng dựa trên hồ sơ hành vi và mong muốn.
+ *
+ *       API chỉ áp dụng cho user có role = "applicant".
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Vector đã được tính lại thành công
+ *         description: Vector người dùng đã được cập nhật thành công
  *         content:
  *           application/json:
  *             schema:
@@ -251,7 +254,7 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Tính lại vector người dùng thành công!"
+ *                   example: "Vector người dùng đã được cập nhật"
  *                 vector:
  *                   type: object
  *                   properties:
@@ -260,7 +263,7 @@
  *                       example: "4"
  *                     skill_profile:
  *                       type: array
- *                       description: Danh sách kỹ năng dạng {id, w}
+ *                       description: Danh sách kỹ năng dạng { id, w }
  *                       items:
  *                         type: object
  *                         properties:
@@ -269,26 +272,92 @@
  *                             example: 1
  *                           w:
  *                             type: number
- *                             format: float
- *                             example: 0.85
+ *                             example: 0.87
  *                     tag_profile:
  *                       type: array
+ *                       description: Danh sách tag dạng { id, weight }
  *                       items:
- *                         type: string
- *                       example: ["backend", "nodejs"]
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 3
+ *                           weight:
+ *                             type: number
+ *                             example: 0.8
  *                     title_keywords:
  *                       type: array
+ *                       description: Keywords hành vi người dùng
  *                       items:
- *                         type: string
- *                       example: ["backend", "nodejs"]
+ *                         type: object
+ *                         properties:
+ *                           keyword:
+ *                             type: string
+ *                             example: "backend"
+ *                           weight:
+ *                             type: number
+ *                             example: 0.6
  *                     preferred_location:
  *                       type: string
- *                       example: "Hồ Chí Minh"
+ *                       example: "HN"
  *                     salary_expected:
  *                       type: integer
  *                       example: 20000000
  *       400:
- *         description: Chưa có behavior profile hoặc dữ liệu không hợp lệ
+ *         description: Dữ liệu không hợp lệ hoặc user không phải applicant
  *       401:
- *         description: Chưa đăng nhập
+ *         description: Không có token hoặc token không hợp lệ
+ */
+
+/**
+ * @swagger
+ * api/user/vector/recruiter/{userId}:
+ *   post:
+ *     summary: Build or update recruiter vector for a recruiter
+ *     description: |
+ *       API này dùng để xây dựng lại RecruiterVector dựa trên recruiter preferences.
+ *       Chỉ admin hoặc recruiter được phép gọi. Yêu cầu gửi kèm JWT token.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: ID của recruiter (user có role recruiter)
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Recruiter vector updated thành công
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Vector recruiter đã được cập nhật"
+ *               vector:
+ *                 user_id: 9
+ *                 skill_profile:
+ *                   - id: 3
+ *                     must: true
+ *                     weight: 0.7
+ *                   - id: 5
+ *                     must: false
+ *                     weight: 0.3
+ *                 tag_profile:
+ *                   - id: 1
+ *                     weight: 1
+ *                   - id: 4
+ *                     weight: 1
+ *                 preferred_location: "HN"
+ *                 salary_avg: 20000000
+ *       400:
+ *         description: Người dùng không phải nhà tuyển dụng
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Không đủ quyền (chỉ recruiter/admin)
+ *       404:
+ *         description: Không tìm thấy RecruiterPreference cho user này
+ *       500:
+ *         description: Lỗi server
  */

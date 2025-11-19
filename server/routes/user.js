@@ -5,6 +5,8 @@ const router = express.Router();
 const profileController = require("../controllers/profileController");
 const userController = require("../controllers/userController");
 const authMiddleware = require("../middleware/authMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
+
 const uploadAvatar = require("../utils/uploadAvatar");
 
 // PUT: Cập nhật avatar user
@@ -42,6 +44,14 @@ router.post(
   "/vector/rebuild",
   authMiddleware, // hoặc auth, tuỳ bạn đang dùng gì cho JWT
   userController.rebuildUserVector,
+);
+
+// POST: Xây dựng vector cho recruiter (admin/recruiter) mới được phép thực hiện
+router.post(
+  "/vector/recruiter/:userId",
+  authMiddleware,
+  authorizeRoles("recruiter", "admin"),
+  userController.rebuildRecruiterVector,
 );
 
 module.exports = router;

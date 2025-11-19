@@ -44,11 +44,28 @@ function computeExpectedSalary(preference, behavior) {
   return null;
 }
 
+async function validateApplicant(uid) {
+  const user = await prisma.user.findUnique({
+    where: { id: uid },
+    select: { role: true },
+  });
+
+  if (!user) {
+    throw new Error("User không tồn tại");
+  }
+
+  if (user.role !== "applicant" && user.role !== "admin") {
+    throw new Error("Người dùng không phải ứng viên");
+  }
+}
+
 /**
  * Build User Vector chính thức
  */
 async function buildUserVector(userId) {
   const uid = BigInt(userId);
+
+  await validateApplicant(uid);
 
   const [userSkills, behavior, preference] = await Promise.all([
     prisma.userSkill.findMany({

@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const profileBuilder = require("../services/profileBuilderService");
 
+const recruiterVectorService = require("../services/recruiterVectorService");
 const userService = require("../services/userService");
 const userVectorService = require("../services/userVectorService");
 const { toUserDTO } = require("../utils/serializers/user"); // DTO
@@ -125,6 +126,23 @@ exports.rebuildUserVector = async (req, res) => {
       vector,
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(400).json({ message: err.message });
+  }
+};
+
+exports.rebuildRecruiterVector = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const vector = await recruiterVectorService.buildRecruiterVector(userId);
+
+    return res.json({
+      message: "Vector recruiter đã được cập nhật",
+      vector: vector,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+    });
   }
 };
