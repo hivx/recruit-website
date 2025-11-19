@@ -47,27 +47,58 @@ function computeSkillMatch(userSkills = [], jobSkills = []) {
 
 function computeTagMatch(userTags = [], jobTags = []) {
   if (!userTags.length || !jobTags.length) {
-    return 0;
+    return 0.3; // điểm nền khi không có đủ tag
   }
 
+  const userMap = new Map(userTags.map(t => [t.id, t.weight]));
   let score = 0;
-  const maxScore = jobTags.reduce((s, t) => s + t.weight, 0);
+  let maxScore = 0;
 
   for (const jt of jobTags) {
-    const match = userTags.find((ut) => ut.id === jt.id);
-    if (match) {
-      score += Math.min(match.weight, jt.weight);
+    const jobW = jt.weight || 1;
+    maxScore += jobW;
+
+    const userW = userMap.get(jt.id);
+    if (userW !== undefined) {
+      score += Math.min(userW, jobW);
     }
   }
 
-  return Number((score / maxScore).toFixed(4));
+  const raw = maxScore ? score / maxScore : 0;
+
+  // scale để điểm không quá thấp
+  const visible = 0.3 + raw * 0.7;
+
+  return Number(visible.toFixed(4));
+}
+
+function countMatchingTags(userVector, jobVector) {
+  const uTags = userVector?.tag_profile;
+  const jTags = jobVector?.tag_profile;
+
+  if (!uTags?.length || !jTags?.length) {
+    return 0;
+  }
+
+  // Dùng Set để check nhanh
+  const userTagSet = new Set(uTags.map((t) => t.id));
+
+  let count = 0;
+
+  for (const jt of jTags) {
+    if (userTagSet.has(jt.id)) {
+      count++;
+    }
+  }
+
+  return count;
 }
 
 function computeLocationMatch(userLoc, jobLoc) {
   if (!userLoc || !jobLoc) {
-    return 0;
+    return 0.5;
   }
-  return userLoc === jobLoc ? 1 : 0;
+  return userLoc === jobLoc ? 1 : 0.5;
 }
 
 function computeSalaryMatch(expected, jobSalary) {
@@ -122,7 +153,11 @@ function computeFitScore(userVector, jobVector) {
     jobVector.salary_avg,
   );
 
-  const finalScore = 0.4 * skill + 0.25 * tag + 0.25 * salary + 0.1 * location;
+  const finalScore =
+    0.4 * skill + // trọng số cao nhất: skill quan trọng nhất
+    0.25 * tag + // phù hợp ngành/lĩnh vực
+    0.25 * salary + // phù hợp lương
+    0.1 * location; // phù hợp địa điểm
 
   return Number(finalScore.toFixed(4));
 }
@@ -150,10 +185,10 @@ function computeJobFitScore(userVector, jobVector) {
 
   // USER-CENTRIC WEIGHTS
   const finalScore =
-    0.15 * skill + // user thiếu skill vẫn có thể apply job, nên giảm
-    0.4 * tag + // user thích ngành nào thì gợi ý ngành đó
-    0.3 * salary + // phù hợp lương
-    0.15 * location; // user muốn làm ở đâu
+    0.45 * skill + // user thiếu skill vẫn có thể apply job, nên giảm
+    0.3 * tag + // user thích ngành nào thì gợi ý ngành đó
+    0.15 * salary + // phù hợp lương
+    0.1 * location; // user muốn làm ở đâu
 
   return Number(finalScore.toFixed(4));
 }
@@ -181,10 +216,10 @@ function computeCandidateFitScore(userVector, jobVector) {
 
   // JOB-CENTRIC WEIGHTS
   const finalScore =
-    0.5 * skill + // trọng số cao nhất: job yêu cầu skill
-    0.2 * tag +
+    0.4 * skill + // trọng số cao nhất: job yêu cầu skill
+    0.25 * tag +
     0.15 * salary +
-    0.15 * location;
+    0.1 * location;
 
   return Number(finalScore.toFixed(4));
 }
@@ -193,6 +228,7 @@ module.exports = {
   computeFitScore,
   computeSkillMatch,
   computeTagMatch,
+  countMatchingTags,
   computeLocationMatch,
   computeSalaryMatch,
   computeJobFitScore,
