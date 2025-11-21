@@ -6,7 +6,9 @@ const prisma = require("../utils/prisma");
  * Giống phong cách normalize của UserVector nhưng đơn giản hơn.
  */
 function computeRecruiterSkillWeight(rrs) {
-  let weight = (rrs.years_required ?? 1) / 10;
+  let weight =
+    (rrs.years_required ?? 1) / 10 +
+    (0.1 * (10 - (rrs.years_required ?? 1))) / 10;
 
   if (weight > 1) {
     weight = 1;

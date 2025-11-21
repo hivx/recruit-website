@@ -51,6 +51,7 @@ const RAW_LOCATION_MAP = {
   "binh dinh": "BDI",
   "phu yen": "PY",
   "khanh hoa": "KH",
+  "Nha trang": "KH",
   "ninh thuan": "NT",
   "binh thuan": "BTH",
 

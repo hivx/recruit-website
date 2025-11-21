@@ -211,7 +211,7 @@ module.exports = {
     const updated = await prisma.application.update({
       where: { id: BigInt(applicationId) },
       data: {
-        status: reviewData?.status ?? "reviewed",
+        status: reviewData?.status ?? "accepted",
         review_note: reviewData?.note ?? null,
         reviewed_by: reviewerId,
         reviewed_at: new Date(),

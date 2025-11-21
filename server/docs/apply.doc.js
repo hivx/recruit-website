@@ -379,7 +379,7 @@
  *                       example: "Backend Developer"
  *                     status:
  *                       type: string
- *                       example: "reviewed"
+ *                       example: "accepted"
  *                     review_note:
  *                       type: string
  *                       example: "Ứng viên có kỹ năng tốt, nên mời phỏng vấn."

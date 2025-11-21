@@ -17,7 +17,7 @@ exports.getCareerPreference = async (userId) => {
     desired_company: pref.desired_company,
     desired_location: pref.desired_location,
     desired_salary: pref.desired_salary,
-    tags: pref.tags.map((t) => ({ id: t.tagId, name: t.tag.name })),
+    tags: pref.tags.map((t) => ({ id: t.tag_id, name: t.tag.name })),
     updated_at: pref.updated_at,
     created_at: pref.created_at,
   };

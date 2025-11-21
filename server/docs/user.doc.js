@@ -311,7 +311,7 @@
 
 /**
  * @swagger
- * api/user/vector/recruiter/{userId}:
+ * /api/users/vector/recruiter/{userId}:
  *   post:
  *     summary: Build or update recruiter vector for a recruiter
  *     description: |

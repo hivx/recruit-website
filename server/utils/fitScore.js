@@ -50,7 +50,7 @@ function computeTagMatch(userTags = [], jobTags = []) {
     return 0.3; // điểm nền khi không có đủ tag
   }
 
-  const userMap = new Map(userTags.map(t => [t.id, t.weight]));
+  const userMap = new Map(userTags.map((t) => [t.id, t.weight]));
   let score = 0;
   let maxScore = 0;
 

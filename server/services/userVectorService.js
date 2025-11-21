@@ -75,12 +75,8 @@ async function buildUserVector(userId) {
     prisma.userBehaviorProfile.findUnique({
       where: { user_id: uid },
     }),
-    prisma.recruiterPreference.findUnique({
+    prisma.careerPreference.findUnique({
       where: { user_id: uid },
-    }),
-    prisma.careerPreferenceTag.findMany({
-      where: { user_id: uid },
-      include: { tag: true },
     }),
   ]);
 

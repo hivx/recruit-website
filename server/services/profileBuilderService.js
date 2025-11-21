@@ -253,7 +253,7 @@ function computeMainLocation(locScore, pref) {
 // Blend giữa hành vi và lương mong muốn
 function computeAvgSalary(salarySumW, weightSum, pref) {
   const desiredSalary = Number(pref?.desired_salary) || 0;
-  const ratio = cfg.PRIOR.desSalaryWe ?? 0.3; // 30% mong muốn
+  const ratio = cfg.PRIOR.desSalaryWe ?? 0; // 30% mong muốn
 
   if (weightSum > 0 && desiredSalary > 0) {
     const behaviorSalary = salarySumW / weightSum;
