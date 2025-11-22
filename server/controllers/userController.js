@@ -1,7 +1,6 @@
 // controllers/userController.js
 const fs = require("node:fs");
 const path = require("node:path");
-const profileBuilder = require("../services/profileBuilderService");
 
 const recruiterVectorService = require("../services/recruiterVectorService");
 const userService = require("../services/userService");
@@ -15,16 +14,6 @@ exports.toggleFavoriteJob = async (req, res) => {
       req.params.jobId,
     );
     res.status(200).json(result);
-
-    // sau khi toggle yêu thích xong
-    setImmediate(async () => {
-      try {
-        const result = await profileBuilder.rebuildForUser(req.user.userId);
-        console.log("[ProfileBuilder triggered after FAVORITE]", result);
-      } catch (err) {
-        console.warn("[Profile Rebuild after FAVORITE]", err.message);
-      }
-    });
   } catch (err) {
     console.error("[Favorite Job Error]", err);
     res

@@ -1,4 +1,5 @@
 // server/services/skillService.js
+const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");
 
 exports.listSkills = async (q = "") => {
@@ -29,6 +30,8 @@ exports.addOrUpdateUserSkill = async (userId, { name, level, years, note }) => {
     update: { level: data.level, years: data.years, note: data.note },
     create: data,
   });
+  // Phát sự kiện profile đã thay đổi
+  emitEvent("USER_SKILL_CHANGED", { userId });
 
   return { message: "Cập nhật kỹ năng thành công!" };
 };
@@ -42,6 +45,9 @@ exports.removeUserSkill = async (userId, skillId) => {
       },
     },
   });
+  // Phát sự kiện profile đã thay đổi
+  emitEvent("USER_SKILL_CHANGED", { userId });
+
   return { message: "Đã xoá kỹ năng" };
 };
 

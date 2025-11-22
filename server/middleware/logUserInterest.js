@@ -1,4 +1,5 @@
 // middleware/logUserInterest.js
+const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");
 
 async function logUserInterest({ userId, job, source, eventType = null }) {
@@ -66,6 +67,7 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
   } catch (err) {
     console.error("[UserInterestHistory] Ghi log thất bại:", err.message);
   }
+  emitEvent("USER_BEHAVIOR_CHANGED", { userId });
 }
 
 module.exports = { logUserInterest };

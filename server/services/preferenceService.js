@@ -1,4 +1,5 @@
 // server/services/preferenceService.js
+const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");
 
 exports.getCareerPreference = async (userId) => {
@@ -90,6 +91,7 @@ exports.upsertCareerPreference = async (userId, payload) => {
       skipDuplicates: true,
     });
   }
+  emitEvent("USER_BEHAVIOR_CHANGED", { userId });
 
   return this.getCareerPreference(userId);
 };

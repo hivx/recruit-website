@@ -27,6 +27,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Khởi tạo event handlers
+require("./events/init");
+
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

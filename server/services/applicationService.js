@@ -146,7 +146,6 @@ module.exports = {
     } catch (err) {
       console.warn("[Application] Lỗi tính fit_score:", err.message);
     }
-
     return toApplicationDTO(app);
   },
 
