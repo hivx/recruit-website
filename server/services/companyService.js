@@ -84,6 +84,22 @@ async function updateMyCompany(ownerId, payload) {
     throw e;
   }
 
+  if (payload.registration_number || payload.country_code) {
+    const dup = await prisma.company.findFirst({
+      where: {
+        registration_number:
+          payload.registration_number ?? company.registration_number,
+        country_code: payload.country_code ?? company.country_code,
+        NOT: { id: company.id },
+      },
+    });
+    if (dup) {
+      const e = new Error("Registration_number đã tồn tại trong quốc gia này.");
+      e.status = 409;
+      throw e;
+    }
+  }
+
   const updated = await prisma.company.update({
     where: { id: company.id },
     data: {

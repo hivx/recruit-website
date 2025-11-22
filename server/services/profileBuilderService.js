@@ -11,10 +11,7 @@ const EVENT_ALIAS = {
   apply_with_cv: "apply",
 };
 
-const toKey = (s) =>
-  String(s || "")
-    .trim()
-    .toLowerCase();
+const toKey = (s) => String(s || "").trim();
 
 // Chuyển tags (TEXT hoặc JSON) -> mảng
 function toArray(val) {
@@ -198,7 +195,8 @@ function addToMap(scoreMap, field, weight) {
 }
 
 function addSalary(e, stdEvent, weight, sum, wSum) {
-  if (!["favorite", "apply"].includes(stdEvent)) {
+  //Tính lương chỉ cho các event quan trọng (có thể điều chỉnh theo thực tế)
+  if (!["favorite", "apply", "view", "unfavorite"].includes(stdEvent)) {
     return { salarySumW: sum, weightSum: wSum };
   }
   const mid = Number(e.avg_salary) || 0;

@@ -1,4 +1,5 @@
 // services/jobService.js
+const { emitEvent } = require("../events");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 const { toJobDTO } = require("../utils/serializers/job");
@@ -158,6 +159,10 @@ exports.createJob = async (jobData) => {
   });
 
   const requiredSkills = await JobRequiredSkillService.fetchForJob(job.id);
+
+  // Emit event JOB_CHANGED để xây dựng vector
+  emitEvent("JOB_CHANGED", { jobId: job.id });
+
   return toJobDTO({ ...fullJob, requiredSkills });
 };
 
@@ -165,11 +170,19 @@ exports.createJob = async (jobData) => {
    # UPDATE JOB — giữ nguyên logic, chỉ thêm skill update
    ============================================================ */
 exports.updateJob = async (id, data) => {
-  const { tags, requiredSkills, ...fields } = data;
   const jobId = BigInt(id);
 
-  // ===== Helper nội bộ =====
-  const buildUpdateFields = (fields) => {
+  const { tags, requiredSkills, ...fields } = data;
+
+  const shouldUpdate = (v) =>
+    !(
+      v === undefined ||
+      v === null ||
+      (typeof v === "string" && v.trim() === "")
+    );
+
+  // ========= 1. FIELD UPDATE (partial như updateApplication) =========
+  const buildUpdateFields = () => {
     const allowed = [
       "title",
       "location",
@@ -178,100 +191,133 @@ exports.updateJob = async (id, data) => {
       "salary_max",
       "requirements",
     ];
+
     const result = { updated_at: new Date() };
+
     for (const key of allowed) {
-      if (Object.hasOwn(fields, key)) {
+      if (Object.hasOwn(fields, key) && shouldUpdate(fields[key])) {
         result[key] = fields[key];
       }
     }
+
     return result;
   };
 
-  const buildTagsMutation = async (tags) => {
-    if (!Array.isArray(tags)) {
-      return null;
+  // ========= 2. TAGS UPDATE =========
+  const updateTags = async (_tx) => {
+    if (tags === undefined) {
+      // FE không gửi → giữ nguyên
+      return {};
     }
-    const uniqueNames = [
+
+    if (!Array.isArray(tags)) {
+      // FE gửi null / "" → giữ nguyên
+      return {};
+    }
+
+    const clean = [
       ...new Set(tags.map((t) => String(t).trim()).filter(Boolean)),
     ];
 
+    // FE gửi [] → xoá hết
+    if (clean.length === 0) {
+      return {
+        tags: {
+          deleteMany: {},
+        },
+      };
+    }
+
+    // FE gửi array → replace
     await Promise.all(
-      uniqueNames.map((name) =>
+      clean.map((name) =>
         prisma.tag.upsert({ where: { name }, update: {}, create: { name } }),
       ),
     );
 
-    const links = await Promise.all(
-      uniqueNames.map(async (name) => {
-        const tag = await prisma.tag.findUnique({
-          where: { name },
-          select: { id: true },
-        });
-        return { tag: { connect: { id: tag.id } } };
-      }),
-    );
+    const rows = await prisma.tag.findMany({
+      where: { name: { in: clean } },
+      select: { id: true },
+    });
 
-    return { deleteMany: {}, create: links };
+    return {
+      tags: {
+        deleteMany: {},
+        create: rows.map((t) => ({
+          tag: { connect: { id: t.id } },
+        })),
+      },
+    };
   };
 
-  const upsertRequiredSkills = async (tx, jobId, requiredSkills) => {
-    if (!Array.isArray(requiredSkills)) {
+  // ========= 3. REQUIRED SKILLS UPDATE =========
+  const updateRequiredSkills = async (tx) => {
+    if (requiredSkills === undefined) {
+      // FE không gửi → giữ nguyên
       return;
     }
 
+    if (!Array.isArray(requiredSkills)) {
+      // FE gửi null/"" → giữ nguyên
+      return;
+    }
+
+    // FE gửi [] → xoá hết
+    if (requiredSkills.length === 0) {
+      await tx.jobRequiredSkill.deleteMany({ where: { job_id: jobId } });
+      return;
+    }
+
+    // FE gửi array → replace
     await tx.jobRequiredSkill.deleteMany({ where: { job_id: jobId } });
 
-    if (requiredSkills.length === 0) {
-      return;
-    }
+    const skillNames = [
+      ...new Set(
+        requiredSkills.map((s) => String(s.name || "").trim()).filter(Boolean),
+      ),
+    ];
 
-    const dataToInsert = [];
-    for (const s of requiredSkills) {
-      let skillId = s.skill_id ? Number(s.skill_id) : null;
-      if (!skillId && s.name) {
-        const name = String(s.name).trim();
-        const existing = await tx.skill.findUnique({
-          where: { name },
-          select: { id: true },
-        });
-        if (existing) {
-          skillId = existing.id;
-        } else {
-          const newSkill = await tx.skill.create({
-            data: { name },
-            select: { id: true },
-          });
-          skillId = newSkill.id;
+    // Create skills if needed
+    await Promise.all(
+      skillNames.map((name) =>
+        tx.skill.upsert({ where: { name }, update: {}, create: { name } }),
+      ),
+    );
+
+    const skillRows = await tx.skill.findMany({
+      where: { name: { in: skillNames } },
+    });
+
+    const toInsert = requiredSkills
+      .map((s) => {
+        const found = skillRows.find((x) => x.name === s.name);
+        if (!found) {
+          return null;
         }
-      }
-      if (!skillId) {
-        continue;
-      }
-      dataToInsert.push({
-        job_id: jobId,
-        skill_id: skillId,
-        level_required: s.level_required ?? null,
-        years_required: s.years_required ?? null,
-        must_have: s.must_have ?? true,
-      });
-    }
 
-    if (dataToInsert.length) {
-      await tx.jobRequiredSkill.createMany({ data: dataToInsert });
+        return {
+          job_id: jobId,
+          skill_id: found.id,
+          level_required: s.level_required ?? null,
+          years_required: s.years_required ?? null,
+          must_have: s.must_have !== false,
+        };
+      })
+      .filter(Boolean);
+
+    if (toInsert.length) {
+      await tx.jobRequiredSkill.createMany({ data: toInsert });
     }
   };
 
-  // ===== Xử lý chính =====
-  const dataToUpdate = buildUpdateFields(fields);
-  const tagMutation = await buildTagsMutation(tags);
-
+  // ========= 4. MAIN UPDATE =========
   const updatedJob = await prisma.$transaction(async (tx) => {
+    const tagMutation = await updateTags(tx);
+    const dataToUpdate = buildUpdateFields();
+
     const updated = await tx.job.update({
       where: { id: jobId },
-      data: {
-        ...dataToUpdate,
-        ...(tagMutation ? { tags: tagMutation } : {}),
-      },
+      data: { ...dataToUpdate, ...tagMutation },
       include: {
         company: { select: { id: true, legal_name: true } },
         approval: true,
@@ -279,9 +325,7 @@ exports.updateJob = async (id, data) => {
       },
     });
 
-    if (Array.isArray(requiredSkills)) {
-      await upsertRequiredSkills(tx, jobId, requiredSkills);
-    }
+    await updateRequiredSkills(tx);
 
     return updated;
   });
@@ -290,6 +334,9 @@ exports.updateJob = async (id, data) => {
     where: { job_id: jobId },
     include: { skill: true },
   });
+
+  // Emit event JOB_CHANGED để xây dựng vector
+  emitEvent("JOB_CHANGED", { jobId });
 
   return toJobDTO({ ...updatedJob, requiredSkills: required });
 };
@@ -412,18 +459,32 @@ exports.getAllJobs = async ({
   };
 };
 
-// Xóa Job (dọn phụ thuộc trước để tránh lỗi FK)
+// Xóa Job hoàn chỉnh (xóa vector + toàn bộ phụ thuộc)
 exports.deleteJob = async (id) => {
   const jobId = BigInt(id);
 
   await prisma.$transaction([
+    // 1) xoá các tương tác của user
     prisma.userFavoriteJobs.deleteMany({ where: { job_id: jobId } }),
-    prisma.jobTag.deleteMany({ where: { job_id: jobId } }), // sửa đúng tên field
-    prisma.jobRequiredSkill.deleteMany({ where: { job_id: jobId } }), // bổ sung xoá kỹ năng yêu cầu
-    prisma.application.deleteMany({ where: { job_id: jobId } }),
     prisma.userInterestHistory.deleteMany({ where: { job_id: jobId } }),
+
+    // 2) xoá các liên kết job → tags / skills
+    prisma.jobTag.deleteMany({ where: { job_id: jobId } }),
+    prisma.jobRequiredSkill.deleteMany({ where: { job_id: jobId } }),
+
+    // 3) xoá các ứng tuyển liên quan
+    prisma.application.deleteMany({ where: { job_id: jobId } }),
+
+    // 4) xoá recommendation liên quan
     prisma.jobRecommendation.deleteMany({ where: { job_id: jobId } }),
+
+    // 5) xoá approval log
     prisma.jobApproval.deleteMany({ where: { job_id: jobId } }),
+
+    // 6) xoá vector job
+    prisma.jobVector.deleteMany({ where: { job_id: jobId } }),
+
+    // 7) cuối cùng xoá job
     prisma.job.delete({ where: { id: jobId } }),
   ]);
 
@@ -514,7 +575,7 @@ exports.approveJob = async (jobId, adminId) => {
 
   // Gửi email thông báo cho recruiter
   try {
-    const manageUrl = `${process.env.CLIENT_URL}/dashboard/jobs/${job.id.toString()}`;
+    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}`;
     await emailService.sendEmail(
       job.creator.email,
       "Bài đăng tuyển dụng đã được DUYỆT",
@@ -573,7 +634,7 @@ exports.rejectJob = async (jobId, adminId, reason) => {
 
   // Gửi email thông báo từ chối cho recruiter
   try {
-    const manageUrl = `${process.env.CLIENT_URL}/dashboard/jobs/${job.id.toString()}/edit`;
+    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}/edit`;
     await emailService.sendEmail(
       job.creator.email,
       "Bài đăng tuyển dụng bị TỪ CHỐI",

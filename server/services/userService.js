@@ -41,14 +41,20 @@ module.exports = {
       throw error;
     }
 
-    // Validate email nếu có
-    if (email && !/\S+@gmail\.com$/.test(email)) {
-      const error = new Error("Email phải có định dạng @gmail.com!");
-      error.status = 400;
-      throw error;
-    }
+    // ==========================
+    // 1. Validate email nếu có
+    // ==========================
+    let shouldResetVerify = false;
 
     if (email) {
+      // Kiểm tra định dạng
+      if (!/\S+@gmail\.com$/.test(email)) {
+        const error = new Error("Email phải có định dạng @gmail.com!");
+        error.status = 400;
+        throw error;
+      }
+
+      // Kiểm tra email đã dùng bởi user khác chưa
       const existingUser = await prisma.user.findFirst({
         where: {
           email,
@@ -60,13 +66,22 @@ module.exports = {
         error.status = 400;
         throw error;
       }
+
+      // Email thay đổi → reset verify
+      if (email !== user.email) {
+        shouldResetVerify = true;
+      }
     }
 
+    // ==========================
+    // 2. Xử lý upload avatar
+    // ==========================
     let avatarPath;
+
     if (avatarFile) {
       avatarPath = "uploads/" + avatarFile.filename;
 
-      // Xóa avatar cũ nếu khác default
+      // Xóa avatar cũ nếu không phải default
       if (user.avatar && user.avatar !== "uploads/pic.jpg") {
         const oldAvatar = path.join(__dirname, "../", user.avatar);
         fs.unlink(oldAvatar, (err) => {
@@ -77,14 +92,16 @@ module.exports = {
       }
     }
 
-    // Trả dữ liệu để controller dùng updateUser
+    // ==========================
+    // 3. Trả dữ liệu để controller update
+    // ==========================
     return {
       name,
       email,
       avatar: avatarPath,
+      resetVerify: shouldResetVerify, // ✔ báo để controller cập nhật
     };
   },
-
   async getUserByEmail(email, excludeUserId) {
     return prisma.user.findFirst({
       where: {

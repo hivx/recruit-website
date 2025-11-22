@@ -126,91 +126,127 @@ exports.getRecruiterPreference = async (userId) => {
 };
 
 exports.upsertRecruiterPreference = async (userId, payload = {}) => {
-  if (!payload) {
-    payload = {};
-  }
+  const uid = BigInt(userId);
+
+  const shouldUpdate = (v) =>
+    !(
+      v === undefined ||
+      v === null ||
+      (typeof v === "string" && v.trim() === "")
+    );
+
   const {
     desired_location,
     desired_salary_avg,
-    desired_tags = [],
-    required_skills = [],
+    desired_tags,
+    required_skills,
   } = payload;
 
-  // upsert core
+  // ========= 1. UPDATE CORE FIELDS (nhẹ & đúng chuẩn) =========
+  const updateCore = {};
+  if (shouldUpdate(desired_location)) {
+    updateCore.desired_location = desired_location;
+  }
+  if (shouldUpdate(desired_salary_avg)) {
+    updateCore.desired_salary_avg = desired_salary_avg;
+  }
+  updateCore.updated_at = new Date();
+
   await prisma.recruiterPreference.upsert({
-    where: { user_id: BigInt(userId) },
-    update: {
-      desired_location: desired_location ?? null,
-      desired_salary_avg: desired_salary_avg ?? null,
-      updated_at: new Date(),
-    },
+    where: { user_id: uid },
+    update: updateCore,
     create: {
-      user_id: BigInt(userId),
+      user_id: uid,
       desired_location: desired_location ?? null,
       desired_salary_avg: desired_salary_avg ?? null,
     },
   });
 
-  // tags
-  const tagNames = [
-    ...new Set(
-      desired_tags
-        .map(String)
-        .map((s) => s.trim())
-        .filter(Boolean),
-    ),
-  ];
-  if (tagNames.length) {
-    await Promise.all(
-      tagNames.map((name) =>
-        prisma.tag.upsert({ where: { name }, update: {}, create: { name } }),
-      ),
-    );
-    const tagRows = await prisma.tag.findMany({
-      where: { name: { in: tagNames } },
-    });
-    await prisma.recruiterPreferenceTag.deleteMany({
-      where: { user_id: BigInt(userId) },
-    });
-    await prisma.recruiterPreferenceTag.createMany({
-      data: tagRows.map((t) => ({ user_id: BigInt(userId), tag_id: t.id })),
-      skipDuplicates: true,
-    });
+  // Helper nhỏ để giảm complexity
+  const replaceList = async (list, deleteFn, insertFn) => {
+    await deleteFn();
+    if (list.length > 0) {
+      await insertFn();
+    }
+  };
+
+  // ========= 2. TAGS (many-to-many) =========
+  if (desired_tags !== undefined) {
+    if (Array.isArray(desired_tags)) {
+      const tagNames = [
+        ...new Set(desired_tags.map((t) => String(t).trim()).filter(Boolean)),
+      ];
+
+      await replaceList(
+        tagNames,
+        () =>
+          prisma.recruiterPreferenceTag.deleteMany({ where: { user_id: uid } }),
+        async () => {
+          await Promise.all(
+            tagNames.map((name) =>
+              prisma.tag.upsert({
+                where: { name },
+                update: {},
+                create: { name },
+              }),
+            ),
+          );
+          const tagRows = await prisma.tag.findMany({
+            where: { name: { in: tagNames } },
+          });
+          await prisma.recruiterPreferenceTag.createMany({
+            data: tagRows.map((t) => ({ user_id: uid, tag_id: t.id })),
+          });
+        },
+      );
+    }
   }
 
-  // required skills
-  if (Array.isArray(required_skills)) {
-    // mỗi item: { name, years_required?, must_have? }
-    const skillNames = [
-      ...new Set(
-        required_skills.map((s) => String(s.name || "").trim()).filter(Boolean),
-      ),
-    ];
-    await Promise.all(
-      skillNames.map((name) =>
-        prisma.skill.upsert({ where: { name }, update: {}, create: { name } }),
-      ),
-    );
-    const skillRows = await prisma.skill.findMany({
-      where: { name: { in: skillNames } },
-    });
+  // ========= 3. REQUIRED SKILLS (many-to-many-with-fields) =========
+  if (required_skills !== undefined) {
+    if (Array.isArray(required_skills)) {
+      await replaceList(
+        required_skills,
+        () =>
+          prisma.recruiterRequiredSkill.deleteMany({ where: { user_id: uid } }),
+        async () => {
+          const skillNames = [
+            ...new Set(
+              required_skills
+                .map((s) => String(s.name || "").trim())
+                .filter(Boolean),
+            ),
+          ];
 
-    await prisma.recruiterRequiredSkill.deleteMany({
-      where: { user_id: BigInt(userId) },
-    });
-    await prisma.recruiterRequiredSkill.createMany({
-      data: required_skills.map((s) => {
-        const skill = skillRows.find((r) => r.name === s.name);
-        return {
-          user_id: BigInt(userId),
-          skill_id: skill.id,
-          years_required: s.years_required ?? null,
-          must_have: s.must_have !== false, // mặc định true
-        };
-      }),
-      skipDuplicates: true,
-    });
+          await Promise.all(
+            skillNames.map((name) =>
+              prisma.skill.upsert({
+                where: { name },
+                update: {},
+                create: { name },
+              }),
+            ),
+          );
+
+          const skillRows = await prisma.skill.findMany({
+            where: { name: { in: skillNames } },
+          });
+
+          await prisma.recruiterRequiredSkill.createMany({
+            data: required_skills.map((s) => ({
+              user_id: uid,
+              skill_id: skillRows.find((r) => r.name === s.name).id,
+              years_required: s.years_required ?? null,
+              must_have: s.must_have !== false,
+            })),
+          });
+        },
+      );
+    }
   }
+
+  // ========= EVENT =========
+  emitEvent("RECRUITER_PREF_CHANGED", { userId: uid });
 
   return this.getRecruiterPreference(userId);
 };

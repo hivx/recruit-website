@@ -11,6 +11,7 @@ module.exports = {
 
   async onUserSkillChanged({ userId }) {
     console.log("[EVENT] USER_SKILL_CHANGED", userId);
+
     await userVector.buildUserVector(userId);
   },
 };

@@ -80,83 +80,16 @@ async function buildUserVector(userId) {
     }),
   ]);
 
-  /** =============================
-   * 1. BUILD SKILL PROFILE
-   * ============================= */
-  const skill_profile = userSkills.map((s) => ({
-    id: s.skill_id,
-    w: computeSkillWeight(s.level, s.years),
-  }));
-
-  /** =============================
-   * 2. BUILD TAG PROFILE (normalized by tag_id)
-   * ============================= */
-  const mergedTags = {};
-
-  // --- 1. Lấy tag từ behaviorProfile (đã chuẩn hóa trọng số) ---
-  if (Array.isArray(behavior?.tags)) {
-    for (const t of behavior.tags) {
-      const name = t?.name?.toLowerCase();
-      if (!name) {
-        continue;
-      }
-
-      mergedTags[name] = Math.max(mergedTags[name] || 0, t.weight || 0);
-    }
-  }
-
-  // --- 2. Convert name → id từ bảng Tag ---
-  const tagNames = Object.keys(mergedTags);
-
-  let tag_profile = [];
-
-  if (tagNames.length > 0) {
-    const dbTags = await prisma.tag.findMany({
-      where: { name: { in: tagNames } },
-      select: { id: true, name: true },
-    });
-
-    tag_profile = dbTags.map((t) => ({
-      id: t.id,
-      weight: Number(mergedTags[t.name.toLowerCase()].toFixed(4)),
-    }));
-  }
-
-  /** =============================
-   * 3. TITLE KEYWORDS (tạm chưa dùng)
-   * ============================= */
-  const keywordMap = {};
-
-  if (Array.isArray(behavior?.keywords)) {
-    for (const kw of behavior.keywords) {
-      const k = kw.name?.toLowerCase();
-      if (!k) {
-        continue;
-      }
-      keywordMap[k] = Math.max(keywordMap[k] || 0, kw.weight || 0);
-    }
-  }
-
-  const title_keywords = Object.entries(keywordMap).map(
-    ([keyword, weight]) => ({
-      keyword,
-      weight: Number(weight.toFixed(4)),
-    }),
+  const skill_profile = buildSkillProfile(userSkills);
+  const mergedTags = mergeBehaviorTags(behavior);
+  const tag_profile = await mapTagsToDB(mergedTags);
+  const title_keywords = buildKeywordProfile(behavior);
+  const { preferred_location, salary_expected } = resolveLocationAndSalary(
+    preference,
+    behavior,
   );
 
-  /** =============================
-   * 4. LOCATION & SALARY
-   * ============================= */
-  const preferred_location = normalizeLocation(
-    preference?.desired_location || behavior?.main_location,
-  );
-
-  const salary_expected = computeExpectedSalary(preference, behavior);
-
-  /** =============================
-   * 5. LƯU VÀO UserVector
-   * ============================= */
-  const updated = await prisma.userVector.upsert({
+  return prisma.userVector.upsert({
     where: { user_id: uid },
     update: {
       skill_profile,
@@ -175,8 +108,76 @@ async function buildUserVector(userId) {
       salary_expected,
     },
   });
+}
 
-  return updated;
+/* ===============================
+    HELPERS
+=============================== */
+
+function buildSkillProfile(userSkills) {
+  return userSkills.map((s) => ({
+    id: s.skill_id,
+    w: computeSkillWeight(s.level, s.years),
+  }));
+}
+
+function mergeBehaviorTags(behavior) {
+  const merged = {};
+  if (Array.isArray(behavior?.tags)) {
+    for (const t of behavior.tags) {
+      const name = typeof t?.name === "string" ? t.name : null;
+      if (!name) {
+        continue;
+      }
+      merged[name] = Math.max(merged[name] || 0, t.weight || 0);
+    }
+  }
+  return merged;
+}
+
+async function mapTagsToDB(mergedTags) {
+  const tagNames = Object.keys(mergedTags);
+  if (!tagNames.length) {
+    return [];
+  }
+
+  const dbTags = await prisma.tag.findMany({
+    where: { name: { in: tagNames } },
+    select: { id: true, name: true },
+  });
+
+  return dbTags.map((t) => ({
+    id: t.id,
+    weight: Number((mergedTags[t.name] ?? 0).toFixed(4)),
+  }));
+}
+
+function buildKeywordProfile(behavior) {
+  const keywordMap = {};
+
+  if (Array.isArray(behavior?.keywords)) {
+    for (const kw of behavior.keywords) {
+      const k = typeof kw.name === "string" ? kw.name.toLowerCase() : null;
+      if (!k) {
+        continue;
+      }
+      keywordMap[k] = Math.max(keywordMap[k] || 0, kw.weight || 0);
+    }
+  }
+
+  return Object.entries(keywordMap).map(([keyword, weight]) => ({
+    keyword,
+    weight: Number(weight.toFixed(4)),
+  }));
+}
+
+function resolveLocationAndSalary(preference, behavior) {
+  return {
+    preferred_location: normalizeLocation(
+      preference?.desired_location || behavior?.main_location,
+    ),
+    salary_expected: computeExpectedSalary(preference, behavior),
+  };
 }
 
 module.exports = {

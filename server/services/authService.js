@@ -78,7 +78,7 @@ module.exports = {
         expiresIn: "1h",
       },
     );
-    const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
+    const verifyLink = `${process.env.SERVER_URL}/api/auth/verify-email?token=${verifyToken}`;
 
     await emailService.sendEmail(
       emailLc,
@@ -137,7 +137,7 @@ module.exports = {
       data: { reset_token: token, reset_token_expiry: expiry },
     });
 
-    const resetLink = `${process.env.CLIENT_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
+    const resetLink = `${process.env.SERVER_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
 
     await emailService.sendEmail(
       emailLc,

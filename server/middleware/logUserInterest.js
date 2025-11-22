@@ -22,11 +22,11 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
       : [];
 
     // ====== Lấy danh sách kỹ năng (nếu job có requiredSkills) ======
-    const skillNames = Array.isArray(job.requiredSkills)
-      ? job.requiredSkills
-          .map((r) => r.skill?.name || r.skill_name)
-          .filter(Boolean)
-      : [];
+    // const skillNames = Array.isArray(job.requiredSkills)
+    //   ? job.requiredSkills
+    //       .map((r) => r.skill?.name || r.skill_name)
+    //       .filter(Boolean)
+    //   : [];
 
     // ====== Đọc thời gian chống ghi log trùng ======
     const windowMin = Number.parseInt(
@@ -59,7 +59,7 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
         job_title: job.title,
         location: job.location ?? null, // thêm location vào
         avg_salary: avgSalary,
-        tags: [...new Set([...tagNames, ...skillNames])], // gộp tags + skills làm keyword hành vi
+        tags: tagNames, // mảng tên tag
         source,
         event_type: eventType,
       },
