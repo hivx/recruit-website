@@ -2,16 +2,13 @@ const profileBuilder = require("../../services/profileBuilderService");
 const userVectorService = require("../../services/userVectorService");
 
 module.exports = {
+  // Xử lý khi có thay đổi hành vi người dùng, chú ý là hành vi có thể ko rebuild do time decay và vector cũng vậy
   async onUserBehaviorChanged({ userId }) {
-    console.log("[EVENT] USER_BEHAVIOR_CHANGED", userId);
-
     await profileBuilder.rebuildForUser(userId);
     userVectorService.buildUserVector(userId);
   },
 
   async onUserSkillChanged({ userId }) {
-    console.log("[EVENT] USER_SKILL_CHANGED", userId);
-
     await userVectorService.buildUserVector(userId);
   },
 };

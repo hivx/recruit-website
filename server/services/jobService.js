@@ -95,17 +95,63 @@ exports.createJob = async (jobData) => {
     });
     createdByName = u?.name || null;
   }
+  const user = await prisma.user.findUnique({
+    where: { id: createdBy },
+    select: { role: true },
+  });
+  const userRole = user?.role;
 
   let companyId = jobData.company_id ?? jobData.companyId;
+
+  // 1) Nếu FE không gửi → lấy công ty của recruiter
   if (!companyId) {
     const ownedCompany = await prisma.company.findFirst({
       where: { owner_id: createdBy },
-      select: { id: true },
+      include: { verification: true },
     });
-    companyId = ownedCompany?.id;
+
+    if (!ownedCompany) {
+      throw Object.assign(new Error("Bạn chưa có công ty!"), { status: 400 });
+    }
+
+    companyId = ownedCompany.id;
+
+    // Nếu bạn yêu cầu company phải được verified
+    if (ownedCompany.verification?.status !== "verified") {
+      throw Object.assign(new Error("Công ty chưa được xác thực!"), {
+        status: 403,
+      });
+    }
   }
-  if (!companyId) {
-    throw Object.assign(new Error("Thiếu company_id!"), { status: 400 });
+
+  // 2) Kiểm tra companyId có tồn tại
+  const companyExists = await prisma.company.findUnique({
+    where: { id: BigInt(companyId) },
+    include: { verification: true },
+  });
+
+  if (!companyExists) {
+    throw Object.assign(new Error("Công ty không tồn tại!"), {
+      status: 404,
+    });
+  }
+
+  // 3) Kiểm tra người tạo job có sở hữu company không (trừ admin)
+  if (
+    userRole !== "admin" &&
+    companyExists.owner_id.toString() !== createdBy.toString()
+  ) {
+    throw Object.assign(new Error("Bạn không sở hữu công ty này!"), {
+      status: 403,
+    });
+  }
+
+  // 4) Kiểm tra company đã verified (tùy policy)
+  if (companyExists.verification?.status !== "verified") {
+    throw Object.assign(
+      new Error("Công ty chưa được xác thực — không thể đăng job."),
+      { status: 403 },
+    );
   }
 
   const tags = Array.isArray(jobData.tags)
@@ -204,14 +250,12 @@ exports.updateJob = async (id, data) => {
   };
 
   // ========= 2. TAGS UPDATE =========
-  const updateTags = async (_tx) => {
+  const updateTags = async (tx) => {
     if (tags === undefined) {
-      // FE không gửi → giữ nguyên
       return {};
     }
 
     if (!Array.isArray(tags)) {
-      // FE gửi null / "" → giữ nguyên
       return {};
     }
 
@@ -219,23 +263,27 @@ exports.updateJob = async (id, data) => {
       ...new Set(tags.map((t) => String(t).trim()).filter(Boolean)),
     ];
 
-    // FE gửi [] → xoá hết
     if (clean.length === 0) {
+      // Xóa toàn bộ tags của job
       return {
         tags: {
-          deleteMany: {},
+          deleteMany: {}, // Prisma sẽ chạy trong transaction tx
         },
       };
     }
 
-    // FE gửi array → replace
+    // Tạo tags nếu chưa có
     await Promise.all(
       clean.map((name) =>
-        prisma.tag.upsert({ where: { name }, update: {}, create: { name } }),
+        tx.tag.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        }),
       ),
     );
 
-    const rows = await prisma.tag.findMany({
+    const rows = await tx.tag.findMany({
       where: { name: { in: clean } },
       select: { id: true },
     });

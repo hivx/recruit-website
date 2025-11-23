@@ -196,7 +196,7 @@ function addToMap(scoreMap, field, weight) {
 
 function addSalary(e, stdEvent, weight, sum, wSum) {
   //Tính lương chỉ cho các event quan trọng (có thể điều chỉnh theo thực tế)
-  if (!["favorite", "apply", "view", "unfavorite"].includes(stdEvent)) {
+  if (!["favorite", "apply", "view"].includes(stdEvent)) {
     return { salarySumW: sum, weightSum: wSum };
   }
   const mid = Number(e.avg_salary) || 0;

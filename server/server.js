@@ -31,7 +31,7 @@ app.use(express.json());
 require("./events/init");
 
 // Khởi chạy cron rebuild vector định kỳ
-require("./utils/vectorCron");
+require("./utils/cronSchedules");
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
