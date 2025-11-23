@@ -30,6 +30,9 @@ app.use(express.json());
 // Khởi tạo event handlers
 require("./events/init");
 
+// Khởi chạy cron rebuild vector định kỳ
+require("./utils/vectorCron");
+
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

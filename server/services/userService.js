@@ -46,7 +46,7 @@ module.exports = {
     // ==========================
     let shouldResetVerify = false;
 
-    if (typeof email === "string") {
+    if (email) {
       // Kiểm tra định dạng
       if (!/\S+@gmail\.com$/.test(email)) {
         const error = new Error("Email phải có định dạng @gmail.com!");

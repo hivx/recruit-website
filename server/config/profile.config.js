@@ -20,7 +20,7 @@ module.exports = {
   PRIOR: { tag: 4, location: 4, desSalaryWe: 0.3, salaryFallback: true },
 
   // Khoảng thời gian tối thiểu giữa 2 lần rebuild profile liên tiếp (phút)
-  MIN_REBUILD_INTERVAL_MINUTES: 5,
+  MIN_REBUILD_INTERVAL_MINUTES: 0,
 
   // Khoảng thời gian để coi là duplicate log (phút)
   LOG_DUPLICATE_WINDOW_MINUTES: 15,
@@ -28,5 +28,9 @@ module.exports = {
   // Lấy bao nhiêu keyword có điểm cao nhất để làm profile
   TOPK_KEY: 2,
 
-  MIN_REBUILD_VECTOR_MINUTES: 5,
+  // Thời gian tối thiểu giữa 2 lần rebuild vector liên tiếp (phút)
+  MIN_REBUILD_VECTOR_MINUTES: 0,
+
+  // Khoảng thời gian chạy cron để rebuild vector tự động (phút)
+  VECTOR_CRON_INTERVAL_MIN: 1,
 };
