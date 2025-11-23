@@ -17,5 +17,6 @@ router.get("/reset-password", authController.resetPassword);
 
 // Xác minh email
 router.get("/verify-email", authController.verifyEmail);
+router.get("/confirm-change-email", authController.confirmChangeEmail);
 
 module.exports = router;

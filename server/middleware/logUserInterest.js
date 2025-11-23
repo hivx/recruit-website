@@ -1,4 +1,5 @@
 // middleware/logUserInterest.js
+const cfg = require("../config/profile.config");
 const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");
 
@@ -30,7 +31,7 @@ async function logUserInterest({ userId, job, source, eventType = null }) {
 
     // ====== Đọc thời gian chống ghi log trùng ======
     const windowMin = Number.parseInt(
-      process.env.LOG_DUPLICATE_WINDOW_MINUTES || "15",
+      cfg.LOG_DUPLICATE_WINDOW_MINUTES || "15",
       10,
     );
 

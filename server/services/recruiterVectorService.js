@@ -1,5 +1,6 @@
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
+const { shouldRebuildVector } = require("../utils/shouldRebuildVector");
 
 /**
  * Convert years_required → weight [0.1 → 1]
@@ -36,6 +37,17 @@ async function buildRecruiterVector(userId) {
   // 2) role check
   if (user.role !== "recruiter" && user.role !== "admin") {
     throw new Error("Người dùng không phải nhà tuyển dụng");
+  }
+
+  const canRebuild = await shouldRebuildVector(
+    "recruiterVector",
+    "user_id",
+    userId,
+  );
+
+  if (!canRebuild) {
+    console.log("[SKIP] Bỏ qua build recruiterVector: ", userId);
+    return null;
   }
 
   const pref = await prisma.recruiterPreference.findUnique({

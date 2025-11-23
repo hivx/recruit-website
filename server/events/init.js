@@ -12,5 +12,3 @@ onEvent("RECRUITER_PREF_CHANGED", recruiterEvents.onRecruiterPreferenceChanged);
 
 // Event build job vector khi có thay đổi job
 onEvent("JOB_CHANGED", jobEvents.onJobChanged);
-
-console.log("[EventBus] Loaded event handlers");

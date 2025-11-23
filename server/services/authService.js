@@ -134,10 +134,14 @@ module.exports = {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { reset_token: token, reset_token_expiry: expiry },
+      data: {
+        reset_token: token,
+        reset_token_expiry: expiry,
+        reset_password_hash: hashed,
+      },
     });
 
-    const resetLink = `${process.env.SERVER_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
+    const resetLink = `${process.env.SERVER_URL}/api/auth/reset-password?token=${token}`;
 
     await emailService.sendEmail(
       emailLc,
@@ -152,7 +156,7 @@ module.exports = {
   },
 
   // Xác nhận qua link để đặt lại mật khẩu
-  async confirmReset(token, hashed) {
+  async confirmReset(token) {
     const user = await prisma.user.findFirst({
       where: {
         reset_token: token,
@@ -164,12 +168,21 @@ module.exports = {
       return null;
     }
 
+    // Bảo vệ: nếu vì lý do nào đó chưa có hash -> không làm tiếp
+    if (!user.reset_password_hash) {
+      throw httpError(
+        "Không tìm thấy mật khẩu mới, vui lòng yêu cầu lại!",
+        400,
+      );
+    }
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: decodeURIComponent(hashed), // giữ logic cũ
+        password: user.reset_password_hash, // đã là bcrypt hash
         reset_token: null,
         reset_token_expiry: null,
+        reset_password_hash: null, // xoá luôn hash tạm
       },
     });
 
@@ -226,5 +239,27 @@ module.exports = {
     });
 
     return { success: true };
+  },
+  async sendVerifyEmailChange(user, newEmail) {
+    const verifyToken = jwt.sign(
+      { userId: user.id.toString(), newEmail },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+
+    const verifyLink = `${process.env.SERVER_URL}/api/auth/confirm-change-email?token=${verifyToken}`;
+
+    // Gửi đến email GỐC — user.email
+    await emailService.sendEmail(
+      user.email,
+      "Xác nhận thay đổi email",
+      `
+      <p>Chào ${user.name},</p>
+      <p>Bạn yêu cầu đổi email thành: <b>${newEmail}</b></p>
+      <p>Nhấn vào link sau để xác nhận:</p>
+      <p><a href="${verifyLink}">${verifyLink}</a></p>
+      <p>Nếu không phải bạn thực hiện, hãy bỏ qua email.</p>
+    `,
+    );
   },
 };

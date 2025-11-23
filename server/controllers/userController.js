@@ -2,9 +2,11 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+const authService = require("../services/authService");
 const recruiterVectorService = require("../services/recruiterVectorService");
 const userService = require("../services/userService");
 const userVectorService = require("../services/userVectorService");
+
 const { toUserDTO } = require("../utils/serializers/user"); // DTO
 
 exports.toggleFavoriteJob = async (req, res) => {
@@ -38,9 +40,8 @@ exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { name, email } = req.body;
-    const avatarFile = req.file; // multer upload
+    const avatarFile = req.file;
 
-    // Gọi service validate + xử lý avatar
     const updateData = await userService.validUpdateUser({
       userId,
       name,
@@ -48,17 +49,31 @@ exports.updateProfile = async (req, res) => {
       avatarFile,
     });
 
-    // Cập nhật DB
-    const updatedUser = await userService.updateUser(userId, updateData);
+    // tách emailNew ra khỏi phần sẽ được update
+    const { emailNew, ...userFields } = updateData;
+
+    // 1) Cập nhật các field khác (KHÔNG cập nhật email)
+    const updatedUser = await userService.updateUser(userId, userFields);
+
+    // 2) Nếu user đổi email → gửi mail xác nhận đến email mới
+    if (emailNew) {
+      try {
+        await authService.sendVerifyEmailChange(updatedUser, emailNew);
+      } catch (e) {
+        console.error("Gửi email xác nhận đổi email thất bại:", e.message);
+      }
+    }
 
     res.status(200).json({
-      message: "Cập nhật thông tin thành công",
+      message: emailNew
+        ? "Vui lòng kiểm tra email mới để xác nhận thay đổi."
+        : "Cập nhật thông tin thành công",
       user: toUserDTO(updatedUser),
     });
   } catch (err) {
     console.error("[Update Profile Error]", err);
 
-    // Nếu file upload mà lỗi validation → xóa file mới
+    // KHÔNG được bỏ đoạn này — rollback file upload nếu có lỗi
     if (req.file) {
       const failedFile = path.join(__dirname, "../uploads", req.file.filename);
       fs.unlink(failedFile, (unlinkErr) => {

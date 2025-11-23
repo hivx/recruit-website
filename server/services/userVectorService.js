@@ -1,6 +1,7 @@
 // services/userVectorService.js
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
+const { shouldRebuildVector } = require("../utils/shouldRebuildVector");
 
 /**
  * Map level → max years tương ứng
@@ -66,6 +67,17 @@ async function buildUserVector(userId) {
   const uid = BigInt(userId);
 
   await validateApplicant(uid);
+
+  const canRebuild = await shouldRebuildVector(
+    "userVector", // bảng user_vector
+    "user_id", // field id
+    userId,
+  );
+
+  if (!canRebuild) {
+    console.log("[SKIP] Bỏ qua build userVector: ", userId);
+    return null;
+  }
 
   const [userSkills, behavior, preference] = await Promise.all([
     prisma.userSkill.findMany({

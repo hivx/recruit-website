@@ -1,6 +1,7 @@
 // server/services/jobVectorService.js
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
+const { shouldRebuildVector } = require("../utils/shouldRebuildVector");
 
 const MAX_YEARS_BY_LEVEL = { 1: 1, 2: 3, 3: 5, 4: 7, 5: 10 };
 
@@ -17,6 +18,12 @@ function computeJobSkillWeight(level = 1, years = 0, fitWeight = 1) {
 }
 
 async function buildJobVector(jobId) {
+  const canRebuild = await shouldRebuildVector("jobVector", "job_id", jobId);
+
+  if (!canRebuild) {
+    console.log("[SKIP] Bỏ qua build jobVector: ", jobId);
+    return null;
+  }
   const job = await prisma.job.findUnique({
     where: { id: BigInt(jobId) },
     include: {

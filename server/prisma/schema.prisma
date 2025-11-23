@@ -19,6 +19,7 @@ model User {
   updated_at          DateTime                  @default(now()) @updatedAt
   reset_token         String?                   @db.VarChar(255)
   reset_token_expiry  DateTime?
+  reset_password_hash String?                   @db.VarChar(255)
   applications        Application[]
   candidateRecommends CandidateRecommendation[] @relation("CandidateAsApplicant")
   recruiterRecommends CandidateRecommendation[] @relation("CandidateAsRecruiter")

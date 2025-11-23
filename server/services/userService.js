@@ -46,7 +46,7 @@ module.exports = {
     // ==========================
     let shouldResetVerify = false;
 
-    if (email) {
+    if (typeof email === "string") {
       // Kiểm tra định dạng
       if (!/\S+@gmail\.com$/.test(email)) {
         const error = new Error("Email phải có định dạng @gmail.com!");
@@ -97,11 +97,11 @@ module.exports = {
     // ==========================
     return {
       name,
-      email,
       avatar: avatarPath,
-      resetVerify: shouldResetVerify, // ✔ báo để controller cập nhật
+      emailNew: shouldResetVerify ? email : null,
     };
   },
+
   async getUserByEmail(email, excludeUserId) {
     return prisma.user.findFirst({
       where: {

@@ -1,5 +1,8 @@
 // controllers/authController.js
+const jwt = require("jsonwebtoken");
 const authService = require("../services/authService");
+
+const prisma = require("../utils/prisma");
 
 // Đăng ký
 exports.register = async (req, res) => {
@@ -114,12 +117,12 @@ exports.forgotPassword = async (req, res) => {
 // GET /auth/reset-password?token=xxx&hashed=yyy
 exports.resetPassword = async (req, res) => {
   try {
-    const { token, hashed } = req.query || {};
-    if (!token || !hashed) {
-      return res.status(400).send("<h1>Thiếu token hoặc mật khẩu!</h1>");
+    const { token } = req.query || {};
+    if (!token) {
+      return res.status(400).send("<h1>Thiếu token!</h1>");
     }
 
-    const result = await authService.confirmReset(token, hashed);
+    const result = await authService.confirmReset(token);
     if (!result) {
       return res
         .status(400)
@@ -132,5 +135,26 @@ exports.resetPassword = async (req, res) => {
   } catch (err) {
     console.error("[Reset Password Error]", err);
     return res.status(500).send("<h1>Lỗi server!</h1>");
+  }
+};
+
+// Xác nhận thay đổi email
+exports.confirmChangeEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { userId, newEmail } = decoded;
+
+    await prisma.user.update({
+      where: { id: BigInt(userId) },
+      data: { email: newEmail },
+    });
+
+    return res.send("<h1>Thay đổi email thành công!</h1>");
+  } catch (err) {
+    console.error(err);
+    return res.status(400).send("<h1>Link không hợp lệ hoặc đã hết hạn!</h1>");
   }
 };
