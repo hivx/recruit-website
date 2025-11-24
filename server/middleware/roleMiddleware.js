@@ -1,6 +1,6 @@
 // middleware/roleMiddleware.js
-module.exports = (...allowedRoles) => {
-  return (req, res, next) => {
+module.exports = function authorizeRoles(...allowedRoles) {
+  return function roleHandler(req, res, next) {
     const userRole = req.user.role;
     if (!allowedRoles.includes(userRole)) {
       return res

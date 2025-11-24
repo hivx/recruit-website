@@ -7,86 +7,428 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  admin
-  recruiter
-  applicant
+model User {
+  id                  BigInt                    @id @default(autoincrement())
+  name                String                    @db.VarChar(100)
+  avatar              String                    @default("uploads/pic.jpg") @db.VarChar(255)
+  email               String                    @unique @db.VarChar(100)
+  password            String                    @db.VarChar(100)
+  role                UserRole                  @default(applicant)
+  isVerified          Boolean                   @default(false)
+  created_at          DateTime                  @default(now())
+  updated_at          DateTime                  @default(now()) @updatedAt
+  reset_token         String?                   @db.VarChar(255)
+  reset_token_expiry  DateTime?
+  reset_password_hash String?                   @db.VarChar(255)
+  applications        Application[]
+  candidateRecommends CandidateRecommendation[] @relation("CandidateAsApplicant")
+  recruiterRecommends CandidateRecommendation[] @relation("CandidateAsRecruiter")
+  careerPreference    CareerPreference?
+  company             Company?
+  recommendations     JobRecommendation[]
+  jobs                Job[]                     @relation("UserJobs")
+  recruiterPreference RecruiterPreference?
+  recruiterVector     RecruiterVector?
+  behaviorProfile     UserBehaviorProfile?
+  favorites           UserFavoriteJobs[]
+  interestHistory     UserInterestHistory[]
+  userJobMatrix       UserJobMatrix[]
+  userSkills          UserSkill[]
+  vector              UserVector?
+
+  @@index([email], map: "idx_user_email")
+  @@map("users")
 }
 
-model User {
-  id         BigInt   @id @default(autoincrement())
-  name       String   @db.VarChar(100)
-  avatar     String   @default("uploads\\pic.jpg") @db.VarChar(500)
-  email      String   @unique @db.VarChar(100)
-  password   String   @db.VarChar(100)
-  isVerified Boolean  @default(false)
-  role       Role     @default(applicant)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model Company {
+  id                  BigInt               @id @default(autoincrement())
+  legal_name          String               @db.VarChar(255)
+  registration_number String               @db.VarChar(100)
+  tax_id              String?              @db.VarChar(100)
+  country_code        String               @db.VarChar(2)
+  registered_address  String               @db.VarChar(255)
+  incorporation_date  DateTime?
+  owner_id            BigInt               @unique
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @default(now()) @updatedAt
+  owner               User                 @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  verification        CompanyVerification?
+  jobs                Job[]
 
-  favorites    UserFavoriteJobs[]
-  jobs         Job[]          @relation("UserJobs")
-  applications Application[]
+  @@unique([registration_number, country_code], map: "uq_company_reg_country")
+  @@index([country_code], map: "idx_company_country")
+  @@map("companies")
+}
 
-  reset_token       String?   @db.VarChar(255)
-  reset_token_expiry DateTime?
+model CompanyVerification {
+  id               BigInt                    @id @default(autoincrement())
+  reviewed_by      BigInt?
+  company_id       BigInt                    @unique
+  status           CompanyVerificationStatus @default(submitted)
+  rejection_reason String?                   @db.VarChar(255)
+  submitted_at     DateTime                  @default(now())
+  verified_at      DateTime?
+  company          Company                   @relation(fields: [company_id], references: [id], onDelete: Cascade)
 
-  @@map("users") // <— bảng thật trong MySQL
+  @@index([status], map: "idx_companyver_status")
+  @@map("company_verifications")
 }
 
 model Job {
-  id              BigInt  @id @default(autoincrement())
-  title           String  @db.VarChar(200)
-  company         String  @db.VarChar(200)
-  location        String? @db.VarChar(100)
-  description     String? @db.VarChar(500)
-  salary_min      Int?
-  salary_max      Int?
-  requirements    String?  @db.VarChar(500)
-  created_by      BigInt
-  created_by_name String   @db.VarChar(500)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @default(now())
+  id                BigInt                @id @default(autoincrement())
+  title             String                @db.VarChar(200)
+  company_id        BigInt
+  created_by        BigInt
+  created_by_name   String                @db.VarChar(200)
+  location          String?               @db.VarChar(100)
+  description       String?               @db.VarChar(500)
+  salary_min        Int?
+  salary_max        Int?
+  requirements      String?               @db.VarChar(500)
+  quality_score     Float?                @default(0)
+  application_count Int                   @default(0)
+  created_at        DateTime              @default(now())
+  updated_at        DateTime              @default(now()) @updatedAt
+  applications      Application[]
+  approval          JobApproval?
+  recommendations   JobRecommendation[]
+  requiredSkills    JobRequiredSkill[]
+  tags              JobTag[]
+  vector            JobVector?
+  company           Company               @relation(fields: [company_id], references: [id])
+  creator           User                  @relation("UserJobs", fields: [created_by], references: [id])
+  favorites         UserFavoriteJobs[]
+  interestLogs      UserInterestHistory[]
+  userJobMatrix     UserJobMatrix[]
 
-  creator   User               @relation("UserJobs", fields: [created_by], references: [id])
-  tags      JobTag[]
-  favorites UserFavoriteJobs[]
-  apps      Application[]
+  @@index([company_id], map: "idx_jobs_company")
+  @@index([created_by], map: "idx_jobs_creator")
+  @@index([location], map: "idx_jobs_location")
+  @@index([updated_at], map: "idx_jobs_updated")
+  @@map("jobs")
+}
 
-  @@map("jobs") // <—
+model JobApproval {
+  id         BigInt            @id @default(autoincrement())
+  job_id     BigInt            @unique
+  status     JobApprovalStatus @default(pending)
+  reason     String?           @db.VarChar(255)
+  auditor_id BigInt?
+  audited_at DateTime?
+  updated_at DateTime          @default(now()) @updatedAt
+  job        Job               @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@index([status, audited_at], map: "idx_jobapproval_status_time")
+  @@map("job_approvals")
+}
+
+model JobRequiredSkill {
+  job_id         BigInt
+  skill_id       Int
+  level_required Int?
+  years_required Int?
+  must_have      Boolean @default(true)
+  fit_weight     Float?  @default(1)
+  job            Job     @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  skill          Skill   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@id([job_id, skill_id])
+  @@index([skill_id], map: "idx_jobreq_skill")
+  @@map("job_required_skills")
+}
+
+model Tag {
+  id        Int                      @id @default(autoincrement())
+  name      String                   @unique @db.VarChar(100)
+  candPrefs CareerPreferenceTag[]
+  jobs      JobTag[]
+  recPrefs  RecruiterPreferenceTag[]
+
+  @@map("tags")
 }
 
 model JobTag {
   job_id BigInt
-  tag    String
-  job    Job    @relation(fields: [job_id], references: [id])
+  tag_id Int
+  job    Job    @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tag_id], references: [id], onDelete: Cascade)
 
-  @@id([job_id, tag])
-  @@map("job_tags") // <—
+  @@id([job_id, tag_id])
+  @@index([tag_id], map: "idx_jobtag_tag")
+  @@map("job_tags")
 }
 
 model UserFavoriteJobs {
   user_id BigInt
   job_id  BigInt
-  user    User   @relation(fields: [user_id], references: [id])
-  job     Job    @relation(fields: [job_id], references: [id])
+  job     Job    @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, job_id])
-  @@map("user_favorite_jobs") // <—
+  @@index([job_id], map: "user_favorite_jobs_job_id_fkey")
+  @@map("user_favorite_jobs")
 }
 
 model Application {
-  id           BigInt   @id @default(autoincrement())
+  id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String   @db.VarChar(500)
-  cv           String?  @db.VarChar(500)
-  phone        String?  @db.VarChar(100)
-  created_at   DateTime @default(now())
+  cover_letter String            @db.VarChar(1000)
+  cv           String?
+  phone        String?
+  status       ApplicationStatus @default(pending)
+  fit_score    Float?            @default(0)
+  created_at   DateTime          @default(now())
+  review_note  String?           @db.VarChar(500)
+  reviewed_at  DateTime?
+  reviewed_by  BigInt?
+  updated_at   DateTime          @default(now()) @updatedAt
+  applicant    User              @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
+  job          Job               @relation(fields: [job_id], references: [id], onDelete: Cascade)
 
-  job       Job  @relation(fields: [job_id], references: [id])
-  applicant User @relation(fields: [applicant_id], references: [id])
+  @@index([job_id, status], map: "idx_app_job_status")
+  @@index([fit_score], map: "idx_app_fit")
+  @@index([applicant_id], map: "idx_app_applicant")
+  @@index([job_id], map: "idx_app_job")
+  @@map("applications")
+}
 
-  // @@unique([job_id, applicant_id])
-  @@map("applications") // <—
+model UserInterestHistory {
+  id          BigInt         @id @default(autoincrement())
+  user_id     BigInt
+  job_id      BigInt
+  job_title   String         @db.VarChar(255)
+  location    String?        @db.VarChar(100)
+  avg_salary  Int?
+  tags        Json?
+  source      InterestSource
+  event_type  String?        @default("open_detail") @db.VarChar(50)
+  recorded_at DateTime       @default(now())
+  updated_at  DateTime       @default(now()) @updatedAt
+  job         Job            @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, recorded_at], map: "idx_uih_user_date")
+  @@index([job_id], map: "idx_uih_job")
+  @@map("user_interest_history")
+}
+
+model CareerPreference {
+  user_id          BigInt                @id
+  desired_title    String?               @db.VarChar(200)
+  desired_company  String?               @db.VarChar(200)
+  desired_location String?               @db.VarChar(100)
+  desired_salary   Int?
+  created_at       DateTime              @default(now())
+  updated_at       DateTime              @default(now()) @updatedAt
+  tags             CareerPreferenceTag[]
+  user             User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("career_preferences")
+}
+
+model CareerPreferenceTag {
+  user_id    BigInt
+  tag_id     Int
+  tag        Tag              @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+  preference CareerPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@id([user_id, tag_id])
+  @@index([tag_id], map: "career_preference_tags_tag_id_fkey")
+  @@map("career_preference_tags")
+}
+
+model RecruiterPreference {
+  user_id            BigInt                   @id
+  desired_location   String?
+  desired_salary_avg Int?
+  updated_at         DateTime                 @default(now()) @updatedAt
+  desiredTags        RecruiterPreferenceTag[]
+  user               User                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  requiredSkills     RecruiterRequiredSkill[]
+
+  @@map("recruiter_preferences")
+}
+
+model RecruiterRequiredSkill {
+  user_id        BigInt
+  skill_id       Int
+  years_required Int?
+  must_have      Boolean             @default(true)
+  skill          Skill               @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  preference     RecruiterPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@id([user_id, skill_id])
+  @@index([skill_id], map: "idx_rec_req_skill")
+  @@map("recruiter_required_skills")
+}
+
+model RecruiterPreferenceTag {
+  user_id    BigInt
+  tag_id     Int
+  tag        Tag                 @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+  preference RecruiterPreference @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@id([user_id, tag_id])
+  @@index([tag_id], map: "idx_rec_pref_tag")
+  @@map("recruiter_preference_tags")
+}
+
+model UserBehaviorProfile {
+  user_id       BigInt   @id
+  avg_salary    Int?
+  main_location String?  @db.VarChar(100)
+  tags          Json?
+  keywords      Json?
+  updated_at    DateTime @default(now()) @updatedAt
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("user_behavior_profile")
+}
+
+model JobRecommendation {
+  id             BigInt    @id @default(autoincrement())
+  user_id        BigInt
+  job_id         BigInt
+  fit_score      Float?    @default(0)
+  reason         String?   @db.VarChar(255)
+  is_sent        Boolean   @default(false)
+  sent_at        DateTime?
+  status         String?   @db.VarChar(50)
+  recommended_at DateTime  @default(now())
+  updated_at     DateTime  @default(now()) @updatedAt
+  job            Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, job_id])
+  @@index([fit_score], map: "idx_jobreco_fit")
+  @@index([job_id], map: "job_recommendations_job_id_fkey")
+  @@map("job_recommendations")
+}
+
+model CandidateRecommendation {
+  id             BigInt   @id @default(autoincrement())
+  recruiter_id   BigInt
+  applicant_id   BigInt
+  fit_score      Float?   @default(0)
+  reason         String?  @db.VarChar(255)
+  status         String?  @db.VarChar(50)
+  recommended_at DateTime @default(now())
+  updated_at     DateTime @default(now()) @updatedAt
+  applicant      User     @relation("CandidateAsApplicant", fields: [applicant_id], references: [id], onDelete: Cascade)
+  recruiter      User     @relation("CandidateAsRecruiter", fields: [recruiter_id], references: [id], onDelete: Cascade)
+
+  @@unique([recruiter_id, applicant_id])
+  @@index([fit_score], map: "idx_candreco_fit")
+  @@index([applicant_id], map: "candidate_recommendations_applicant_id_fkey")
+  @@map("candidate_recommendations")
+}
+
+model Skill {
+  id                  Int                      @id @default(autoincrement())
+  name                String                   @unique @db.VarChar(100)
+  jobRequiredBy       JobRequiredSkill[]
+  recruiterRequiredBy RecruiterRequiredSkill[]
+  users               UserSkill[]
+
+  @@map("skills")
+}
+
+model UserSkill {
+  user_id  BigInt
+  skill_id Int
+  level    Int?
+  years    Int?
+  note     String? @db.VarChar(255)
+  skill    Skill   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, skill_id])
+  @@index([skill_id], map: "idx_userskill_skill")
+  @@map("user_skills")
+}
+
+model UserVector {
+  user_id            BigInt   @id
+  skill_profile      Json?
+  tag_profile        Json?
+  title_keywords     Json?
+  preferred_location String?  @db.VarChar(100)
+  salary_expected    Int?
+  updated_at         DateTime @default(now()) @updatedAt
+  user               User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([updated_at])
+  @@map("user_vector")
+}
+
+model RecruiterVector {
+  user_id            BigInt   @id
+  skill_profile      Json?
+  tag_profile        Json?
+  preferred_location String?  @db.VarChar(100)
+  salary_avg         Int?
+  updated_at         DateTime @default(now()) @updatedAt
+  recruiter          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("recruiter_vector")
+}
+
+model JobVector {
+  job_id         BigInt   @id
+  skill_profile  Json?
+  tag_profile    Json?
+  title_keywords Json?
+  location       String?  @db.VarChar(100)
+  salary_avg     Int?
+  updated_at     DateTime @default(now()) @updatedAt
+  job            Job      @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@index([updated_at])
+  @@map("job_vector")
+}
+
+model UserJobMatrix {
+  user_id    BigInt
+  job_id     BigInt
+  score      Float
+  updated_at DateTime @default(now()) @updatedAt
+  job        Job      @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, job_id])
+  @@index([score], map: "idx_userjob_score")
+  @@index([job_id], map: "user_job_matrix_job_id_fkey")
+  @@map("user_job_matrix")
+}
+
+enum UserRole {
+  admin
+  recruiter
+  applicant
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum CompanyVerificationStatus {
+  submitted
+  verified
+  rejected
+}
+
+enum JobApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum InterestSource {
+  viewed
+  applied
+  favorite
+  recommended
 }

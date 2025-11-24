@@ -1,6 +1,6 @@
 // server/server.js
 require("dotenv").config();
-const path = require("path");
+const path = require("node:path");
 
 const cors = require("cors");
 const express = require("express");
@@ -11,21 +11,18 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 const prisma = require("./utils/prisma");
 
-// BigInt safe stringify toàn cục
-const originalStringify = JSON.stringify;
-JSON.stringify = (value, replacer, space) =>
-  originalStringify(
-    value,
-    (key, val) => (typeof val === "bigint" ? val.toString() : val),
-    space,
-  );
-
 // Khởi tạo app
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Khởi tạo event handlers
+require("./events/init");
+
+// Khởi chạy cron rebuild vector định kỳ
+require("./utils/cronSchedules");
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -51,6 +48,10 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/jobs", require("./routes/job"));
 app.use("/api/applications", require("./routes/application"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/companies", require("./routes/company"));
+app.use("/api/preferences", require("./routes/preference"));
+app.use("/api/skills", require("./routes/skill"));
+app.use("/api/recommendations", require("./routes/recommendation"));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

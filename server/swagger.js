@@ -1,3 +1,4 @@
+// server/swagger.js
 const swaggerJsdoc = require("swagger-jsdoc");
 
 const swaggerDefinition = {

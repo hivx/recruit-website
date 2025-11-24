@@ -13,7 +13,23 @@
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *
  *   schemas:
+ *     CompanySummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 9
+ *         legal_name:
+ *           type: string
+ *           example: "ABC Technology Co., Ltd."
+ *         verificationStatus:
+ *           type: string
+ *           nullable: true
+ *           description: Trạng thái xác thực công ty (submitted|verified|rejected)
+ *           example: "verified"
+ *
  *     RegisterInput:
  *       type: object
  *       required:
@@ -24,19 +40,20 @@
  *       properties:
  *         name:
  *           type: string
- *           example: Chu Văn Hiếu
+ *           example: "Chu Văn Hiếu"
  *         email:
  *           type: string
  *           format: email
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         password:
  *           type: string
  *           format: password
- *           example: 123456
+ *           example: "123456"
  *         role:
  *           type: string
  *           enum: [admin, recruiter, applicant]
- *           example: applicant
+ *           example: "applicant"
+ *
  *     LoginInput:
  *       type: object
  *       required:
@@ -46,11 +63,12 @@
  *         email:
  *           type: string
  *           format: email
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         password:
  *           type: string
  *           format: password
- *           example: 123456
+ *           example: "123456"
+ *
  *     UserResponse:
  *       type: object
  *       properties:
@@ -59,24 +77,32 @@
  *           example: 1
  *         name:
  *           type: string
- *           example: Chu Văn Hiếu
+ *           example: "Chu Văn Hiếu"
  *         email:
  *           type: string
- *           example: chuvanhieu357@gmail.com
+ *           example: "chuvanhieu357@gmail.com"
  *         role:
  *           type: string
  *           enum: [admin, recruiter, applicant]
- *           example: applicant
+ *           example: "applicant"
  *         isVerified:
  *           type: boolean
  *           example: true
  *         avatar:
  *           type: string
- *           example: uploads/1_1736625098123.png
+ *           example: "uploads/pic.jpg"
  *         created_at:
  *           type: string
  *           format: date-time
  *           example: 2025-09-01T10:20:30.000Z
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-10-01T12:34:56.000Z
+ *         company:
+ *           oneOf:
+ *             - $ref: '#/components/schemas/CompanySummary'
+ *             - type: "null"
  */
 
 /**
@@ -94,8 +120,33 @@
  *     responses:
  *       201:
  *         description: Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!"
  *       400:
- *         description: Chỉ chấp nhận email @gmail.com!
+ *         description: Dữ liệu không hợp lệ!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   examples:
+ *                     notGmail:
+ *                       summary: Chỉ chấp nhận @gmail.com
+ *                       value: "Chỉ chấp nhận email @gmail.com!"
+ *                     weakPwd:
+ *                       summary: Mật khẩu yếu
+ *                       value: "Mật khẩu phải có ít nhất 6 ký tự!"
+ *                     missing:
+ *                       summary: Thiếu trường
+ *                       value: "Thiếu name/email/password!"
  *       403:
  *         description: Không thể tự đăng ký với quyền admin!
  *       409:
@@ -108,7 +159,7 @@
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Đăng nhập tài khoản
+ *     summary: Đăng nhập tài khoản (chỉ khi tài khoản đã xác minh email)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -126,7 +177,7 @@
  *               properties:
  *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwicm9sZSI6InJlY3J1aXRlciIsImlhdCI6MTc1ODEyOTAxMywiZXhwIjoxNzU4MjE1NDEzfQ.E85DuUN1ATnCohrAYI0mtlH9u69aRz24g1hmfhcAlaI
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *                 user:
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
@@ -147,7 +198,7 @@
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Trả về thông tin người dùng
+ *         description: Trả về thông tin người dùng hiện tại
  *         content:
  *           application/json:
  *             schema:
@@ -160,7 +211,7 @@
  * @swagger
  * /api/auth/forgot-password:
  *   post:
- *     summary: Yêu cầu đặt lại mật khẩu
+ *     summary: Yêu cầu đặt lại mật khẩu (gửi email xác nhận)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -175,12 +226,15 @@
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *                 example: "chuvanhieu357@gmail.com"
  *               newPassword:
  *                 type: string
+ *                 format: password
  *                 example: "654321"
  *               confirmPassword:
  *                 type: string
+ *                 format: password
  *                 example: "654321"
  *     responses:
  *       200:
@@ -196,5 +250,7 @@
  *       400:
  *         description: Thiếu dữ liệu hoặc mật khẩu không hợp lệ!
  *       404:
- *         description: Không tìm thấy user với email đã cung cấp!
+ *         description: Email không tồn tại!
+ *       500:
+ *         description: Lỗi server!
  */

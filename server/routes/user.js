@@ -1,26 +1,57 @@
-// routes/userRoutes.js hoặc routes/favoriteRoutes.js
+// server/routes/user.js
 const express = require("express");
 
 const router = express.Router();
+const profileController = require("../controllers/profileController");
 const userController = require("../controllers/userController");
-const auth = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
+
 const uploadAvatar = require("../utils/uploadAvatar");
 
 // PUT: Cập nhật avatar user
 router.put(
   "/me",
-  auth,
+  authMiddleware,
   uploadAvatar.single("avatar"), // nếu FE gửi avatar
   userController.updateProfile,
 );
 
 // Đổi mật khẩu (chỉ user đã đăng nhập mới được)
-router.put("/change-password", auth, userController.changePassword);
+router.put("/change-password", authMiddleware, userController.changePassword);
 
 // GET: Lấy danh sách công việc yêu thích
-router.get("/favorite", auth, userController.getFavoriteJobs);
+router.get("/favorite", authMiddleware, userController.getFavoriteJobs);
 
 // POST: Thêm hoặc xóa công việc yêu thích
-router.post("/favorite/:jobId", auth, userController.toggleFavoriteJob);
+router.post(
+  "/favorite/:jobId",
+  authMiddleware,
+  userController.toggleFavoriteJob,
+);
+
+// GET: Lấy hồ sơ hành vi của chính mình
+router.get("/behavior-profile", authMiddleware, profileController.getMyProfile);
+
+// POST: Xây dựng lại hồ sơ hành vi cho chính mình
+router.post(
+  "/behavior-profile/rebuild",
+  authMiddleware,
+  profileController.rebuildMyProfile,
+);
+
+router.post(
+  "/vector/rebuild",
+  authMiddleware, // hoặc auth, tuỳ bạn đang dùng gì cho JWT
+  userController.rebuildUserVector,
+);
+
+// POST: Xây dựng vector cho recruiter (admin/recruiter) mới được phép thực hiện
+router.post(
+  "/vector/recruiter/:userId",
+  authMiddleware,
+  authorizeRoles("recruiter", "admin"),
+  userController.rebuildRecruiterVector,
+);
 
 module.exports = router;

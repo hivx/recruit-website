@@ -1,37 +1,60 @@
-const crypto = require("crypto");
-const { PrismaClient } = require("@prisma/client");
-
+// services/authService.js
+const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const generateToken = require("../utils/generateToken");
+const prisma = require("../utils/prisma");
+const { toUserDTO } = require("../utils/serializers/user"); // DTO
+
 const emailService = require("./emailService");
 
-const prisma = new PrismaClient();
+// Helper ném lỗi thống nhất
+function httpError(message, status = 400) {
+  const e = new Error(message);
+  e.status = status;
+  return e;
+}
+
+// helper: gắn company cho user dù schema có/không có relation 'company'
+async function attachCompany(u) {
+  if (!u) {
+    return u;
+  }
+  // nếu đã có company (quan hệ Prisma), dùng luôn
+  if (u.company) {
+    return u;
+  }
+  // fallback: tra theo owner_id
+  const comp = await prisma.company.findFirst({
+    where: { owner_id: u.id }, // u.id là BigInt sẵn
+    include: { verification: true },
+  });
+  return comp ? { ...u, company: comp } : u;
+}
 
 module.exports = {
-  // Đăng ký user mới
+  // Đăng ký user mới (gửi mail verify bằng JWT)
   async register({ name, email, password, role }) {
-    if (!email.toLowerCase().endsWith("@gmail.com")) {
-      const error = new Error("Chỉ chấp nhận email @gmail.com!");
-      error.status = 400;
-      throw error;
+    const emailLc = (email || "").toLowerCase().trim();
+
+    if (!emailLc.endsWith("@gmail.com")) {
+      throw httpError("Chỉ chấp nhận email @gmail.com!", 400);
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: emailLc },
+    });
     if (existingUser) {
-      const error = new Error("Email đã tồn tại!");
-      error.status = 409;
-      throw error;
+      throw httpError("Email đã tồn tại!", 409);
     }
 
+    // Chốt role cho an toàn
     let userRole = "applicant";
     if (role === "recruiter") {
       userRole = "recruiter";
     } else if (role === "admin") {
-      const error = new Error("Không thể tự đăng ký với quyền admin!");
-      error.status = 403;
-      throw error;
+      throw httpError("Không thể tự đăng ký với quyền admin!", 403);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -39,7 +62,7 @@ module.exports = {
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: emailLc,
         avatar: "uploads/pic.jpg",
         password: hashedPassword,
         role: userRole,
@@ -47,15 +70,18 @@ module.exports = {
       },
     });
 
-    // Tạo token xác thực email
-    const verifyToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
+    // Tạo token xác thực email (JWT) + gửi email
+    const verifyToken = jwt.sign(
+      { userId: user.id.toString() },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      },
+    );
+    const verifyLink = `${process.env.SERVER_URL}/api/auth/verify-email?token=${verifyToken}`;
 
-    // Gửi email xác thực
     await emailService.sendEmail(
-      email,
+      emailLc,
       "Xác thực tài khoản",
       `<p>Chào ${name},</p>
        <p>Vui lòng xác thực email của bạn bằng cách nhấn vào đường link dưới đây:</p>
@@ -63,55 +89,43 @@ module.exports = {
        <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>`,
     );
 
-    return user;
+    // Trả về DTO để FE dùng ngay (không trả password/BigInt)
+    return { user: toUserDTO(user) };
   },
-
   // Đăng nhập
   async login(email, password) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const emailLc = (email || "").toLowerCase().trim();
+
+    // 1) Lấy user (không include để tránh lỗi nếu schema không có field 'company')
+    let user = await prisma.user.findUnique({ where: { email: emailLc } });
     if (!user) {
-      const error = new Error("Email hoặc mật khẩu không đúng!");
-      error.status = 400;
-      throw error;
+      throw httpError("Email hoặc mật khẩu không đúng!", 400);
     }
 
+    // 2) So khớp mật khẩu & trạng thái
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      const error = new Error("Email hoặc mật khẩu không đúng!");
-      error.status = 400;
-      throw error;
+      throw httpError("Email hoặc mật khẩu không đúng!", 400);
     }
-
     if (!user.isVerified) {
-      const error = new Error("Tài khoản chưa được xác thực qua email!");
-      error.status = 403;
-      throw error;
+      throw httpError("Tài khoản chưa được xác thực qua email!", 403);
     }
 
-    const token = generateToken(user.id.toString(), user.role);
+    // 3) Gắn company (qua relation nếu có, hoặc fallback owner_id)
+    user = await attachCompany(user);
 
-    return {
-      token,
-      user: {
-        id: user.id.toString(),
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        isVerified: user.isVerified,
-        role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-      },
-    };
+    // 4) Trả token + DTO đầy đủ (có company nếu sở hữu)
+    const token = generateToken(user.id.toString(), user.role);
+    return { token, user: toUserDTO(user) };
   },
 
-  // Đặt lại mật khẩu
+  // Yêu cầu đặt lại mật khẩu (gửi link kèm hash mới)
   async requestReset(email, newPassword) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const emailLc = (email || "").toLowerCase().trim();
+
+    const user = await prisma.user.findUnique({ where: { email: emailLc } });
     if (!user) {
-      const error = new Error("Email không tồn tại!");
-      error.status = 404;
-      throw error;
+      throw httpError("Email không tồn tại!", 404);
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -120,80 +134,100 @@ module.exports = {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { reset_token: token, reset_token_expiry: expiry },
+      data: {
+        reset_token: token,
+        reset_token_expiry: expiry,
+        reset_password_hash: hashed,
+      },
     });
 
-    const resetLink = `${process.env.CLIENT_URL}/api/auth/reset-password?token=${token}&hashed=${encodeURIComponent(hashed)}`;
+    const resetLink = `${process.env.SERVER_URL}/api/auth/reset-password?token=${token}`;
 
     await emailService.sendEmail(
-      email,
+      emailLc,
       "Xác nhận đặt lại mật khẩu",
       `<p>Xin chào ${user.name},</p>
-      <p>Bạn đã yêu cầu đổi mật khẩu. Nhấn link dưới đây để xác nhận:</p>
-      <a href="${resetLink}">${resetLink}</a>
-      <p>Liên kết sẽ hết hạn sau 1 giờ.</p>`,
+       <p>Bạn đã yêu cầu đổi mật khẩu. Nhấn link dưới đây để xác nhận:</p>
+       <p><a href="${resetLink}">${resetLink}</a></p>
+       <p>Liên kết sẽ hết hạn sau 1 giờ.</p>`,
     );
 
     return { message: "Liên kết xác nhận đã được gửi tới email của bạn!" };
   },
 
-  // xác nhận khi click link
-  async confirmReset(token, hashed) {
+  // Xác nhận qua link để đặt lại mật khẩu
+  async confirmReset(token) {
     const user = await prisma.user.findFirst({
       where: {
         reset_token: token,
         reset_token_expiry: { gt: new Date() },
       },
     });
+
     if (!user) {
       return null;
+    }
+
+    // Bảo vệ: nếu vì lý do nào đó chưa có hash -> không làm tiếp
+    if (!user.reset_password_hash) {
+      throw httpError(
+        "Không tìm thấy mật khẩu mới, vui lòng yêu cầu lại!",
+        400,
+      );
     }
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: decodeURIComponent(hashed),
+        password: user.reset_password_hash, // đã là bcrypt hash
         reset_token: null,
         reset_token_expiry: null,
+        reset_password_hash: null, // xoá luôn hash tạm
       },
     });
 
     return { message: "Mật khẩu đã được đặt lại thành công!" };
   },
 
-  // Lấy thông tin cá nhân
+  // Lấy thông tin cá nhân — include company + verification, trả DTO
   async getMe(userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: BigInt(userId) },
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        email: true,
-        role: true,
-        isVerified: true,
-        created_at: true,
-      },
+    const uid = BigInt(userId);
+
+    // Thử include theo quan hệ 'company' nếu có
+    let u = await prisma.user.findUnique({
+      where: { id: uid },
+      include: { company: { include: { verification: true } } },
     });
-    if (!user) {
-      const error = new Error("Không tìm thấy người dùng");
-      error.status = 404;
-      throw error;
+    if (!u) {
+      const e = new Error("Không tìm thấy người dùng");
+      e.status = 404;
+      throw e;
     }
-    return user;
+
+    // Fallback: tra company theo owner_id nếu u.company rỗng
+    if (!u.company) {
+      const comp = await prisma.company.findFirst({
+        where: { owner_id: uid },
+        include: { verification: true },
+      });
+      if (comp) {
+        u = { ...u, company: comp };
+      }
+    }
+
+    return toUserDTO(u);
   },
 
-  // Xác thực email
+  // Xác thực email (JWT trong link)
   async verifyEmail(token) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: BigInt(decoded.userId) },
     });
 
     if (!user) {
-      const error = new Error("Không tìm thấy người dùng!");
-      error.status = 404;
-      throw error;
+      throw httpError("Không tìm thấy người dùng!", 404);
     }
     if (user.isVerified) {
       return { already: true };
@@ -205,5 +239,27 @@ module.exports = {
     });
 
     return { success: true };
+  },
+  async sendVerifyEmailChange(user, newEmail) {
+    const verifyToken = jwt.sign(
+      { userId: user.id.toString(), newEmail },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+
+    const verifyLink = `${process.env.SERVER_URL}/api/auth/confirm-change-email?token=${verifyToken}`;
+
+    // Gửi đến email GỐC — user.email
+    await emailService.sendEmail(
+      user.email,
+      "Xác nhận thay đổi email",
+      `
+      <p>Chào ${user.name},</p>
+      <p>Bạn yêu cầu đổi email thành: <b>${newEmail}</b></p>
+      <p>Nhấn vào link sau để xác nhận:</p>
+      <p><a href="${verifyLink}">${verifyLink}</a></p>
+      <p>Nếu không phải bạn thực hiện, hãy bỏ qua email.</p>
+    `,
+    );
   },
 };

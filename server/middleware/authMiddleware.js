@@ -1,58 +1,59 @@
-const { PrismaClient } = require("@prisma/client");
+// middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
+// Nếu muốn chặn user đã bị xoá/ban, bật prisma và check dưới (tuỳ chọn)
+// const prisma = require("../utils/prisma");
 
-const prisma = new PrismaClient();
-
-const authMiddleware = async (req, res, next) => {
+module.exports = async function authMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
+      return res.status(401).json({ message: "Không có token!" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (e) {
+      // phân biệt lỗi hết hạn vs không hợp lệ (cho dev debug dễ hơn)
+      const msg =
+        e.name === "TokenExpiredError"
+          ? "Token đã hết hạn!"
+          : "Token không hợp lệ!";
+      return res.status(401).json({ message: msg });
+    }
+
+    if (!decoded?.userId || !decoded?.role) {
       return res
         .status(401)
-        .json({ message: "Không có token, truy cập bị từ chối!" });
+        .json({ message: "Token thiếu thông tin cần thiết!" });
     }
 
-    const token = authHeader.split(" ")[1];
+    // (Tuỳ chọn) xác minh user còn tồn tại để tránh token “mồ côi”
+    // try {
+    //   const exists = await prisma.user.findUnique({
+    //     where: { id: BigInt(decoded.userId) },
+    //     select: { id: true, role: true },
+    //   });
+    //   if (!exists) {
+    //     return res.status(404).json({ message: "Người dùng không tồn tại!" });
+    //   }
+    // } catch {
+    //   return res.status(500).json({ message: "Lỗi xác minh người dùng!" });
+    // }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.userId) {
-      return res
-        .status(401)
-        .json({ message: "Token không hợp lệ hoặc thiếu userId!" });
-    }
-
-    // Prisma trả về BigInt → convert về string hoặc number
-    const user = await prisma.user.findUnique({
-      where: { id: BigInt(decoded.userId) },
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        email: true,
-        role: true,
-        isVerified: true,
-      },
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: "Người dùng không tồn tại!" });
-    }
-
+    // Gắn claim tối thiểu — KHÔNG phẳng hoá company/user ở đây
     req.user = {
-      userId: user.id.toString(), // tránh lỗi JSON khi trả về
-      username: user.name,
-      avatar: user.avatar,
-      email: user.email,
-      role: user.role,
-      isVerified: user.isVerified,
+      userId: decoded.userId.toString
+        ? decoded.userId.toString()
+        : `${decoded.userId}`,
+      role: decoded.role,
     };
 
-    next();
+    return next();
   } catch (err) {
-    console.error("[AUTH ERROR]", err.message);
+    console.error("[AUTH ERROR]", err);
     return res.status(401).json({ message: "Xác thực thất bại!" });
   }
 };
-
-module.exports = authMiddleware;

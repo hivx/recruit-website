@@ -1,3 +1,4 @@
+// server/utils/gmailTransport.js
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({

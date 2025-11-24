@@ -43,7 +43,7 @@ Mục tiêu v1: tìm việc, xem chi tiết, ứng tuyển (upload CV), yêu th�
 /?search=react+node
   &tags=frontend,remote           // CSV
   &location=Hanoi                 // optional
-  &minSalary=1500&maxSalary=3000  // optional
+  &minSalary=15000000&maxSalary=30000000  // optional
   &sort=createdAt_desc            // createdAt_desc|salary_desc|salary_asc
   &page=1&limit=20
 4) Hợp đồng dữ liệu (TypeScript types)

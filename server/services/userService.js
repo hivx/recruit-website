@@ -1,12 +1,12 @@
 // services/userService.js
-const fs = require("fs");
-const path = require("path");
-
-const { PrismaClient } = require("@prisma/client");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const bcrypt = require("bcrypt");
 
-const prisma = new PrismaClient();
+const { logUserInterest } = require("../middleware/logUserInterest");
+const prisma = require("../utils/prisma");
+const { toJobDTO } = require("../utils/serializers/job");
 
 module.exports = {
   async getUserById(userId) {
@@ -25,7 +25,6 @@ module.exports = {
         ...(data.name && { name: data.name }),
         ...(data.email && { email: data.email }),
         ...(data.avatar && { avatar: data.avatar }),
-        ...(data.password && { password: data.password }),
       },
     });
   },
@@ -42,14 +41,20 @@ module.exports = {
       throw error;
     }
 
-    // Validate email nếu có
-    if (email && !/\S+@gmail\.com$/.test(email)) {
-      const error = new Error("Email phải có định dạng @gmail.com!");
-      error.status = 400;
-      throw error;
-    }
+    // ==========================
+    // 1. Validate email nếu có
+    // ==========================
+    let shouldResetVerify = false;
 
     if (email) {
+      // Kiểm tra định dạng
+      if (!/\S+@gmail\.com$/.test(email)) {
+        const error = new Error("Email phải có định dạng @gmail.com!");
+        error.status = 400;
+        throw error;
+      }
+
+      // Kiểm tra email đã dùng bởi user khác chưa
       const existingUser = await prisma.user.findFirst({
         where: {
           email,
@@ -61,13 +66,22 @@ module.exports = {
         error.status = 400;
         throw error;
       }
+
+      // Email thay đổi → reset verify
+      if (email !== user.email) {
+        shouldResetVerify = true;
+      }
     }
 
+    // ==========================
+    // 2. Xử lý upload avatar
+    // ==========================
     let avatarPath;
+
     if (avatarFile) {
       avatarPath = "uploads/" + avatarFile.filename;
 
-      // Xóa avatar cũ nếu khác default
+      // Xóa avatar cũ nếu không phải default
       if (user.avatar && user.avatar !== "uploads/pic.jpg") {
         const oldAvatar = path.join(__dirname, "../", user.avatar);
         fs.unlink(oldAvatar, (err) => {
@@ -78,11 +92,13 @@ module.exports = {
       }
     }
 
-    // Trả dữ liệu để controller dùng updateUser
+    // ==========================
+    // 3. Trả dữ liệu để controller update
+    // ==========================
     return {
       name,
-      email,
       avatar: avatarPath,
+      emailNew: shouldResetVerify ? email : null,
     };
   },
 
@@ -97,12 +113,24 @@ module.exports = {
 
   // Toggle yêu thích
   async toggleFavoriteJob(userId, jobId) {
-    // Kiểm tra job tồn tại
-    const job = await prisma.job.findUnique({
-      where: { id: BigInt(jobId) },
+    // Kiểm tra job tồn tại và được duyệt chưa
+    const job = await prisma.job.findFirst({
+      where: {
+        id: BigInt(jobId),
+        approval: {
+          is: { status: "approved" },
+        }, // lọc luôn job đã duyệt
+      },
+      include: {
+        approval: { select: { status: true } },
+        tags: { include: { tag: true } },
+      },
     });
+
     if (!job) {
-      const error = new Error("Không tìm thấy công việc với ID này!");
+      const error = new Error(
+        "Không tìm thấy công việc hoặc công việc chưa được duyệt!",
+      );
       error.status = 404;
       throw error;
     }
@@ -117,6 +145,7 @@ module.exports = {
       },
     });
 
+    // Nếu đã có → gỡ khỏi danh sách
     if (exists) {
       await prisma.userFavoriteJobs.delete({
         where: {
@@ -126,28 +155,56 @@ module.exports = {
           },
         },
       });
+
+      //  Ghi log hành vi “remove_favorite”
+      logUserInterest({
+        userId,
+        job,
+        source: "favorite",
+        eventType: "remove_favorite",
+      });
+
       return { message: "Đã gỡ khỏi danh sách yêu thích" };
     }
 
+    // Nếu chưa có → thêm mới
     await prisma.userFavoriteJobs.create({
       data: {
         user_id: BigInt(userId),
         job_id: BigInt(jobId),
       },
     });
+
+    //  Ghi log hành vi “add_favorite”
+    logUserInterest({
+      userId,
+      job,
+      source: "favorite",
+      eventType: "add_favorite",
+    });
+
     return { message: "Đã thêm vào danh sách yêu thích" };
   },
 
   async getFavoriteJobs(userId) {
     const favorites = await prisma.userFavoriteJobs.findMany({
       where: { user_id: BigInt(userId) },
-      include: { job: true },
+      include: {
+        job: {
+          include: {
+            approval: true,
+            tags: { include: { tag: true } },
+            company: { select: { id: true, legal_name: true } },
+            requiredSkills: {
+              include: { skill: true }, // Bổ sung skill của job
+            },
+          },
+        },
+      },
     });
 
-    return {
-      jobs: favorites.map((f) => f.job),
-      total: favorites.length,
-    };
+    const jobs = favorites.filter((f) => !!f.job).map((f) => toJobDTO(f.job));
+    return { jobs, total: jobs.length };
   },
 
   // Đổi mật khẩu
