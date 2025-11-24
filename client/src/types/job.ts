@@ -1,45 +1,81 @@
-// Khớp với BE Job schema
-export interface Job {
-  _id: string;
-  title: string;
-  tags: string[];           // default []
-  company: string;
-  location?: string;
-  description?: string;
-  salary?: string;          // BE đang để String
-  requirements?: string;
-  createdBy: string;        // ObjectId -> FE dùng string
-  createdByName: string;    // required
-  createdAt: string;        // timestamps true -> ISO string
-  updatedAt: string;        // timestamps true -> ISO string
+// src/types/job.ts
 
-  // field phát sinh từ BE (nếu BE có set theo user)
+/** Tag chuẩn hóa (danh mục ngành nghề / lĩnh vực) */
+export interface Tag {
+  id: number;
+  name: string;
+}
+
+/** Liên kết giữa Job và Tag (chuẩn hóa nhiều-nhiều) */
+export interface JobTag {
+  jobId: string; // BE trả BigInt → FE nhận string
+  tagId: number;
+  tag: Tag; // Quan hệ: mỗi JobTag gắn 1 Tag
+}
+
+/** Dữ liệu raw trả từ BE (giữ snake_case để khớp JSON gốc) */
+export interface JobRaw {
+  id: string;                   // BigInt → string
+  title: string;
+  company: string;
+  location?: string | null;
+  description?: string | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  requirements?: string | null;
+  created_by_name: string;
+  created_by: string;           // BigInt → string
+  created_at: string;           // ISO date string
+  updated_at: string;           // ISO date string
+  tags: JobTag[];               // Mảng JobTag (đã populate tag)
+  createdAtFormatted?: string;  // chỉ khi gọi GET /jobs/:id
+  isFavorite?: boolean;         // chỉ khi user login
+}
+
+/** Kiểu chuẩn hóa để FE dùng (camelCase + chuyển field cần thiết) */
+export interface Job {
+  id: string;                   // BigInt → string
+  title: string;
+  company: string;
+  location?: string | null;
+  description?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  requirements?: string | null;
+  createdByName: string;
+  createdBy: string;            // BigInt → string
+  createdAt: string;            // FE convert từ created_at
+  updatedAt: string;            // FE convert từ updated_at
+  tags: JobTag[];               // Mảng JobTag với tag.name
+  createdAtFormatted?: string;
   isFavorite?: boolean;
 }
 
-// Khi tạo job (POST /api/jobs)
+/** Payload khi tạo mới Job */
 export interface JobCreatePayload {
   title: string;
-  tags?: string[];
   company: string;
   location?: string;
   description?: string;
-  salary?: string;
+  salary_min?: number;
+  salary_max?: number;
   requirements?: string;
-  // createdBy & createdByName BE sẽ lấy từ token/middleware -> FE không gửi
+  tags?: string[]; // FE gửi tên tag → BE upsert Tag + JobTag
 }
 
-// Khi cập nhật job (PUT /api/jobs/:id)
+/** Payload khi cập nhật Job */
 export type JobUpdatePayload = Partial<JobCreatePayload>;
 
-// Query cho danh sách job (GET /api/jobs)
-export interface JobQuery {
-  search?: string;          // từ khóa tự do
-  tags?: string[];          // FE sẽ join thành CSV nếu BE nhận CSV
-  location?: string;
-  minSalary?: number;       // nếu BE chưa hỗ trợ có thể bỏ
-  maxSalary?: number;
-  sort?: 'createdAt_desc' | 'salary_desc' | 'salary_asc';
-  page?: number;
-  limit?: number;
+/** Tag phổ biến (theo API /api/jobs/popular-tags) */
+export interface PopularTag {
+  tagId: number;
+  tagName: string;
+  count: number;
+}
+
+/** Danh sách tag (theo API /api/jobs/tags) */
+export interface ActiveTag {
+  id: number;
+  name: string;
+  jobCount: number;
 }

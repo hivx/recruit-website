@@ -1,8 +1,99 @@
 /**
  * @swagger
+ * tags:
+ *   name: Users
+ *   description: Quản lý người dùng, thông tin cá nhân và danh sách yêu thích
+ */
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *
+ *   schemas:
+ *     FavoriteJob:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         title:
+ *           type: string
+ *           example: "Lập trình viên Backend Node.js"
+ *         company:
+ *           type: string
+ *           example: "Công ty TNHH ABC"
+ *         location:
+ *           type: string
+ *           example: "Hà Nội"
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-09-01T12:34:56.789Z"
+ *
+ *     UpdateUserInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "Nguyễn Văn Víp"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "nguyenvanb@gmail.com"
+ *
+ *     UserProfile:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           example: "Nguyễn Văn Víp"
+ *         email:
+ *           type: string
+ *           example: "nguyenvanb@gmail.com"
+ *         role:
+ *           type: string
+ *           enum: [admin, recruiter, applicant]
+ *           example: "applicant"
+ *         isVerified:
+ *           type: boolean
+ *           example: true
+ *         avatar:
+ *           type: string
+ *           example: "/uploads/avatars/1_1736625098123.png"
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-09-01T10:20:30.000Z"
+ *
+ *     ChangePasswordInput:
+ *       type: object
+ *       required:
+ *         - oldPassword
+ *         - newPassword
+ *       properties:
+ *         oldPassword:
+ *           type: string
+ *           format: password
+ *           example: "123456"
+ *         newPassword:
+ *           type: string
+ *           format: password
+ *           example: "newpass789"
+ */
+
+/**
+ * @swagger
  * /api/users/favorite/{jobId}:
  *   post:
- *     summary: Thêm hoặc gỡ một job khỏi danh sách yêu thích
+ *     summary: Thêm hoặc gỡ một công việc khỏi danh sách yêu thích
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -11,24 +102,262 @@
  *         name: jobId
  *         required: true
  *         schema:
- *           type: string
- *         description: ID bài tuyển dụng
+ *           type: integer
+ *         description: ID công việc
  *     responses:
  *       200:
- *         description: Thành công
+ *         description: Cập nhật danh sách yêu thích thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   examples:
+ *                     added:
+ *                       summary: Thêm yêu thích
+ *                       value: "Đã thêm vào danh sách yêu thích"
+ *                     removed:
+ *                       summary: Gỡ yêu thích
+ *                       value: "Đã gỡ khỏi danh sách yêu thích"
+ *       400:
+ *         description: ID công việc không hợp lệ!
+ *       401:
+ *         description: Không có token, truy cập bị từ chối!
  *       404:
- *         description: Không tìm thấy người dùng
+ *         description: Không tìm thấy công việc hoặc công việc chưa được duyệt!
  */
 
 /**
  * @swagger
  * /api/users/favorite:
  *   get:
- *     summary: Lấy danh sách các bài tuyển dụng yêu thích của người dùng
+ *     summary: Lấy danh sách công việc yêu thích của người dùng
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Danh sách bài tuyển dụng yêu thích
+ *         description: Danh sách công việc yêu thích
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 favorites:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/FavoriteJob'
+ *       401:
+ *         description: Không có token, truy cập bị từ chối!
+ *       404:
+ *         description: Người dùng không tồn tại!
+ */
+
+/**
+ * @swagger
+ * /api/users/me:
+ *   put:
+ *     summary: Cập nhật thông tin cá nhân người dùng
+ *     description: Nhận multipart/form-data để hỗ trợ upload avatar. Email (nếu đổi) phải hợp lệ và chưa bị sử dụng.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Nguyễn Văn Víp"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "snonamevx@gmail.com"
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ảnh đại diện (jpg, png, webp, ...)
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công, trả về thông tin user mới
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserProfile'
+ *       400:
+ *         description: Email không hợp lệ hoặc đã tồn tại / dữ liệu sai
+ *       401:
+ *         description: Không có token, truy cập bị từ chối!
+ *       404:
+ *         description: Người dùng không tồn tại!
+ *       415:
+ *         description: Định dạng file avatar không được hỗ trợ!
+ */
+
+/**
+ * @swagger
+ * /api/users/change-password:
+ *   put:
+ *     summary: Đổi mật khẩu người dùng
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangePasswordInput'
+ *     responses:
+ *       200:
+ *         description: Đổi mật khẩu thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Đổi mật khẩu thành công!"
+ *       400:
+ *         description: Thiếu dữ liệu hoặc mật khẩu cũ không đúng!
+ *       401:
+ *         description: Không có token, truy cập bị từ chối!
+ *       404:
+ *         description: Người dùng không tồn tại!
+ */
+
+/**
+ * @swagger
+ * /api/users/vector/rebuild:
+ *   post:
+ *     summary: Tính  UserVector cho người dùng đang đăng nhập
+ *     description: |
+ *       Tính toán lại vector người dùng dựa trên hồ sơ hành vi và mong muốn.
+ *
+ *       API chỉ áp dụng cho user có role = "applicant".
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Vector người dùng đã được cập nhật thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Vector người dùng đã được cập nhật"
+ *                 vector:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       example: "4"
+ *                     skill_profile:
+ *                       type: array
+ *                       description: Danh sách kỹ năng dạng { id, w }
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 1
+ *                           w:
+ *                             type: number
+ *                             example: 0.87
+ *                     tag_profile:
+ *                       type: array
+ *                       description: Danh sách tag dạng { id, weight }
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 3
+ *                           weight:
+ *                             type: number
+ *                             example: 0.8
+ *                     title_keywords:
+ *                       type: array
+ *                       description: Keywords hành vi người dùng
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           keyword:
+ *                             type: string
+ *                             example: "backend"
+ *                           weight:
+ *                             type: number
+ *                             example: 0.6
+ *                     preferred_location:
+ *                       type: string
+ *                       example: "HN"
+ *                     salary_expected:
+ *                       type: integer
+ *                       example: 20000000
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc user không phải applicant
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ */
+
+/**
+ * @swagger
+ * /api/users/vector/recruiter/{userId}:
+ *   post:
+ *     summary: Build or update recruiter vector for a recruiter
+ *     description: |
+ *       API này dùng để xây dựng lại RecruiterVector dựa trên recruiter preferences.
+ *       Chỉ admin hoặc recruiter được phép gọi. Yêu cầu gửi kèm JWT token.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: ID của recruiter (user có role recruiter)
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Recruiter vector updated thành công
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Vector recruiter đã được cập nhật"
+ *               vector:
+ *                 user_id: 9
+ *                 skill_profile:
+ *                   - id: 3
+ *                     must: true
+ *                     weight: 0.7
+ *                   - id: 5
+ *                     must: false
+ *                     weight: 0.3
+ *                 tag_profile:
+ *                   - id: 1
+ *                     weight: 1
+ *                   - id: 4
+ *                     weight: 1
+ *                 preferred_location: "HN"
+ *                 salary_avg: 20000000
+ *       400:
+ *         description: Người dùng không phải nhà tuyển dụng
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Không đủ quyền (chỉ recruiter/admin)
+ *       404:
+ *         description: Không tìm thấy RecruiterPreference cho user này
+ *       500:
+ *         description: Lỗi server
  */

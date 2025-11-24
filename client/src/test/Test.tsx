@@ -1,0 +1,25 @@
+import { useEffect } from "react";
+import { getJobs, getJobById } from "@/services";
+
+export function TestJobService() {
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const jobs = await getJobs(1, 10); // page=1, limit=5
+        console.log(" Danh sách jobs:", jobs);
+
+        if (jobs.jobs.length > 0) {
+          const firstJobId = jobs.jobs[0].id;
+          const jobDetail = await getJobById(firstJobId);
+          console.log(" Chi tiết job:", jobDetail);
+        }
+      } catch (err) {
+        console.error(" Lỗi khi gọi API:", err);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  return <div>Test Job Service - Mở console để xem kết quả</div>;
+}

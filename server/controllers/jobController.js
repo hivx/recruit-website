@@ -1,74 +1,89 @@
-const moment = require('moment');
-const jobService = require('../services/jobService');
-const Job = require('../models/job');
-const User = require('../models/user'); 
+// controllers/jobController.js
+const moment = require("moment");
+const jobService = require("../services/jobService");
+const jobVectorService = require("../services/jobVectorService");
 
-// POST /api/jobs
+const prisma = require("../utils/prisma");
+
+/* ============================================================
+   CREATE JOB
+   ============================================================ */
 exports.createJob = async (req, res) => {
   try {
-    const { tags = [], ...rest } = req.body;
+    const jobData = req.body;
+    jobData.createdBy = req.user.userId;
+    jobData.company_id = jobData.company_id || req.user.companyId;
 
-    const jobData = {
-      ...rest,
-      tags,
-      createdBy: req.user.userId,
-      createdByName: req.user.fullName // lưu tên người tạo để hiển thị ngay cả khi tài khoản bị xóa
-    };
+    // vẫn cho phép gửi thêm requiredSkills từ FE
+    const job = await jobService.createJob(jobData);
 
-    const newJob = await jobService.createJob(jobData);
-    res.status(201).json(newJob);
+    res.status(201).json(job);
   } catch (err) {
-    console.error('[Job Create Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi đăng bài tuyển dụng!' });
+    console.error("[Create Job Error]", err.message);
+    res.status(err.status || 500).json({ message: err.message });
   }
 };
 
-// GET /api/jobs
+// GET /api/jobs (chỉ trả job approved)
 exports.getAllJobs = async (req, res) => {
   try {
-    const { tag, search, page = 1, limit = 10 } = req.query;
+    const { tag, search = "", page = 1, limit = 10 } = req.query;
 
-    let filter = {};
-    if (tag) {
-      filter.tags = Array.isArray(tag) ? { $in: tag } : tag;
-    }
+    const filter = {
+      ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
+    };
 
     const result = await jobService.getAllJobs({
       filter,
       search,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: Number(page),
+      limit: Number(limit),
     });
 
     res.json(result);
   } catch (err) {
-    console.error('[Job List Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi lấy danh sách việc làm!' });
+    console.error("[Job List Error]", err.message);
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách việc làm!" });
   }
 };
 
-// GET /api/jobs/:id
+/* ============================================================
+   GET JOB BY ID
+   ============================================================ */
 exports.getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const currentUser = req.user
+      ? { id: req.user.userId, role: req.user.role }
+      : null;
+    const job = await jobService.getJobById(
+      String(req.params.id),
+      currentUser,
+      {
+        allowOwnerDraft: true,
+      },
+    );
+
     if (!job) {
-      return res.status(404).json({ message: 'Không tìm thấy việc làm!' });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
-    let isFavorite = false;
-    if (req.user) {
-      const user = await User.findById(req.user.userId);
-      isFavorite = user?.favoriteJobs?.includes(req.params.id);
-    }
+    const isFavorite = currentUser
+      ? !!(await prisma.userFavoriteJobs.findFirst({
+          where: { user_id: BigInt(currentUser.id), job_id: BigInt(job.id) },
+        }))
+      : false;
 
     res.json({
-      ...job.toObject(),
-      createdAtFormatted: moment(job.createdAt).format('DD/MM/YYYY HH:mm'),
-      isFavorite
+      ...job,
+      createdAtFormatted: moment(job.created_at).format("DD/MM/YYYY HH:mm"),
+      isFavorite,
     });
   } catch (err) {
-    console.error('[Get Job Detail Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server!' });
+    const code = err.statusCode || err.status || 500;
+    console.error("[Get Job Detail Error]", err);
+    res.status(code).json({ message: err.message });
   }
 };
 
@@ -78,8 +93,8 @@ exports.getPopularTags = async (req, res) => {
     const tagStats = await jobService.getPopularTags();
     res.json(tagStats);
   } catch (err) {
-    console.error('[Popular Tags Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi thống kê tag!' });
+    console.error("[Popular Tags Error]", err.message);
+    res.status(500).json({ message: "Lỗi server khi thống kê tag!" });
   }
 };
 
@@ -89,60 +104,144 @@ exports.getAllTags = async (req, res) => {
     const tags = await jobService.getAllTags();
     res.json(tags);
   } catch (err) {
-    console.error('[Get Tags Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi lấy danh sách tags!' });
+    console.error("[Get Tags Error]", err.message);
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách tags!" });
   }
 };
 
-// PUT /api/jobs/:id
+/* ============================================================
+   UPDATE JOB
+   ============================================================ */
 exports.updateJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const idStr = String(req.params.id || "").trim();
+    if (!/^\d+$/.test(idStr)) {
+      return res.status(400).json({ message: "ID công việc không hợp lệ!" });
+    }
+
+    const currentUser = req.user
+      ? { id: req.user.userId, role: req.user.role }
+      : null;
+
+    const job = await jobService.getJobById(idStr, currentUser, {
+      allowOwnerDraft: true,
+    });
     if (!job) {
-      return res.status(404).json({ message: 'Không tìm thấy công việc!' });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
-    console.log(job.createdBy, req.user.userId);
-    // Kiểm tra nếu người dùng là người tạo hoặc admin
-    if (job.createdBy.toString() !== req.user.userId.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Bạn không có quyền sửa công việc này' });
+    const isOwner = String(job.created_by) === String(req.user.userId);
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Bạn không có quyền sửa công việc này!" });
     }
 
-    // Cập nhật các trường
-    job.title = req.body.title || job.title;
-    job.company = req.body.company || job.company;
-    job.location = req.body.location || job.location;
-    job.description = req.body.description || job.description;
-    job.salary = req.body.salary || job.salary;
-    job.requirements = req.body.requirements || job.requirements;
-    job.tags = req.body.tags || job.tags;
-
-    await job.save();
-    res.status(200).json(job);
+    const updatedJob = await jobService.updateJob(idStr, req.body);
+    return res.status(200).json(updatedJob);
   } catch (err) {
-    console.error('[Update Job Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi cập nhật công việc!' });
+    const code = err.statusCode || err.status || 500;
+    console.error("[Update Job Error]", err);
+    return res.status(code).json({ message: err.message });
   }
 };
 
 // DELETE /api/jobs/:id
 exports.deleteJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const idStr = String(req.params.id || "").trim();
+    if (!/^\d+$/.test(idStr)) {
+      return res.status(400).json({ message: "ID công việc không hợp lệ!" });
+    }
+
+    const currentUser = req.user
+      ? { id: req.user.userId, role: req.user.role }
+      : null;
+
+    // Lấy job để kiểm quyền (cho phép chủ job/admin xem draft)
+    const job = await jobService.getJobById(idStr, currentUser, {
+      allowOwnerDraft: true,
+    });
     if (!job) {
-      return res.status(404).json({ message: 'Không tìm thấy công việc!' });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy việc làm cho ID này!" });
     }
 
-    // Kiểm tra nếu người dùng là người tạo hoặc admin
-    if (job.createdBy.toString() !== req.user.userId.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Bạn không có quyền xóa công việc này' });
+    const isOwner = String(job.created_by) === String(req.user.userId);
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Bạn không có quyền xóa công việc này!" });
     }
 
-    await job.deleteOne();
-    res.status(200).json({ message: 'Xóa công việc thành công!' });
+    await jobService.deleteJob(idStr); // service tự BigInt hoá
+    return res.status(200).json({ message: "Xóa công việc thành công!" });
   } catch (err) {
-    console.error('[Delete Job Error]', err.message);
-    res.status(500).json({ message: 'Lỗi server khi xóa công việc!' });
+    const code = err.statusCode || err.status || 500;
+    console.error("[Delete Job Error]", err);
+    return res
+      .status(code)
+      .json({ message: err.message || "Lỗi server khi xóa công việc!" });
   }
 };
 
+// ADMIN: approve job
+exports.approveJob = async (req, res) => {
+  try {
+    const jobId = String(req.params.id);
+    const adminId = req.user.userId;
+
+    const result = await jobService.approveJob(jobId, adminId);
+    res.json(result);
+  } catch (err) {
+    console.error("[Approve Job]", err);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi duyệt job" });
+  }
+};
+
+// ADMIN: reject job
+exports.rejectJob = async (req, res) => {
+  try {
+    const jobId = String(req.params.id);
+    const adminId = req.user.userId;
+    const reason = req.body.reason || "Không đạt yêu cầu";
+
+    const result = await jobService.rejectJob(jobId, adminId, reason);
+    res.json(result);
+  } catch (err) {
+    console.error("[Reject Job]", err);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi từ chối job" });
+  }
+};
+
+/**
+ * Build vector cho JOB
+ */
+exports.buildJobVector = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!jobId) {
+      return res.status(400).json({ message: "Thiếu jobId!" });
+    }
+
+    const vector = await jobVectorService.buildJobVector(jobId);
+
+    return res.json({
+      message: "Vector job đã được cập nhật",
+      vector,
+    });
+  } catch (err) {
+    console.error("[BuildJobVector]", err);
+    return res.status(500).json({ message: err.message || "Lỗi server" });
+  }
+};

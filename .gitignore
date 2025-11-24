@@ -2,3 +2,7 @@
 /server/node_modules/
 /server/package-lock.json
 /server/uploads/
+/server/sql/
+/server/prisma/migrations/
+.vscode/
+.vs/

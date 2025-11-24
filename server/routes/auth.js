@@ -1,15 +1,22 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');
-const authMiddleware = require('../middleware/authMiddleware');
-const validateGmail = require('../middleware/validateGmail');
+// server/routes/auth.js
+const express = require("express");
 
-router.post('/register', validateGmail, authController.register);
-router.post('/login', authController.login);
-router.get('/me', authMiddleware, (req, res) => {
-  res.status(200).json(req.user); // Trả về user đã gán từ middleware
-});
-// routes/auth.js
-router.get('/verify-email', authController.verifyEmail);
+const router = express.Router();
+const authController = require("../controllers/authController");
+const authMiddleware = require("../middleware/authMiddleware");
+const validateGmail = require("../middleware/validateGmail");
+
+router.post("/register", validateGmail, authController.register);
+
+router.post("/login", authController.login);
+
+router.get("/me", authMiddleware, authController.getMe);
+
+router.post("/forgot-password", authController.forgotPassword);
+router.get("/reset-password", authController.resetPassword);
+
+// Xác minh email
+router.get("/verify-email", authController.verifyEmail);
+router.get("/confirm-change-email", authController.confirmChangeEmail);
 
 module.exports = router;

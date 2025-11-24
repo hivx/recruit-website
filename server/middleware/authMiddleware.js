@@ -1,40 +1,59 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+// middleware/authMiddleware.js
+const jwt = require("jsonwebtoken");
+// Nếu muốn chặn user đã bị xoá/ban, bật prisma và check dưới (tuỳ chọn)
+// const prisma = require("../utils/prisma");
 
-const authMiddleware = async (req, res, next) => {
+module.exports = async function authMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-    // Kiểm tra token có trong header không
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Không có token, truy cập bị từ chối!' });
+    if (!token) {
+      return res.status(401).json({ message: "Không có token!" });
     }
 
-    const token = authHeader.split(' ')[1];
-
-    // Giải mã token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.userId) {
-      return res.status(401).json({ message: 'Token không hợp lệ hoặc thiếu userId!' });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (e) {
+      // phân biệt lỗi hết hạn vs không hợp lệ (cho dev debug dễ hơn)
+      const msg =
+        e.name === "TokenExpiredError"
+          ? "Token đã hết hạn!"
+          : "Token không hợp lệ!";
+      return res.status(401).json({ message: msg });
     }
 
-    // Tìm user trong database
-    const user = await User.findById(decoded.userId).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'Người dùng không tồn tại!' });
+    if (!decoded?.userId || !decoded?.role) {
+      return res
+        .status(401)
+        .json({ message: "Token thiếu thông tin cần thiết!" });
     }
 
-    // Gán userId và role
+    // (Tuỳ chọn) xác minh user còn tồn tại để tránh token “mồ côi”
+    // try {
+    //   const exists = await prisma.user.findUnique({
+    //     where: { id: BigInt(decoded.userId) },
+    //     select: { id: true, role: true },
+    //   });
+    //   if (!exists) {
+    //     return res.status(404).json({ message: "Người dùng không tồn tại!" });
+    //   }
+    // } catch {
+    //   return res.status(500).json({ message: "Lỗi xác minh người dùng!" });
+    // }
+
+    // Gắn claim tối thiểu — KHÔNG phẳng hoá company/user ở đây
     req.user = {
-      userId: user._id,
-      role: user.role
+      userId: decoded.userId.toString
+        ? decoded.userId.toString()
+        : `${decoded.userId}`,
+      role: decoded.role,
     };
 
-    next();
+    return next();
   } catch (err) {
-    console.error('[AUTH ERROR]', err.message);
-    return res.status(401).json({ message: 'Xác thực thất bại!' });
+    console.error("[AUTH ERROR]", err);
+    return res.status(401).json({ message: "Xác thực thất bại!" });
   }
 };
-
-module.exports = authMiddleware;

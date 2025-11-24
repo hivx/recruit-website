@@ -1,7 +1,8 @@
-const nodemailer = require('nodemailer');
+// server/utils/gmailTransport.js
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,

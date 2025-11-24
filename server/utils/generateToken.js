@@ -1,10 +1,11 @@
-const jwt = require('jsonwebtoken');
+// server/utils/generateToken.js
+const jwt = require("jsonwebtoken");
 
 const generateToken = (userId, role) => {
   return jwt.sign(
     { userId, role }, //role được nhúng vào token
     process.env.JWT_SECRET,
-    { expiresIn: '1d' }
+    { expiresIn: "1d" },
   );
 };
 

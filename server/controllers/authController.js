@@ -1,105 +1,160 @@
-const authService = require('../services/authService');
-const User = require('../models/user');
-const jwt = require('jsonwebtoken');
-const emailService = require('../services/emailService');
+// controllers/authController.js
+const jwt = require("jsonwebtoken");
+const authService = require("../services/authService");
 
+const prisma = require("../utils/prisma");
+
+// Đăng ký
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role } = req.body || {};
 
-    // 1. Chỉ chấp nhận email @gmail.com
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
-      return res.status(400).json({ message: 'Chỉ chấp nhận email @gmail.com' });
+    // Validate nhanh input
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Thiếu name/email/password!" });
+    }
+    if (String(password).length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
     }
 
-    // 2. Kiểm tra trùng email
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email đã tồn tại' });
-    }
-
-    // 3. Xác định role
-    let userRole = 'applicant'; // mặc định
-    if (role === 'recruiter') userRole = 'recruiter';
-    else if (role === 'admin') {
-      return res.status(403).json({ message: 'Không thể tự đăng ký với quyền admin' });
-    }
-
-    // 4. Tạo user mới
-    const user = await User.create({ name, email, password, isVerified: false, role: userRole });
-
-    // 5. Tạo token xác thực
-    const verifyToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // 6. Tạo link xác thực
-    const verifyLink = `${process.env.CLIENT_URL}/api/auth/verify-email?token=${verifyToken}`;
-
-    // 7. Gửi email xác thực
-    await emailService.sendEmail(
+    const { user } = await authService.register({
+      name,
       email,
-      'Xác thực tài khoản',
-      `
-        <p>Chào ${name},</p>
-        <p>Vui lòng xác thực email của bạn bằng cách nhấn vào đường link dưới đây:</p>
-        <p><a href="${verifyLink}">${verifyLink}</a></p>
-        <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>
-      `
-    );
-
-    res.status(201).json({
-      message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.'
+      password,
+      role,
     });
-
-  } catch (error) {
-    console.error('Lỗi đăng ký:', error);
-    res.status(500).json({ message: 'Đăng ký thất bại', error: error.message });
+    return res.status(201).json({
+      message:
+        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!",
+      user, // DTO: id (string), name, email, avatar, role, isVerified, company?
+    });
+  } catch (err) {
+    console.error("[Register Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Đăng ký thất bại" });
   }
 };
 
+// Đăng nhập
 exports.login = async (req, res) => {
   try {
-    const data = await authService.login(req.body);
-    res.status(200).json(data);
+    const { email, password } = req.body || {};
+    const result = await authService.login(email, password);
+    return res.status(200).json(result); // { token, user: DTO }
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res
+      .status(err.status || 400)
+      .json({ message: err.message || "Đăng nhập thất bại" });
   }
 };
 
+// Lấy thông tin user hiện tại — trả DTO trong key `user`
 exports.getMe = async (req, res) => {
   try {
+    // KHÔNG trả req.user trực tiếp
     const user = await authService.getMe(req.user.userId);
-    res.status(200).json(user);
+    return res.status(200).json({ user }); // nested DTO
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    return res
+      .status(err.status || 404)
+      .json({ message: err.message || "Không tìm thấy người dùng" });
   }
 };
 
+// Xác thực email
 exports.verifyEmail = async (req, res) => {
   try {
     const token = req.query.token;
     if (!token) {
-      return res.status(400).send('<h1>Thiếu token xác thực</h1>');
+      return res.status(400).send("<h1>Thiếu token xác thực!</h1>");
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
-
-    if (!user) {
-      return res.status(404).send('<h1>Không tìm thấy người dùng</h1>');
+    const result = await authService.verifyEmail(token);
+    if (result.already) {
+      return res.send("<h1>Tài khoản của bạn đã được xác thực trước đó!</h1>");
     }
-
-    if (user.isVerified) {
-      return res.send('<h1>Tài khoản của bạn đã được xác thực trước đó</h1>');
-    }
-
-    user.isVerified = true;
-    await user.save();
-
-    return res.send('<h1>Tài khoản đã xác thực thành công! Bạn có thể đăng nhập.</h1>');
-
+    return res.send(
+      "<h1>Tài khoản đã xác thực thành công! Bạn có thể đăng nhập.</h1>",
+    );
   } catch (err) {
-    console.error('Lỗi xác thực:', err);
-    return res.status(400).send('<h1>Token không hợp lệ hoặc đã hết hạn</h1>');
+    console.error("[Verify Email Error]", err);
+    return res.status(400).send("<h1>Token không hợp lệ hoặc đã hết hạn!</h1>");
   }
 };
 
+// Quên mật khẩu
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmPassword } = req.body || {};
+
+    if (!newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập mật khẩu và xác nhận mật khẩu!" });
+    }
+    if (String(newPassword).length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Mật khẩu xác nhận không khớp!" });
+    }
+
+    const result = await authService.requestReset(email, newPassword);
+    return res.json(result); // message
+  } catch (err) {
+    console.error("[Request Reset Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// GET /auth/reset-password?token=xxx&hashed=yyy
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.query || {};
+    if (!token) {
+      return res.status(400).send("<h1>Thiếu token!</h1>");
+    }
+
+    const result = await authService.confirmReset(token);
+    if (!result) {
+      return res
+        .status(400)
+        .send("<h1>Token không hợp lệ hoặc đã hết hạn!</h1>");
+    }
+
+    return res.send(
+      "<h1>Mật khẩu đã được cập nhật thành công! Bạn có thể đăng nhập.</h1>",
+    );
+  } catch (err) {
+    console.error("[Reset Password Error]", err);
+    return res.status(500).send("<h1>Lỗi server!</h1>");
+  }
+};
+
+// Xác nhận thay đổi email
+exports.confirmChangeEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { userId, newEmail } = decoded;
+
+    await prisma.user.update({
+      where: { id: BigInt(userId) },
+      data: { email: newEmail },
+    });
+
+    return res.send("<h1>Thay đổi email thành công!</h1>");
+  } catch (err) {
+    console.error(err);
+    return res.status(400).send("<h1>Link không hợp lệ hoặc đã hết hạn!</h1>");
+  }
+};
