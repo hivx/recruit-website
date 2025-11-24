@@ -338,7 +338,8 @@ exports.updateJob = async (id, data) => {
 
     const toInsert = requiredSkills
       .map((s) => {
-        const found = skillRows.find((x) => x.name === s.name);
+        const cleanName = String(s.name).trim();
+        const found = skillRows.find((x) => x.name === cleanName);
         if (!found) {
           return null;
         }
@@ -418,7 +419,11 @@ exports.getJobById = async (id, user, opts = {}) => {
 
   const isOwner = user && String(job.created_by) === String(user.id);
 
-  if (!approved && !(allowOwnerDraft && isOwner) && user.role !== "admin") {
+  if (
+    !approved &&
+    !(allowOwnerDraft && isOwner) &&
+    (!user || user.role !== "admin")
+  ) {
     const err = new Error("Công việc chưa được duyệt hoặc bạn không có quyền!");
     err.statusCode = 403;
     throw err;

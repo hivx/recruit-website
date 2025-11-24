@@ -205,40 +205,51 @@ exports.upsertRecruiterPreference = async (userId, payload = {}) => {
   // ========= 3. REQUIRED SKILLS (many-to-many-with-fields) =========
   if (required_skills !== undefined) {
     if (Array.isArray(required_skills)) {
+      // 1) Normalize name ngay từ đầu
+      const normalizedSkills = required_skills
+        .map((s) => ({
+          ...s,
+          normalizedName: String(s.name || "").trim(),
+        }))
+        .filter((s) => s.normalizedName.length > 0);
+
       await replaceList(
-        required_skills,
+        normalizedSkills,
         () =>
           prisma.recruiterRequiredSkill.deleteMany({ where: { user_id: uid } }),
         async () => {
-          const skillNames = [
-            ...new Set(
-              required_skills
-                .map((s) => String(s.name || "").trim())
-                .filter(Boolean),
-            ),
-          ];
-
+          // 2) Upsert skill theo normalizedName
           await Promise.all(
-            skillNames.map((name) =>
+            normalizedSkills.map((s) =>
               prisma.skill.upsert({
-                where: { name },
+                where: { name: s.normalizedName },
                 update: {},
-                create: { name },
+                create: { name: s.normalizedName },
               }),
             ),
           );
 
+          // 3) Lấy lại skillRows theo normalizedName
           const skillRows = await prisma.skill.findMany({
-            where: { name: { in: skillNames } },
+            where: {
+              name: { in: normalizedSkills.map((s) => s.normalizedName) },
+            },
           });
 
+          // 4) Insert recruiterRequiredSkill một cách an toàn
           await prisma.recruiterRequiredSkill.createMany({
-            data: required_skills.map((s) => ({
-              user_id: uid,
-              skill_id: skillRows.find((r) => r.name === s.name).id,
-              years_required: s.years_required ?? null,
-              must_have: s.must_have !== false,
-            })),
+            data: normalizedSkills
+              .map((s) => {
+                const row = skillRows.find((r) => r.name === s.normalizedName);
+
+                return {
+                  user_id: uid,
+                  skill_id: row?.id || null, // Không crash, không undefined.id
+                  years_required: s.years_required ?? null,
+                  must_have: s.must_have !== false,
+                };
+              })
+              .filter((d) => d.skill_id !== null), // lọc những dòng không có skill
           });
         },
       );

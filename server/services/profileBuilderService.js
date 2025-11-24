@@ -234,7 +234,7 @@ function computeAggregates(
   weightSum,
 ) {
   const topTags = normalizeTopK(tagScore, cfg.TOPK_TAGS);
-  const topKeywords = normalizeTopK(keywordScore, cfg.TOPK_KEYWORDS || 10);
+  const topKeywords = normalizeTopK(keywordScore, cfg.TOPK_KEY || 10);
   const main_location = computeMainLocation(locScore, pref);
   const avg_salary = computeAvgSalary(salarySumW, weightSum, pref);
   return { main_location, avg_salary, topTags, topKeywords };

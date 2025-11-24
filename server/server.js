@@ -11,15 +11,6 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 const prisma = require("./utils/prisma");
 
-// BigInt safe stringify toàn cục
-const originalStringify = JSON.stringify;
-JSON.stringify = (value, replacer, space) =>
-  originalStringify(
-    value,
-    (key, val) => (typeof val === "bigint" ? val.toString() : val),
-    space,
-  );
-
 // Khởi tạo app
 const app = express();
 

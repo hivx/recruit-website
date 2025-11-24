@@ -1,4 +1,5 @@
 const recommendationService = require("../services/recommendationService");
+const { normalizeBigInt } = require("../utils/bigInt");
 
 async function jobRecommendations(req, res) {
   try {
@@ -9,7 +10,7 @@ async function jobRecommendations(req, res) {
 
     return res.json({
       message: "Đã sinh công việc gợi ý cho người dùng",
-      data,
+      data: normalizeBigInt(data),
     });
   } catch (err) {
     res.status(400).json({
@@ -27,7 +28,7 @@ async function recommendCandidates(req, res) {
 
     res.json({
       message: "Đề xuất ứng viên thành công",
-      data,
+      data: normalizeBigInt(data),
     });
   } catch (err) {
     res.status(400).json({

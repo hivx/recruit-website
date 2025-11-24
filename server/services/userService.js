@@ -117,7 +117,9 @@ module.exports = {
     const job = await prisma.job.findFirst({
       where: {
         id: BigInt(jobId),
-        approval: { status: "approved" }, // lọc luôn job đã duyệt
+        approval: {
+          is: { status: "approved" },
+        }, // lọc luôn job đã duyệt
       },
       include: {
         approval: { select: { status: true } },

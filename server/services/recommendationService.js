@@ -156,7 +156,11 @@ async function generateCandidateRecommendations(recruiterId) {
   const applicants = await prisma.userVector.findMany({
     where: {
       user_id: { not: rid },
-      OR: [{ user: { role: "applicant" } }, { user: { role: "admin" } }],
+      user: {
+        is: {
+          OR: [{ role: "applicant" }, { role: "admin" }],
+        },
+      },
     },
     include: { user: true },
   });

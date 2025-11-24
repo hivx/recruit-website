@@ -2,6 +2,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const applicationService = require("../services/applicationService");
+const { normalizeBigInt } = require("../utils/bigInt");
 const prisma = require("../utils/prisma");
 
 // POST: Ứng tuyển công việc (cv, phone, coverLetter theo business)
@@ -111,7 +112,9 @@ exports.getMyApplications = async (req, res) => {
     const apps = await applicationService.getApplicationsByUser(
       req.user.userId,
     );
-    return res.json({ total: apps.length, applications: apps });
+    return res.json(
+      normalizeBigInt({ total: apps.length, applications: apps }),
+    );
   } catch (err) {
     console.error("[Get My Applications]", err.message);
     return res.status(500).json({ message: "Lỗi server!" });
