@@ -138,7 +138,7 @@ exports.reviewApplication = async (req, res) => {
 
     return res.status(200).json({
       message: "Đánh giá hồ sơ thành công!",
-      application: result,
+      application: normalizeBigInt(result),
     });
   } catch (err) {
     console.error("[Review Application Error]", err);
@@ -175,7 +175,7 @@ exports.updateApplication = async (req, res) => {
 
     res.status(200).json({
       message: "Cập nhật hồ sơ ứng tuyển thành công!",
-      application: result,
+      application: normalizeBigInt(result),
     });
   } catch (err) {
     console.error("[Update Application Error]", err);
