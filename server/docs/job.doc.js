@@ -138,10 +138,6 @@
  *           items:
  *             $ref: '#/components/schemas/RequiredSkillItem'
  *         # Các field dưới đây chỉ xuất hiện tùy trường hợp (khi controller bổ sung)
- *         createdAtFormatted:
- *           type: string
- *           example: "19/10/2025 10:30"
- *           description: "Chỉ có khi controller format thêm"
  *         isFavorite:
  *           type: boolean
  *           description: "Chỉ có khi người dùng đã đăng nhập"

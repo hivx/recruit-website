@@ -1,81 +1,152 @@
 // src/types/job.ts
 
-/** Tag chuẩn hóa (danh mục ngành nghề / lĩnh vực) */
+/** Tag (danh mục / kỹ năng gắn với Job) */
 export interface Tag {
   id: number;
   name: string;
 }
 
-/** Liên kết giữa Job và Tag (chuẩn hóa nhiều-nhiều) */
+/** Raw tag từ BE (mapTags trong toJobDTO) */
+export interface JobTagRaw {
+  job_id: string;
+  tag_id: number;
+  tag: Tag | null;
+}
+
+/** Tag trong FE (camelCase) */
 export interface JobTag {
-  jobId: string; // BE trả BigInt → FE nhận string
+  jobId: string;
   tagId: number;
-  tag: Tag; // Quan hệ: mỗi JobTag gắn 1 Tag
+  tag: Tag | null;
 }
 
-/** Dữ liệu raw trả từ BE (giữ snake_case để khớp JSON gốc) */
+/** Kỹ năng yêu cầu (raw từ BE) */
+export interface JobRequiredSkillRaw {
+  skill_id: number;
+  skill_name: string | null;
+  level_required: number | null;
+  years_required: number | null;
+  must_have: boolean;
+}
+
+/** Kỹ năng yêu cầu (FE) */
+export interface JobRequiredSkill {
+  skillId: number;
+  skillName: string | null;
+  levelRequired: number | null;
+  yearsRequired: number | null;
+  mustHave: boolean;
+}
+
+/** Trạng thái duyệt job (raw) */
+export interface JobApprovalRaw {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  auditor_id: string | null;
+  audited_at: string | null;
+}
+
+/** Trạng thái duyệt job (FE) */
+export interface JobApproval {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  auditorId: string | null;
+  auditedAt: string | null;
+}
+
+/** Item trong skill_profile vector */
+export interface SkillProfileItem {
+  id: number;
+  must?: boolean;
+  weight: number;
+}
+
+/** Item trong tag_profile vector */
+export interface TagProfileItem {
+  id: number;
+  weight: number;
+}
+
+/** Vector raw từ BE */
+export interface JobVectorRaw {
+  skill_profile: SkillProfileItem[];
+  tag_profile: TagProfileItem[];
+  title_keywords: Record<string, number> | null;
+  location: string | null;
+  salary_avg: number | null;
+}
+
+/** Vector FE (camelCase) */
+export interface JobVector {
+  skillProfile: SkillProfileItem[];
+  tagProfile: TagProfileItem[];
+  titleKeywords: Record<string, number> | null;
+  location: string | null;
+  salaryAvg: number | null;
+}
+
+/** Job raw từ BE (theo toJobDTO) */
 export interface JobRaw {
-  id: string;                   // BigInt → string
+  id: string;
   title: string;
-  company: string;
-  location?: string | null;
-  description?: string | null;
-  salary_min?: number | null;
-  salary_max?: number | null;
-  requirements?: string | null;
-  created_by_name: string;
-  created_by: string;           // BigInt → string
-  created_at: string;           // ISO date string
-  updated_at: string;           // ISO date string
-  tags: JobTag[];               // Mảng JobTag (đã populate tag)
-  createdAtFormatted?: string;  // chỉ khi gọi GET /jobs/:id
-  isFavorite?: boolean;         // chỉ khi user login
-}
+  description: string | null;
+  location: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  requirements: string | null;
+  created_by: string;
+  company_id: string;
 
-/** Kiểu chuẩn hóa để FE dùng (camelCase + chuyển field cần thiết) */
-export interface Job {
-  id: string;                   // BigInt → string
-  title: string;
-  company: string;
-  location?: string | null;
-  description?: string | null;
-  salaryMin?: number | null;
-  salaryMax?: number | null;
-  requirements?: string | null;
-  createdByName: string;
-  createdBy: string;            // BigInt → string
-  createdAt: string;            // FE convert từ created_at
-  updatedAt: string;            // FE convert từ updated_at
-  tags: JobTag[];               // Mảng JobTag với tag.name
-  createdAtFormatted?: string;
+  company?: {
+    id: string;
+    legal_name: string;
+  } | null;
+
+  tags: JobTagRaw[];
+
+  requiredSkills: JobRequiredSkillRaw[];
+
+  approval: JobApprovalRaw | null;
+
+  vector: JobVectorRaw | null;
+
+  created_at: string;
+  updated_at: string;
+
+  // Các field bổ sung từ BE (nếu có)
   isFavorite?: boolean;
 }
 
-/** Payload khi tạo mới Job */
-export interface JobCreatePayload {
+/** Job dùng trong FE (camelCase, sạch) */
+export interface Job {
+  id: string;
   title: string;
-  company: string;
-  location?: string;
-  description?: string;
-  salary_min?: number;
-  salary_max?: number;
-  requirements?: string;
-  tags?: string[]; // FE gửi tên tag → BE upsert Tag + JobTag
+  description: string | null;
+  location: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  requirements: string | null;
+
+  createdBy: string;
+  companyId: string;
+
+  company?: {
+    id: string;
+    legalName: string;
+  } | null;
+
+  tags: JobTag[];
+  requiredSkills: JobRequiredSkill[];
+  approval: JobApproval | null;
+  vector: JobVector | null;
+
+  createdAt: string;
+  updatedAt: string;
 }
 
-/** Payload khi cập nhật Job */
-export type JobUpdatePayload = Partial<JobCreatePayload>;
-
-/** Tag phổ biến (theo API /api/jobs/popular-tags) */
-export interface PopularTag {
-  tagId: number;
-  tagName: string;
-  count: number;
-}
-
-/** Danh sách tag (theo API /api/jobs/tags) */
-export interface ActiveTag {
-  id: number;
-  name: string;
-  jobCount: number;
+export interface JobDetail extends Job {
+  // Optional: nếu BE có trả thêm
+  isFavorite: boolean;
 }

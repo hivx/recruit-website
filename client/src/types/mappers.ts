@@ -1,117 +1,327 @@
 // src/types/mappers.ts
-import type { Job, Application, User, JobTag, Tag } from "@/types";
 
-// helper: parse date an toàn
-const safeDate = (val?: string | null) =>
-  val && !Number.isNaN(Date.parse(val)) ? new Date(val).toISOString() : "";
+import type {
+  Job,
+  JobRaw,
+  JobTag,
+  JobRequiredSkill,
+  JobApproval,
+  JobVector,
+  JobTagRaw,
+  JobRequiredSkillRaw,
+  JobApprovalRaw,
+  JobVectorRaw,
+  JobDetail,
+} from "./job";
 
-/** Raw types từ BE (swagger / Prisma raw JSON) */
-type RawJob = {
-  id: string; // BigInt → string
-  title: string;
-  company: string;
-  location?: string | null;
-  description?: string | null;
-  salary_min?: number | null;
-  salary_max?: number | null;
-  requirements?: string | null;
-  created_by: string; // BigInt → string
-  created_by_name: string;
-  created_at?: string | null;
-  updated_at?: string | null;
-  tags?: {
-    jobId: string; // BigInt → string
-    tagId: number;
-    tag: { id: number; name: string };
-  }[];
-  createdAtFormatted?: string;
-  isFavorite?: boolean;
-};
+import type {
+  Application,
+  ApplicationRaw,
+} from "./application";
 
-type RawUser = {
-  id: string; // BigInt → string
-  name: string;
-  email: string;
-  isVerified: boolean;
-  role: "admin" | "recruiter" | "applicant";
-  avatar: string;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
+import type {
+  User,
+  UserRaw,
+} from "./user";
 
-type RawApplication = {
-  id: string; // BigInt → string
-  job_id: string; // BigInt → string
-  applicant_id: string; // BigInt → string
-  cover_letter: string;
-  cv?: string | null;
-  phone?: string | null;
-  status: "pending" | "accepted" | "rejected";
-  created_at?: string | null;
-};
+import type {
+  Company,
+  CompanyRaw,
+  CompanyVerification,
+  CompanyVerificationRaw,
+} from "./company";
 
-// ================================
-//  MAPPER: Job
-// ================================
-export function normalizeJob(raw: RawJob): Job {
-  const tags: JobTag[] = Array.isArray(raw.tags)
-    ? raw.tags.map((jt) => ({
-        jobId: String(jt.jobId ?? ""),
-        tagId: jt.tagId ?? 0,
-        tag: {
-          id: jt.tag?.id ?? 0,
-          name: jt.tag?.name ?? "",
-        } as Tag,
-      }))
-    : [];
+import type {
+  JobRecommendation,
+  JobRecommendationRaw,
+  CandidateRecommendation,
+  CandidateRecommendationRaw,
+} from "./recommendation";
 
+import type {
+  CareerPreference,
+  CareerPreferenceRaw,
+  RecruiterPreference,
+  RecruiterPreferenceRaw,
+  RecruiterRequiredSkill,
+  RecruiterRequiredSkillRaw,
+} from "./preference";
+
+import type {
+  BehaviorProfile,
+  BehaviorProfileRaw,
+} from "./vector";
+
+/* ---------------------------------------------------
+ * Helper nhỏ: map an toàn mảng
+ * --------------------------------------------------- */
+function mapArray<T, R>(arr: T[] | undefined | null, mapper: (item: T) => R): R[] {
+  return Array.isArray(arr) ? arr.map(mapper) : [];
+}
+
+/* ---------------------------------------------------
+ * JOB MAPPERS
+ * --------------------------------------------------- */
+
+function mapJobTagRaw(raw: JobTagRaw): JobTag {
   return {
-    id: String(raw.id ?? ""),
-    title: raw.title ?? "",
-    company: raw.company ?? "",
-    location: raw.location ?? "",
-    description: raw.description ?? "",
-    salaryMin: raw.salary_min ?? null,
-    salaryMax: raw.salary_max ?? null,
-    requirements: raw.requirements ?? "",
-    createdBy: String(raw.created_by ?? ""),
-    createdByName: raw.created_by_name ?? "",
-    createdAt: safeDate(raw.created_at),
-    updatedAt: safeDate(raw.updated_at),
-    tags,
-    createdAtFormatted: raw.createdAtFormatted,
-    isFavorite: raw.isFavorite ?? false,
+    jobId: raw.job_id,
+    tagId: raw.tag_id,
+    tag: raw.tag ?? null,
   };
 }
 
-// ================================
-//  MAPPER: User
-// ================================
-export function normalizeUser(raw: RawUser): User {
+function mapJobRequiredSkillRaw(raw: JobRequiredSkillRaw): JobRequiredSkill {
   return {
-    id: String(raw.id ?? ""),
-    name: raw.name ?? "",
-    email: raw.email ?? "",
-    isVerified: raw.isVerified ?? false,
-    role: raw.role ?? "applicant",
-    avatar: raw.avatar ?? "uploads/pic.jpg",
-    createdAt: safeDate(raw.created_at),
-    updatedAt: safeDate(raw.updated_at),
+    skillId: raw.skill_id,
+    skillName: raw.skill_name,
+    levelRequired: raw.level_required,
+    yearsRequired: raw.years_required,
+    mustHave: raw.must_have,
   };
 }
 
-// ================================
-//  MAPPER: Application
-// ================================
-export function normalizeApplication(raw: RawApplication): Application {
+function mapJobApprovalRaw(raw: JobApprovalRaw | null): JobApproval | null {
+  if (!raw) return null;
   return {
-    id: String(raw.id ?? ""),
-    jobId: String(raw.job_id ?? ""),
-    applicantId: String(raw.applicant_id ?? ""),
-    coverLetter: raw.cover_letter ?? "",
-    cv: raw.cv ?? undefined,
-    phone: raw.phone ?? undefined,
-    status: raw.status ?? "pending",
-    createdAt: safeDate(raw.created_at),
+    id: raw.id,
+    status: raw.status,
+    reason: raw.reason,
+    auditorId: raw.auditor_id,
+    auditedAt: raw.audited_at,
+  };
+}
+
+function mapJobVectorRaw(raw: JobVectorRaw | null): JobVector | null {
+  if (!raw) return null;
+
+  return {
+    skillProfile: raw.skill_profile ?? [],
+    tagProfile: raw.tag_profile ?? [],
+    titleKeywords: raw.title_keywords ?? null,
+    location: raw.location ?? null,
+    salaryAvg: raw.salary_avg ?? null,
+  };
+}
+
+export function mapJobRaw(raw: JobRaw): Job {
+  return {
+    id: raw.id,
+    title: raw.title,
+    description: raw.description,
+    location: raw.location,
+
+    salaryMin: raw.salary_min,
+    salaryMax: raw.salary_max,
+
+    requirements: raw.requirements,
+    createdBy: raw.created_by,
+    companyId: raw.company_id,
+
+    company: raw.company
+      ? {
+          id: raw.company.id,
+          legalName: raw.company.legal_name,
+        }
+      : null,
+
+    tags: mapArray(raw.tags, mapJobTagRaw),
+    requiredSkills: mapArray(raw.requiredSkills, mapJobRequiredSkillRaw),
+
+    approval: mapJobApprovalRaw(raw.approval),
+    vector: mapJobVectorRaw(raw.vector),
+
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+  };
+}
+
+export function mapJobDetailRaw(raw: JobRaw): JobDetail {
+    return {
+        ...mapJobRaw(raw),
+        // nếu BE có trả thêm
+        isFavorite: raw.isFavorite ?? false,
+    };
+}
+
+/* ---------------------------------------------------
+ * APPLICATION MAPPERS
+ * --------------------------------------------------- */
+
+export function mapApplicationRaw(raw: ApplicationRaw): Application {
+  return {
+    id: raw.id,
+    jobId: raw.job_id,
+    applicantId: raw.applicant_id,
+    coverLetter: raw.cover_letter,
+    cv: raw.cv,
+    phone: raw.phone,
+    status: raw.status,
+
+    reviewedBy: raw.reviewed_by,
+    reviewedAt: raw.reviewed_at,
+    reviewNote: raw.review_note,
+
+    fitScore: raw.fit_score,
+
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+
+    job: raw.job
+      ? {
+          id: raw.job.id,
+          title: raw.job.title,
+        }
+      : undefined,
+
+    applicant: raw.applicant
+      ? {
+          id: raw.applicant.id,
+          name: raw.applicant.name,
+          email: raw.applicant.email,
+          avatar: raw.applicant.avatar,
+        }
+      : undefined,
+  };
+}
+
+/* ---------------------------------------------------
+ * USER MAPPERS
+ * --------------------------------------------------- */
+
+export function mapUserRaw(raw: UserRaw): User {
+  return {
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    avatar: raw.avatar,
+    role: raw.role,
+    isVerified: raw.isVerified,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    company: raw.company
+      ? {
+          id: raw.company.id,
+          legalName: raw.company.legal_name,
+          verificationStatus: raw.company.verificationStatus,
+        }
+      : null,
+  };
+}
+
+/* ---------------------------------------------------
+ * COMPANY MAPPERS
+ * --------------------------------------------------- */
+
+function mapCompanyVerificationRaw(
+  raw: CompanyVerificationRaw | null
+): CompanyVerification | null {
+  if (!raw) return null;
+  return {
+    status: raw.status,
+    rejectionReason: raw.rejection_reason,
+    submittedAt: raw.submitted_at,
+    verifiedAt: raw.verified_at,
+    reviewedBy: raw.reviewed_by,
+  };
+}
+
+export function mapCompanyRaw(raw: CompanyRaw): Company {
+  return {
+    id: raw.id,
+    legalName: raw.legal_name,
+    registrationNumber: raw.registration_number,
+    taxId: raw.tax_id,
+    countryCode: raw.country_code,
+    registeredAddress: raw.registered_address,
+    incorporationDate: raw.incorporation_date,
+    ownerId: raw.owner_id,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    verification: mapCompanyVerificationRaw(raw.verification),
+  };
+}
+
+/* ---------------------------------------------------
+ * RECOMMENDATION MAPPERS
+ * --------------------------------------------------- */
+
+export function mapJobRecommendationRaw(
+  raw: JobRecommendationRaw
+): JobRecommendation {
+  return {
+    id: raw.id,
+    userId: raw.user_id,
+    jobId: raw.job_id,
+    fitScore: raw.fit_score,
+    createdAt: raw.created_at,
+  };
+}
+
+export function mapCandidateRecommendationRaw(
+  raw: CandidateRecommendationRaw
+): CandidateRecommendation {
+  return {
+    id: raw.id,
+    recruiterId: raw.recruiter_id,
+    applicantId: raw.applicant_id,
+    fitScore: raw.fit_score,
+    createdAt: raw.created_at,
+  };
+}
+
+/* ---------------------------------------------------
+ * PREFERENCE MAPPERS
+ * --------------------------------------------------- */
+
+export function mapCareerPreferenceRaw(
+  raw: CareerPreferenceRaw
+): CareerPreference {
+  return {
+    userId: raw.user_id,
+    desiredRoles: raw.desired_roles ?? [],
+    desiredLocations: raw.desired_locations ?? [],
+    desiredSalary: raw.desired_salary,
+    expectedCompanySize: raw.expected_company_size,
+  };
+}
+
+function mapRecruiterRequiredSkillRaw(
+  raw: RecruiterRequiredSkillRaw
+): RecruiterRequiredSkill {
+  return {
+    skillId: raw.skill_id,
+    yearsRequired: raw.years_required,
+    mustHave: raw.must_have,
+  };
+}
+
+export function mapRecruiterPreferenceRaw(
+  raw: RecruiterPreferenceRaw
+): RecruiterPreference {
+  return {
+    userId: raw.user_id,
+    requiredSkills: mapArray(raw.required_skills, mapRecruiterRequiredSkillRaw),
+    preferredLocations: raw.preferred_locations ?? [],
+    desiredSalaryMin: raw.desired_salary_min,
+    desiredSalaryMax: raw.desired_salary_max,
+  };
+}
+
+/* ---------------------------------------------------
+ * BEHAVIOR PROFILE MAPPERS
+ * --------------------------------------------------- */
+
+export function mapBehaviorProfileRaw(
+  raw: BehaviorProfileRaw
+): BehaviorProfile {
+  return {
+    userId: raw.user_id,
+    keywordProfile: raw.keyword_profile ?? {},
+    tagProfile: raw.tag_profile ?? {},
+    salaryPreference: raw.salary_preference,
+    mainLocation: raw.main_location,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
   };
 }

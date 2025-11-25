@@ -1,5 +1,4 @@
 // controllers/jobController.js
-const moment = require("moment");
 const jobService = require("../services/jobService");
 const jobVectorService = require("../services/jobVectorService");
 
@@ -77,7 +76,6 @@ exports.getJobById = async (req, res) => {
 
     res.json({
       ...job,
-      createdAtFormatted: moment(job.created_at).format("DD/MM/YYYY HH:mm"),
       isFavorite,
     });
   } catch (err) {

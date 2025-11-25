@@ -7,9 +7,8 @@ import { ErrorBox, Loader } from "@/components";
 export function JobDetail() {
   const { id } = useParams<{ id: string }>();
 
-  //  ID là string (BE dùng BigInt/string)
   const {
-    data: job,
+    data: jobDetail,
     isLoading,
     isError,
     error,
@@ -23,38 +22,41 @@ export function JobDetail() {
       <ErrorBox message={getAxiosErrorMessage(error)} onRetry={refetch} />
     );
 
-  if (!job) return <p className="p-4">Không tìm thấy công việc!</p>;
+  if (!jobDetail) return <p className="p-4">Không tìm thấy công việc!</p>;
 
-  //  Lương hiển thị
+  // Salary display
   let salaryText: string | null = null;
-  if (job.salaryMin && job.salaryMax) {
-    salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
-  } else if (job.salaryMin) {
-    salaryText = `${job.salaryMin.toLocaleString()} VND`;
-  } else if (job.salaryMax) {
-    salaryText = `${job.salaryMax.toLocaleString()} VND`;
+  if (jobDetail.salaryMin && jobDetail.salaryMax) {
+    salaryText = `${jobDetail.salaryMin.toLocaleString()} - ${jobDetail.salaryMax.toLocaleString()} VND`;
+  } else if (jobDetail.salaryMin) {
+    salaryText = `${jobDetail.salaryMin.toLocaleString()} VND`;
+  } else if (jobDetail.salaryMax) {
+    salaryText = `${jobDetail.salaryMax.toLocaleString()} VND`;
   }
 
-  //  Ngày đăng
-  const createdDateText =
-    job.createdAtFormatted ||
-    (job.createdAt
-      ? new Date(job.createdAt).toLocaleDateString("vi-VN")
-      : "N/A");
+  // Created date
+  const createdDateText = jobDetail.createdAt
+    ? new Date(jobDetail.createdAt).toLocaleDateString("vi-VN")
+    : "N/A";
 
   return (
     <div className="p-6 space-y-4">
-      {/*  Tiêu đề */}
-      <h1 className="text-2xl font-bold">{job.title}</h1>
-      <p className="text-lg text-gray-600">{job.company}</p>
-      <p className="text-sm text-gray-500">
-        Được đăng bởi {job.createdByName} • {createdDateText}
+      {/* Title */}
+      <h1 className="text-2xl font-bold">{jobDetail.title}</h1>
+
+      {/* Company */}
+      <p className="text-lg text-gray-600">
+        {jobDetail.company?.legalName ?? "Không rõ công ty"}
       </p>
 
-      {/*  Location +  Salary */}
-      {job.location && (
+      <p className="text-sm text-gray-500">
+        Đăng ngày {createdDateText}
+      </p>
+
+      {/* Location + Salary */}
+      {jobDetail.location && (
         <p>
-          <strong>Location:</strong> {job.location}
+          <strong>Location:</strong> {jobDetail.location}
         </p>
       )}
       {salaryText && (
@@ -63,22 +65,22 @@ export function JobDetail() {
         </p>
       )}
 
-      {/*  Requirements */}
-      {job.requirements && (
+      {/* Requirements */}
+      {jobDetail.requirements && (
         <div>
           <strong>Requirements:</strong>
-          <p>{job.requirements}</p>
+          <p>{jobDetail.requirements}</p>
         </div>
       )}
 
-      {/*  Tags */}
-      {Array.isArray(job.tags) && job.tags.length > 0 && (
+      {/* Tags */}
+      {Array.isArray(jobDetail.tags) && jobDetail.tags.length > 0 && (
         <div>
           <strong>Tags:</strong>
           <div className="mt-1 flex flex-wrap gap-2">
-            {job.tags.map((jt) => (
+            {jobDetail.tags.map((jt, index) => (
               <span
-                key={jt.tagId ?? jt.tag?.id ?? `${job.id}-${Math.random()}`}
+                key={`${jobDetail.id}-${jt.tagId}-${index}`}
                 className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
               >
                 {jt.tag?.name ?? "Không có tên tag"}
@@ -88,21 +90,12 @@ export function JobDetail() {
         </div>
       )}
 
-      {/*  Description */}
-      {job.description && (
+      {/* Description */}
+      {jobDetail.description && (
         <div>
           <strong>Description:</strong>
-          <p>{job.description}</p>
+          <p>{jobDetail.description}</p>
         </div>
-      )}
-
-      {/*  Trạng thái yêu thích */}
-      {job.isFavorite !== undefined && (
-        <p className="text-sm text-gray-600">
-          {job.isFavorite
-            ? " Đã lưu vào danh sách yêu thích"
-            : "☆ Chưa lưu"}
-        </p>
       )}
     </div>
   );

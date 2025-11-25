@@ -1,58 +1,72 @@
 // src/types/application.ts
 
-/** Trạng thái ứng tuyển (theo schema mới) */
-export type ApplicationStatus = "pending" | "accepted" | "rejected";
+/** Trạng thái ứng tuyển (theo schema) */
+export type ApplicationStatus =
+  | "pending"
+  | "reviewing"
+  | "accepted"
+  | "rejected";
 
-/** Dữ liệu raw trả từ BE */
+/** Raw từ BE (toApplicationDTO) */
 export interface ApplicationRaw {
-  id: string;               // BigInt → string
-  job_id: string;           // BigInt → string
-  applicant_id: string;     // BigInt → string
+  id: string;
+  job_id: string;
+  applicant_id: string;
   cover_letter: string;
-  cv?: string;              // Đường dẫn file CV (/uploads/...)
-  phone?: string;
+  cv: string | null;
+  phone: string | null;
   status: ApplicationStatus;
-  created_at: string;       // ISO date string
+
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+
+  fit_score: number;
+
+  created_at: string;
+  updated_at: string;
+
+  job?: {
+    id: string;
+    title: string;
+  };
+
+  applicant?: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar: string | null;
+  };
 }
 
-/** Kiểu chuẩn hóa cho FE */
+/** Application FE (camelCase) */
 export interface Application {
-  id: string;               // FE giữ string để an toàn
+  id: string;
   jobId: string;
   applicantId: string;
   coverLetter: string;
-  cv?: string;
-  phone?: string;
+  cv: string | null;
+  phone: string | null;
   status: ApplicationStatus;
-  createdAt: string;        // FE map từ created_at
-}
 
-/** Payload khi tạo Application (FE gửi lên BE) */
-export interface ApplicationCreatePayload {
-  jobId: string;            // FE truyền string (BigInt → string)
-  coverLetter: string;
-  phone: string;
-  cv?: File;                // FE gửi multipart/form-data
-  // applicantId: BE lấy từ token
-}
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
 
-/** Payload khi cập nhật Application */
-export type ApplicationUpdatePayload = Partial<ApplicationCreatePayload>;
+  fitScore: number;
 
-/** Thông tin ứng viên (trả về khi recruiter xem danh sách) */
-export interface ApplicantInfo {
-  applicantName: string;
-  applicantEmail: string;
-  applicantAvatar: string;
-  coverLetter: string;
-  cv: string;
-  phone: string;
-  status: ApplicationStatus;
-  appliedAt: string; // ISO date string
-}
+  createdAt: string;
+  updatedAt: string;
 
-/** Response khi tạo application thành công */
-export interface ApplicationResponse {
-  message: string;          // "Ứng tuyển thành công!"
-  application: Application;
+  job?: {
+    id: string;
+    title: string;
+  };
+
+  applicant?: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar: string | null;
+  };
 }
