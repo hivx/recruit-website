@@ -15,7 +15,7 @@ export function JobDetail() {
     refetch,
   } = useJobById(id);
 
-  if (isLoading) return <Loader />;
+  if (isLoading) return <Loader size={18} />;
 
   if (isError)
     return (

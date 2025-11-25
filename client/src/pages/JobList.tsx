@@ -13,7 +13,7 @@ export function JobList() {
     refetch,
   } = useJobs(1, 10);
 
-  if (isLoading) return <Loader />;
+  if (isLoading) return <Loader size={18} />;
 
   if (isError)
     return (
