@@ -16,10 +16,13 @@ export function useJobs(page = 1, limit = 10) {
 }
 
 /** Hook: Lấy chi tiết Job theo ID (BigInt → string) */
-export function useJobById(id: string | undefined) {
+export function useJobById(id?: string) {
   return useQuery<Job, Error>({
     queryKey: ["job", id],
-    queryFn: () => getJobById(id as string),
-    enabled: !!id, // chỉ fetch khi có id
+    enabled: !!id,
+    queryFn: ({ queryKey }) => {
+      const [, jobId] = queryKey;
+      return getJobById(jobId as string);
+    },
   });
 }

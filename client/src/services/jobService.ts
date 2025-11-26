@@ -1,17 +1,18 @@
 // src/services/jobService.ts
 import { api } from "@/api";
+import type { JobListResponse, JobDetailResponse } from "@/interfaces";
 import { mapJobRaw, mapJobDetailRaw } from "@/types";
-import type { Job, JobRaw, PaginatedJobs, JobDetail } from "@/types";
+import type { Job, PaginatedJobs, JobDetail } from "@/types";
 
 export async function getJobs(
   page = 1,
-  limit = 10
+  limit = 10,
 ): Promise<PaginatedJobs<Job>> {
-  const res = await api.get("/api/jobs", { params: { page, limit } });
+  const res = await api.get<JobListResponse>("/api/jobs", {
+    params: { page, limit },
+  });
 
-  const rawJobs = Array.isArray(res.data.jobs)
-    ? (res.data.jobs as JobRaw[])
-    : [];
+  const rawJobs = res.data.jobs;
 
   return {
     jobs: rawJobs.map(mapJobRaw),
@@ -22,6 +23,6 @@ export async function getJobs(
 }
 
 export async function getJobById(id: string): Promise<JobDetail> {
-  const res = await api.get(`/api/jobs/${id}`);
-  return mapJobDetailRaw(res.data as JobRaw);
+  const res = await api.get<JobDetailResponse>(`/api/jobs/${id}`);
+  return mapJobDetailRaw(res.data);
 }

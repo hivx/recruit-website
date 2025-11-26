@@ -1,5 +1,13 @@
 // src/types/mappers.ts
 
+import type { Application, ApplicationRaw } from "./application";
+
+import type {
+  Company,
+  CompanyRaw,
+  CompanyVerification,
+  CompanyVerificationRaw,
+} from "./company";
 import type {
   Job,
   JobRaw,
@@ -15,30 +23,6 @@ import type {
 } from "./job";
 
 import type {
-  Application,
-  ApplicationRaw,
-} from "./application";
-
-import type {
-  User,
-  UserRaw,
-} from "./user";
-
-import type {
-  Company,
-  CompanyRaw,
-  CompanyVerification,
-  CompanyVerificationRaw,
-} from "./company";
-
-import type {
-  JobRecommendation,
-  JobRecommendationRaw,
-  CandidateRecommendation,
-  CandidateRecommendationRaw,
-} from "./recommendation";
-
-import type {
   CareerPreference,
   CareerPreferenceRaw,
   RecruiterPreference,
@@ -46,16 +30,23 @@ import type {
   RecruiterRequiredSkill,
   RecruiterRequiredSkillRaw,
 } from "./preference";
-
 import type {
-  BehaviorProfile,
-  BehaviorProfileRaw,
-} from "./vector";
+  JobRecommendation,
+  JobRecommendationRaw,
+  CandidateRecommendation,
+  CandidateRecommendationRaw,
+} from "./recommendation";
+import type { User, UserRaw } from "./user";
+
+import type { BehaviorProfile, BehaviorProfileRaw } from "./vector";
 
 /* ---------------------------------------------------
  * Helper nhỏ: map an toàn mảng
  * --------------------------------------------------- */
-function mapArray<T, R>(arr: T[] | undefined | null, mapper: (item: T) => R): R[] {
+function mapArray<T, R>(
+  arr: T[] | undefined | null,
+  mapper: (item: T) => R,
+): R[] {
   return Array.isArray(arr) ? arr.map(mapper) : [];
 }
 
@@ -82,7 +73,9 @@ function mapJobRequiredSkillRaw(raw: JobRequiredSkillRaw): JobRequiredSkill {
 }
 
 function mapJobApprovalRaw(raw: JobApprovalRaw | null): JobApproval | null {
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   return {
     id: raw.id,
     status: raw.status,
@@ -93,7 +86,9 @@ function mapJobApprovalRaw(raw: JobApprovalRaw | null): JobApproval | null {
 }
 
 function mapJobVectorRaw(raw: JobVectorRaw | null): JobVector | null {
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
 
   return {
     skillProfile: raw.skill_profile ?? [],
@@ -137,11 +132,11 @@ export function mapJobRaw(raw: JobRaw): Job {
 }
 
 export function mapJobDetailRaw(raw: JobRaw): JobDetail {
-    return {
-        ...mapJobRaw(raw),
-        // nếu BE có trả thêm
-        isFavorite: raw.isFavorite ?? false,
-    };
+  return {
+    ...mapJobRaw(raw),
+    // nếu BE có trả thêm
+    isFavorite: raw.isFavorite ?? false,
+  };
 }
 
 /* ---------------------------------------------------
@@ -214,9 +209,11 @@ export function mapUserRaw(raw: UserRaw): User {
  * --------------------------------------------------- */
 
 function mapCompanyVerificationRaw(
-  raw: CompanyVerificationRaw | null
+  raw: CompanyVerificationRaw | null,
 ): CompanyVerification | null {
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   return {
     status: raw.status,
     rejectionReason: raw.rejection_reason,
@@ -247,7 +244,7 @@ export function mapCompanyRaw(raw: CompanyRaw): Company {
  * --------------------------------------------------- */
 
 export function mapJobRecommendationRaw(
-  raw: JobRecommendationRaw
+  raw: JobRecommendationRaw,
 ): JobRecommendation {
   return {
     id: raw.id,
@@ -259,7 +256,7 @@ export function mapJobRecommendationRaw(
 }
 
 export function mapCandidateRecommendationRaw(
-  raw: CandidateRecommendationRaw
+  raw: CandidateRecommendationRaw,
 ): CandidateRecommendation {
   return {
     id: raw.id,
@@ -275,7 +272,7 @@ export function mapCandidateRecommendationRaw(
  * --------------------------------------------------- */
 
 export function mapCareerPreferenceRaw(
-  raw: CareerPreferenceRaw
+  raw: CareerPreferenceRaw,
 ): CareerPreference {
   return {
     userId: raw.user_id,
@@ -287,7 +284,7 @@ export function mapCareerPreferenceRaw(
 }
 
 function mapRecruiterRequiredSkillRaw(
-  raw: RecruiterRequiredSkillRaw
+  raw: RecruiterRequiredSkillRaw,
 ): RecruiterRequiredSkill {
   return {
     skillId: raw.skill_id,
@@ -297,7 +294,7 @@ function mapRecruiterRequiredSkillRaw(
 }
 
 export function mapRecruiterPreferenceRaw(
-  raw: RecruiterPreferenceRaw
+  raw: RecruiterPreferenceRaw,
 ): RecruiterPreference {
   return {
     userId: raw.user_id,
@@ -313,7 +310,7 @@ export function mapRecruiterPreferenceRaw(
  * --------------------------------------------------- */
 
 export function mapBehaviorProfileRaw(
-  raw: BehaviorProfileRaw
+  raw: BehaviorProfileRaw,
 ): BehaviorProfile {
   return {
     userId: raw.user_id,

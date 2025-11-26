@@ -1,8 +1,8 @@
 // src/pages/JobDetail.tsx
 import { useParams } from "react-router-dom";
+import { ErrorBox, Loader } from "@/components";
 import { useJobById } from "@/hooks";
 import { getAxiosErrorMessage } from "@/utils";
-import { ErrorBox, Loader } from "@/components";
 
 export function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -15,14 +15,24 @@ export function JobDetail() {
     refetch,
   } = useJobById(id);
 
-  if (isLoading) return <Loader size={18} />;
+  if (isLoading) {
+    return <Loader size={18} />;
+  }
 
-  if (isError)
+  if (isError) {
     return (
-      <ErrorBox message={getAxiosErrorMessage(error)} onRetry={refetch} />
+      <ErrorBox
+        message={getAxiosErrorMessage(error)}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
     );
+  }
 
-  if (!jobDetail) return <p className="p-4">Không tìm thấy công việc!</p>;
+  if (!jobDetail) {
+    return <p className="p-4">Không tìm thấy công việc!</p>;
+  }
 
   // Salary display
   let salaryText: string | null = null;
@@ -49,9 +59,7 @@ export function JobDetail() {
         {jobDetail.company?.legalName ?? "Không rõ công ty"}
       </p>
 
-      <p className="text-sm text-gray-500">
-        Đăng ngày {createdDateText}
-      </p>
+      <p className="text-sm text-gray-500">Đăng ngày {createdDateText}</p>
 
       {/* Location + Salary */}
       {jobDetail.location && (

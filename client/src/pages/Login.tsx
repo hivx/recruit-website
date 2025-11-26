@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader } from "@/components";
 import { login } from "@/services/authService";
 import type { LoginPayload } from "@/types/auth";
 import { getAxiosErrorMessage } from "@/utils";
-import { Loader } from "@/components";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate() as (path: string) => void;
 
   const [form, setForm] = useState<LoginPayload>({
     email: "",
@@ -42,12 +42,15 @@ export default function LoginPage() {
         </h1>
 
         {errorMsg && (
-          <p className="text-red-600 text-center text-sm mb-4">
-            {errorMsg}
-          </p>
+          <p className="text-red-600 text-center text-sm mb-4">{errorMsg}</p>
         )}
 
-        <form className="space-y-5" onSubmit={handleLogin}>
+        <form
+          className="space-y-5"
+          onSubmit={(e) => {
+            void handleLogin(e);
+          }}
+        >
           {/* Email */}
           <div>
             <label

@@ -1,11 +1,18 @@
 // src/components/ErrorFallback.tsx
 import type { FallbackProps } from "react-error-boundary";
 
-export function ErrorFallback({ error, resetErrorBoundary }: Readonly<FallbackProps>) {
+export function ErrorFallback({
+  error,
+  resetErrorBoundary,
+}: Readonly<FallbackProps>) {
   return (
     <div className="p-6 max-w-lg mx-auto bg-red-50 border border-red-200 rounded-xl space-y-3">
-      <h2 className="text-red-600 font-semibold text-lg">Đã có lỗi không mong muốn</h2>
-      <pre className="text-sm whitespace-pre-wrap text-red-700">{error?.message}</pre>
+      <h2 className="text-red-600 font-semibold text-lg">
+        Đã có lỗi không mong muốn
+      </h2>
+      <pre className="text-sm whitespace-pre-wrap text-red-700">
+        {error instanceof Error ? error.message : String(error)}
+      </pre>
       <div className="flex gap-2">
         <button
           onClick={resetErrorBoundary}

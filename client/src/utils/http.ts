@@ -8,11 +8,7 @@ function isAxiosError(err: unknown): err is AxiosError<ApiError> {
 
 export function getAxiosErrorMessage(err: unknown): string {
   if (isAxiosError(err)) {
-    return (
-      err.response?.data?.message ||
-      err.message ||
-      "Có lỗi xảy ra"
-    );
+    return err.response?.data?.message || err.message || "Có lỗi xảy ra";
   }
 
   if (err instanceof Error) {
