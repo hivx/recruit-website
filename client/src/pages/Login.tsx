@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Loader } from "@/components";
+import { useAppNavigate } from "@/hooks";
 import { login } from "@/services/authService";
+import { useUserStore } from "@/stores/useUserStore";
 import type { LoginPayload } from "@/types/auth";
 import { getAxiosErrorMessage } from "@/utils";
 
 export default function LoginPage() {
-  const navigate = useNavigate() as (path: string) => void;
+  const navigate = useAppNavigate();
+  const setUser = useUserStore((s) => s.setUser);
 
   const [form, setForm] = useState<LoginPayload>({
     email: "",
@@ -23,9 +25,7 @@ export default function LoginPage() {
 
     try {
       const res = await login(form);
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
-
+      setUser(res.user, res.token); // Zustand
       navigate("/jobs");
     } catch (err) {
       setErrorMsg(getAxiosErrorMessage(err));
@@ -35,29 +35,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="backdrop-blur-xl bg-white/70 shadow-2xl border border-white/30 rounded-2xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
-          Đăng nhập
+    <div className="min-h-screen flex items-center justify-center bg-blue-300 p-4">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+        {/* Title */}
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          Hệ thống tuyển dụng VIP PRO
         </h1>
 
+        {/* Error */}
         {errorMsg && (
           <p className="text-red-600 text-center text-sm mb-4">{errorMsg}</p>
         )}
 
+        {/* FORM */}
         <form
-          className="space-y-5"
           onSubmit={(e) => {
             void handleLogin(e);
           }}
+          className="space-y-5"
         >
-          {/* Email */}
+          {/* EMAIL */}
           <div>
             <label
               htmlFor="email"
-              className="block mb-1 font-semibold text-gray-700"
+              className="text-sm font-medium text-gray-600"
             >
-              Email
+              Tài khoản
             </label>
             <input
               id="email"
@@ -65,17 +68,15 @@ export default function LoginPage() {
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                         transition"
+              className="input"
             />
           </div>
 
-          {/* Password */}
+          {/* PASSWORD */}
           <div>
             <label
               htmlFor="password"
-              className="block mb-1 font-semibold text-gray-700"
+              className="text-sm font-medium text-gray-600"
             >
               Mật khẩu
             </label>
@@ -85,32 +86,31 @@ export default function LoginPage() {
               required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                         transition"
+              className="input"
             />
           </div>
 
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold
-                       transition-all shadow-sm hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
+          {/* BUTTON */}
+          <button type="submit" disabled={loading} className="btn-login">
             {loading ? <Loader size={20} /> : "Đăng nhập"}
           </button>
         </form>
 
-        {/* Register link */}
-        <div className="text-sm text-center pt-4">
-          Chưa có tài khoản?{" "}
-          <a
-            href="/register"
-            className="text-blue-600 font-semibold hover:underline"
-          >
-            Đăng ký ngay
+        {/* LINKS */}
+        <div className="mt-6 text-center text-sm">
+          <a href="/" className="block mt-2 text-blue-700 hover:underline">
+            Quên mật khẩu?
           </a>
+
+          <p className="text-gray-700 mt-3">
+            Không có tài khoản?{" "}
+            <a
+              href="/register"
+              className="text-blue-700 font-semibold hover:underline"
+            >
+              Đăng ký ngay
+            </a>
+          </p>
         </div>
       </div>
     </div>

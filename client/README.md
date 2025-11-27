@@ -259,3 +259,126 @@ Khai báo toàn bộ types: job.ts, application.ts, user.ts, api.ts.
 Tạo axiosClient.ts + interceptors.
 
 Tạo Header/Footer + DefaultLayout để ráp khung.
+
+⭐ LỘ TRÌNH CHUẨN ĐỂ TIẾP TỤC SAU TRANG LOGIN
+
+Mình chia theo level để bạn không bị ngợp.
+Bạn chọn bước nào → mình code luôn bước đó.
+
+✅ 1. Tạo ProtectedRoute (bắt buộc trước khi làm trang khác)
+
+Mục tiêu:
+
+Nếu chưa login → redirect về /login
+
+Nếu đã login → truy cập trang bình thường
+
+Nếu token hết hạn → tự logout và về login
+
+Trong dự án bạn, bước này là tiền đề trước khi làm JobList, Dashboard,…
+
+✅ 2. Tạo layout chính (MainLayout)
+
+Layout này chứa:
+
+Navbar (hiển thị user name, avatar, logout)
+
+Sidebar nếu bạn cần Dashboard
+
+Container nội dung
+
+Từ đây toàn app sẽ dùng layout này, ngoại trừ login & register.
+
+✅ 3. Trang JobList (trang chính của applicant)
+
+Trang này sẽ:
+
+Gọi API lấy jobs
+
+Hiển thị danh sách JobCard
+
+Filter (keyword / location / lương)
+
+Pagination
+
+Click → chuyển sang JobDetail
+
+Đây là phần FE quan trọng nhất hệ thống.
+
+✅ 4. Trang JobDetail
+
+Khi người dùng click vào job:
+
+Hiển thị thông tin job đầy đủ
+
+Nút “Ứng tuyển” (chỉ applicant mới thấy)
+
+Nút “Lưu job” nếu bạn muốn
+
+Hiển thị yêu cầu kỹ năng + tags
+
+Trang này cần làm đẹp vì user xem nhiều nhất.
+
+✅ 5. Trang Apply Job (Ứng tuyển)
+
+Form gửi:
+
+coverLetter
+
+phone
+
+upload CV
+
+hiển thị job summary
+
+xử lý luồng submit
+
+Về mặt logic → khá nhiều thứ liên quan đến BE.
+
+⚡ Nếu bạn làm phía Recruiter (tuỳ vai trò):
+Recruiter Dashboard
+
+Thống kê jobs
+
+Danh sách job đã tạo
+
+Nút tạo job
+
+Nút sửa / xóa job
+
+Applicant List
+
+Danh sách ứng viên
+
+Trạng thái ứng tuyển
+
+Nhận xét + đánh giá CV (nếu làm)
+
+Create / Edit Job Page
+
+Form nhiều trường
+
+Tag select
+
+Required skills chọn nhiều dòng
+
+Validation đầy đủ
+
+🚀 6. Tích hợp Recommendation (nếu muốn nâng cấp)
+
+Gồm:
+
+Gợi ý việc làm cho applicant
+
+Gợi ý ứng viên cho recruiter
+
+UI dạng card, slider, hoặc list
+
+Bạn đã làm xong BE → FE chỉ cần render.
+
+⭐ MÌNH ĐỀ XUẤT BƯỚC TIẾP THEO CHO BẠN:
+👉 Làm ProtectedRoute trước
+
+Rồi mình chuyển sang Main Layout + Navbar, tiếp theo là JobList.
+
+Nếu không có ProtectedRoute, bạn truy cập /jobs chưa login cũng vào được → không đúng logic hệ

@@ -1,6 +1,8 @@
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
+import { useUserStore } from "@/stores";
+
 export const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL as string) || "http://localhost:5000",
   timeout: 10000,
@@ -9,7 +11,7 @@ export const api = axios.create({
 // ----- REQUEST INTERCEPTOR -----
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = useUserStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,6 +32,12 @@ api.interceptors.response.use(
 
     if (axios.isAxiosError(error)) {
       const axiosErr = error as AxiosError<{ message?: string }>;
+
+      // ---- Check token expired ----
+      if (axiosErr.response?.status === 401) {
+        useUserStore.getState().clearUser(); // logout Zustand
+      }
+
       msg =
         axiosErr.response?.data?.message ??
         axiosErr.message ??

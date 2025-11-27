@@ -1,11 +1,11 @@
 // src/App.tsx
 import { BrowserRouter } from "react-router-dom";
-import { AppRoutes } from "@/router";
+import { AppRouter } from "@/routers";
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppRouter />
     </BrowserRouter>
   );
 }
