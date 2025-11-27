@@ -6,7 +6,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import type { LoginPayload } from "@/types/auth";
 import { getAxiosErrorMessage } from "@/utils";
 
-export default function LoginPage() {
+export function LoginPage() {
   const navigate = useAppNavigate();
   const setUser = useUserStore((s) => s.setUser);
 
@@ -98,7 +98,10 @@ export default function LoginPage() {
 
         {/* LINKS */}
         <div className="mt-6 text-center text-sm">
-          <a href="/" className="block mt-2 text-blue-700 hover:underline">
+          <a
+            href="/forgot-password"
+            className="block mt-2 text-blue-700 hover:underline"
+          >
             Quên mật khẩu?
           </a>
 

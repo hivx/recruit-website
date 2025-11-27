@@ -17,3 +17,18 @@ export interface RegisterPayload {
   password: string;
   role: "admin" | "recruiter" | "applicant";
 }
+
+export interface RegisterResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: "applicant" | "recruiter";
+    avatar: string;
+    isVerified: boolean;
+  };
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}

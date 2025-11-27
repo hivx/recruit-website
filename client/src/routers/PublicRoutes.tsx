@@ -1,5 +1,5 @@
 import { Navigate, Outlet, Route } from "react-router-dom";
-import LoginPage from "@/pages/Login";
+import { LoginPage, ForgotPasswordPage, RegisterPage } from "@/pages";
 import { useUserStore } from "@/stores/useUserStore";
 
 // Logic bảo vệ
@@ -16,6 +16,8 @@ export function PublicRoutes() {
   return (
     <Route element={<PublicRouteGuard />}>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       {/* <Route path="/register" element={<RegisterPage />} /> */}
     </Route>
   );
