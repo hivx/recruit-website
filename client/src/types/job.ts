@@ -102,6 +102,7 @@ export interface JobRaw {
   company?: {
     id: string;
     legal_name: string;
+    logo: string | null;
   } | null;
 
   tags: JobTagRaw[];
@@ -116,7 +117,7 @@ export interface JobRaw {
   updated_at: string;
 
   // Các field bổ sung từ BE (nếu có)
-  isFavorite?: boolean;
+  isFavorite: boolean;
 }
 
 /** Job dùng trong FE (camelCase, sạch) */
@@ -135,12 +136,14 @@ export interface Job {
   company?: {
     id: string;
     legalName: string;
+    logo: string | null;
   } | null;
 
   tags: JobTag[];
   requiredSkills: JobRequiredSkill[];
   approval: JobApproval | null;
   vector: JobVector | null;
+  isFavorite: boolean;
 
   createdAt: string;
   updatedAt: string;

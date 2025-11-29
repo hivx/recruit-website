@@ -14,6 +14,7 @@ const toCompanyDTO = (c) => {
     registered_address: c.registered_address,
     incorporation_date: c.incorporation_date,
     owner_id: toStr(c.owner_id),
+    logo: c.logo ?? null,
     created_at: c.created_at,
     updated_at: c.updated_at,
     verification: c.verification

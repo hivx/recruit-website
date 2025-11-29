@@ -1,16 +1,37 @@
-// src/components/JobCard.tsx
-
+import { Heart } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toggleFavorite } from "@/services/favoriteService";
 import type { Job } from "@/types/job";
+import { resolveImage } from "@/utils";
 
 type JobCardProps = Readonly<{
   job: Job;
 }>;
 
 export function JobCard({ job }: JobCardProps) {
-  // Salary range
-  let salaryText: string | null = null;
+  const logoUrl = resolveImage(job.company?.logo);
 
+  // FE state sync với BE isFavorite
+  const [isFavorite, setIsFavorite] = useState(job.isFavorite === true);
+
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // UI phản hồi tức thì (optimistic)
+    setIsFavorite((prev) => !prev);
+
+    // Gửi API lên BE
+    try {
+      await toggleFavorite(job.id);
+    } catch {
+      // Nếu fail → rollback
+      setIsFavorite((prev) => !prev);
+    }
+  };
+
+  // Lương
+  let salaryText: string | null = null;
   if (job.salaryMin && job.salaryMax) {
     salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
   } else if (job.salaryMin) {
@@ -19,51 +40,102 @@ export function JobCard({ job }: JobCardProps) {
     salaryText = `${job.salaryMax.toLocaleString()} VND`;
   }
 
-  // Date posted
   const postedDate = job.createdAt
     ? new Date(job.createdAt).toLocaleDateString("vi-VN")
     : "N/A";
 
   return (
-    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition">
-      {/* Title */}
-      {job.id ? (
+    <div
+      className="
+        group bg-white rounded-xl border shadow-sm 
+        hover:shadow-xl hover:border-blue-300
+        transition-all duration-300 ease-out 
+        p-5 flex gap-4 transform hover:-translate-y-1
+      "
+    >
+      {/* Logo */}
+      <Link
+        to={`/jobs/${job.id}`}
+        className="
+          min-w-[64px] h-[64px] flex items-center justify-center 
+          rounded-lg overflow-hidden border border-gray-200 
+          bg-gray-50 group-hover:border-blue-300 transition-all
+        "
+      >
+        <img src={logoUrl} alt="logo" className="w-16 h-16 object-contain" />
+      </Link>
+
+      {/* Info */}
+      <div className="flex-1 space-y-1">
         <Link to={`/jobs/${job.id}`}>
-          <h2 className="text-xl font-semibold text-blue-600 hover:underline">
+          <h2
+            className="
+              text-base font-semibold text-gray-900 
+              group-hover:text-blue-600 transition-colors duration-300
+            "
+          >
             {job.title}
           </h2>
         </Link>
-      ) : (
-        <h2 className="text-xl font-semibold text-gray-600">{job.title}</h2>
-      )}
 
-      {/* Company */}
-      <p className="text-gray-700">
-        {job.company?.legalName ?? "Không rõ công ty"}
-      </p>
+        <p className="text-sm text-gray-600 font-medium">
+          {job.company?.legalName}
+        </p>
 
-      {/* Created date */}
-      <p className="text-sm text-gray-500">Đăng ngày {postedDate}</p>
+        {/* Salary + Location */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <span className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">
+            {salaryText}
+          </span>
 
-      {/* Location + Salary */}
-      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
-        {job.location && <span>{job.location}</span>}
-        {salaryText && <span>{salaryText}</span>}
+          {job.location && (
+            <span className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">
+              {job.location}
+            </span>
+          )}
+        </div>
+
+        {/* Tags */}
+        {job.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {job.tags.map((t) => (
+              <span
+                key={t.tagId}
+                className="
+                  px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full 
+                  hover:bg-blue-100 hover:text-blue-700 
+                  transition-colors duration-200
+                "
+              >
+                {t.tag?.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs text-gray-400 pt-1">Đăng ngày {postedDate}</p>
       </div>
 
-      {/* Tags */}
-      {Array.isArray(job.tags) && job.tags.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {job.tags.map((jt, index) => (
-            <span
-              key={`${job.id}-${jt.tagId}-${index}`}
-              className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-            >
-              {jt.tag?.name ?? "Tag không tên"}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Heart Favorite */}
+      <button
+        onClick={(e) => {
+          void handleToggle(e);
+        }}
+        className="
+          self-start p-2 rounded-full 
+          transition-all duration-300
+          hover:bg-red-50
+        "
+      >
+        <Heart
+          size={22}
+          className={`
+            transition-all duration-300
+            ${isFavorite ? "text-red-500 scale-125" : "text-gray-400"}
+          `}
+          {...(isFavorite ? { fill: "currentColor" } : {})}
+        />
+      </button>
     </div>
   );
 }

@@ -7,3 +7,12 @@
   @apply w-full py-3 rounded-lg bg-blue-600 text-white font-semibold
         hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed;
 }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}

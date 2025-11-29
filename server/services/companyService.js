@@ -40,6 +40,7 @@ async function createCompany(ownerId, payload) {
       incorporation_date: payload.incorporation_date
         ? new Date(payload.incorporation_date)
         : null,
+      logo: payload.logo ?? null,
       verification: {
         create: {
           status: "submitted", // theo schema đơn giản: submitted | verified | rejected
@@ -113,6 +114,7 @@ async function updateMyCompany(ownerId, payload) {
       incorporation_date: payload.incorporation_date
         ? new Date(payload.incorporation_date)
         : company.incorporation_date,
+      logo: payload.logo ?? company.logo,
     },
     include: { verification: true },
   });

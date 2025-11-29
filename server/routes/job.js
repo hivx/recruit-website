@@ -18,7 +18,7 @@ router.post(
 );
 
 // GET all: public
-router.get("/", jobController.getAllJobs);
+router.get("/", authOptional, jobController.getAllJobs);
 
 // GET popular tags: public
 router.get("/popular-tags", jobController.getPopularTags);

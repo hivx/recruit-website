@@ -29,6 +29,7 @@ const toJobDTO = (job) => {
       ? {
           id: toStr(job.company.id),
           legal_name: job.company.legal_name,
+          logo: job.company.logo ?? null,
         }
       : null,
 

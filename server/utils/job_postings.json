@@ -53,7 +53,7 @@
   },
   {
     "title": "Phát triển Frontend React",
-    "company_id": "1",
+    "company_id": "4",
     "location": "Hải Phòng",
     "description": "Xây dựng giao diện người dùng responsive với React và Tailwind CSS.",
     "salary_min": 17000000,
@@ -67,7 +67,7 @@
   },
   {
     "title": "Chuyên viên Kế toán Doanh nghiệp",
-    "company_id": "1",
+    "company_id": "4",
     "location": "Hà Nội",
     "description": "Lập báo cáo tài chính hàng quý, quản lý dòng tiền doanh nghiệp.",
     "salary_min": 16000000,
@@ -121,7 +121,7 @@
   },
   {
     "title": "Phát triển Ứng dụng Flutter",
-    "location": "Nha Trang",
+    "location": "Khánh Hòa",
     "description": "Xây dựng ứng dụng di động cross-platform cho khách hàng quốc tế.",
     "salary_min": 22000000,
     "salary_max": 30000000,

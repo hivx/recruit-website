@@ -53,6 +53,7 @@ model Company {
   updated_at          DateTime             @default(now()) @updatedAt
   owner               User                 @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   verification        CompanyVerification?
+  logo                String?              @default("uploads/pic.jpg") @db.VarChar(255)
   jobs                Job[]
 
   @@unique([registration_number, country_code], map: "uq_company_reg_country")

@@ -4,13 +4,12 @@ import { Link } from "react-router-dom";
 import { logo } from "@/assets";
 import { useAppNavigate } from "@/hooks";
 import { useUserStore } from "@/stores/useUserStore";
+import { resolveImage } from "@/utils";
 
 export function Navbar() {
   const { user, clearUser } = useUserStore();
   const navigate = useAppNavigate();
-  const avatarSrc = user?.avatar
-    ? `${import.meta.env.VITE_API_URL}/${String(user.avatar)}`
-    : "/placeholder-avatar.png";
+  const avatarSrc = resolveImage(user?.avatar);
 
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

@@ -2,8 +2,6 @@
 const jobService = require("../services/jobService");
 const jobVectorService = require("../services/jobVectorService");
 
-const prisma = require("../utils/prisma");
-
 /* ============================================================
    CREATE JOB
    ============================================================ */
@@ -26,22 +24,21 @@ exports.createJob = async (req, res) => {
 // GET /api/jobs (chỉ trả job approved)
 exports.getAllJobs = async (req, res) => {
   try {
-    const { tag, search = "", page = 1, limit = 10 } = req.query;
-
-    const filter = {
-      ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
-    };
+    const currentUser = req.user
+      ? { id: req.user.userId, role: req.user.role }
+      : null;
 
     const result = await jobService.getAllJobs({
-      filter,
-      search,
-      page: Number(page),
-      limit: Number(limit),
+      filter: { tags: req.query.tag },
+      search: req.query.search || "",
+      page: Number(req.query.page || 1),
+      limit: Number(req.query.limit || 10),
+      currentUser,
     });
 
     res.json(result);
   } catch (err) {
-    console.error("[Job List Error]", err.message);
+    console.error("[Job List Error]", err);
     res.status(500).json({ message: "Lỗi server khi lấy danh sách việc làm!" });
   }
 };
@@ -54,34 +51,16 @@ exports.getJobById = async (req, res) => {
     const currentUser = req.user
       ? { id: req.user.userId, role: req.user.role }
       : null;
-    const job = await jobService.getJobById(
-      String(req.params.id),
-      currentUser,
-      {
-        allowOwnerDraft: true,
-      },
-    );
+
+    const job = await jobService.getJobById(req.params.id, currentUser);
 
     if (!job) {
-      return res
-        .status(404)
-        .json({ message: "Không tìm thấy việc làm cho ID này!" });
+      return res.status(404).json({ message: "Không tìm thấy việc làm!" });
     }
 
-    const isFavorite = currentUser
-      ? !!(await prisma.userFavoriteJobs.findFirst({
-          where: { user_id: BigInt(currentUser.id), job_id: BigInt(job.id) },
-        }))
-      : false;
-
-    res.json({
-      ...job,
-      isFavorite,
-    });
+    res.json(job);
   } catch (err) {
-    const code = err.statusCode || err.status || 500;
-    console.error("[Get Job Detail Error]", err);
-    res.status(code).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 

@@ -400,12 +400,11 @@ exports.getJobById = async (id, user, opts = {}) => {
     where: { id: BigInt(id) },
     include: {
       creator: { select: { id: true, name: true, email: true } },
-      company: { select: { id: true, legal_name: true } },
+      company: { select: { id: true, legal_name: true, logo: true } },
       approval: true,
       tags: { include: { tag: true } },
-      favorites: user ? { where: { user_id: BigInt(user.id) } } : false, // tránh trả về list user
       requiredSkills: { include: { skill: true } },
-      vector: true, // nếu dùng vector
+      vector: true,
     },
   });
 
@@ -416,7 +415,6 @@ exports.getJobById = async (id, user, opts = {}) => {
   }
 
   const approved = job.approval?.status === "approved";
-
   const isOwner = user && String(job.created_by) === String(user.id);
 
   if (
@@ -437,8 +435,20 @@ exports.getJobById = async (id, user, opts = {}) => {
       eventType: "open_detail",
     });
   }
+  // ===== NEW: Tính isFavorite =====
+  let isFavorite = false;
 
-  return toJobDTO(job);
+  if (user) {
+    const fav = await prisma.userFavoriteJobs.findFirst({
+      where: { user_id: BigInt(user.id), job_id: BigInt(id) },
+    });
+    isFavorite = !!fav;
+  }
+
+  return {
+    ...toJobDTO(job),
+    isFavorite,
+  };
 };
 
 // Lấy danh sách Job với lọc + search + phân trang (chỉ trả job approved)
@@ -447,10 +457,11 @@ exports.getAllJobs = async ({
   search = "",
   page = 1,
   limit = 10,
+  currentUser = null,
 }) => {
   const skip = (page - 1) * limit;
 
-  // Filter tag: dùng tag_id
+  // Filter tag
   const tagFilter =
     Array.isArray(filter.tags) && filter.tags.length > 0
       ? {
@@ -462,7 +473,7 @@ exports.getAllJobs = async ({
         }
       : {};
 
-  // Search multi-field (insensitive)
+  // Search
   const searchConditions = search
     ? [
         { title: { contains: search } },
@@ -478,15 +489,14 @@ exports.getAllJobs = async ({
       ]
     : [];
 
-  // Chỉ lấy job đã approved
-  const approvalFilter = { approval: { is: { status: "approved" } } };
-
+  // Only approved
   const where = {
     ...tagFilter,
-    ...approvalFilter,
+    approval: { is: { status: "approved" } },
     ...(searchConditions.length ? { OR: searchConditions } : {}),
   };
 
+  // Query jobs + count
   const [jobs, total] = await Promise.all([
     prisma.job.findMany({
       where,
@@ -494,7 +504,7 @@ exports.getAllJobs = async ({
       skip,
       take: limit,
       include: {
-        company: { select: { id: true, legal_name: true } },
+        company: { select: { id: true, legal_name: true, logo: true } },
         approval: true,
         tags: { include: { tag: true } },
         requiredSkills: { include: { skill: true } },
@@ -504,8 +514,26 @@ exports.getAllJobs = async ({
     prisma.job.count({ where }),
   ]);
 
+  // Fetch favorites ONE TIME
+  let favoriteIds = new Set();
+
+  if (currentUser) {
+    const favorites = await prisma.userFavoriteJobs.findMany({
+      where: { user_id: BigInt(currentUser.id) },
+      select: { job_id: true },
+    });
+
+    favoriteIds = new Set(favorites.map((f) => Number(f.job_id)));
+  }
+
+  // Compose final list
+  const jobList = jobs.map((job) => ({
+    ...toJobDTO(job),
+    isFavorite: currentUser ? favoriteIds.has(Number(job.id)) : false,
+  }));
+
   return {
-    jobs: jobs.map(toJobDTO),
+    jobs: jobList,
     total,
     page,
     totalPages: Math.ceil(total / limit),

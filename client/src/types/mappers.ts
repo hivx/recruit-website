@@ -117,6 +117,7 @@ export function mapJobRaw(raw: JobRaw): Job {
       ? {
           id: raw.company.id,
           legalName: raw.company.legal_name,
+          logo: raw.company.logo ?? null,
         }
       : null,
 
@@ -128,6 +129,7 @@ export function mapJobRaw(raw: JobRaw): Job {
 
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
+    isFavorite: raw.isFavorite,
   };
 }
 
