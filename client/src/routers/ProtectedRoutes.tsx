@@ -1,7 +1,7 @@
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout } from "@/layouts";
 
-import { JobList, JobDetail } from "@/pages";
+import { HomePage, JobDetail } from "@/pages";
 import { useUserStore } from "@/stores/useUserStore";
 
 // Logic bảo vệ
@@ -18,7 +18,7 @@ export function ProtectedRoutes() {
   return (
     <Route element={<ProtectedRouteGuard />}>
       <Route element={<MainLayout />}>
-        <Route path="/jobs" element={<JobList />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
 
         {/* Thêm route bảo vệ khác ở đây */}

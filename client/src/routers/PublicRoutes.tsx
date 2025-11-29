@@ -6,7 +6,7 @@ import { useUserStore } from "@/stores/useUserStore";
 function PublicRouteGuard() {
   const token = useUserStore((s) => s.token);
   if (token) {
-    return <Navigate to="/jobs" replace />;
+    return <Navigate to="/" replace />;
   }
   return <Outlet />;
 }

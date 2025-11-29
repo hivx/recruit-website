@@ -3,14 +3,18 @@ import { useQuery } from "@tanstack/react-query";
 import { getJobs, getJobById } from "@/services";
 import type { Job, PaginatedJobs } from "@/types";
 
-/** Hook: Lấy danh sách Job với phân trang */
-export function useJobs(page = 1, limit = 10) {
+/** Hook: Lấy danh sách Job với phân trang + search/filter */
+export function useJobs(
+  page = 1,
+  limit = 10,
+  queryObj: Record<string, unknown> = {},
+) {
   return useQuery<PaginatedJobs<Job>, Error>({
-    queryKey: ["jobs", page, limit],
-    queryFn: () => getJobs(page, limit),
+    queryKey: ["jobs", page, limit, queryObj], // <-- theo dõi queryObj
+    queryFn: () => getJobs(page, limit, queryObj),
     select: (data) => ({
       ...data,
-      jobs: data.jobs ?? [], // fallback tránh undefined
+      jobs: data.jobs ?? [], // tránh undefined
     }),
   });
 }
