@@ -4,3 +4,4 @@ export * from "./ErrorBox";
 export * from "./Loader";
 export * from "./Navbar";
 export * from "./JobSearchBar";
+export * from "./JobList";

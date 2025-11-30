@@ -6,7 +6,7 @@ import type { Job, PaginatedJobs, JobDetail } from "@/types";
 
 export async function getJobs(
   page = 1,
-  limit = 20,
+  limit = 10,
   queryObj: Record<string, unknown> = {},
 ): Promise<PaginatedJobs<Job>> {
   const res = await api.get<JobListResponse>("/api/jobs", {
@@ -21,6 +21,7 @@ export async function getJobs(
   });
 
   const rawJobs = res.data.jobs ?? [];
+  console.log("Fetched jobs:", rawJobs);
 
   return {
     jobs: rawJobs.map(mapJobRaw),

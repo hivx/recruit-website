@@ -1,13 +1,22 @@
+import { AnimatePresence } from "framer-motion";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { PublicRoutes, ProtectedRoutes } from "@/routers";
+import { PublicRoutes, ProtectedRoutes, AuthRoutes } from "@/routers";
 
 export function AppRouter() {
   return (
-    <Routes>
-      {PublicRoutes()}
-      {ProtectedRoutes()}
+    <AnimatePresence mode="wait">
+      <Routes>
+        {/* Public that everyone can access */}
+        {PublicRoutes()}
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+        {/* Auth pages that logged-in users should NOT access */}
+        {AuthRoutes()}
+
+        {/* Protected pages (yêu cầu phải login) */}
+        {ProtectedRoutes()}
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </AnimatePresence>
   );
 }

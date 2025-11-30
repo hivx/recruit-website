@@ -1,24 +1,14 @@
-import { Navigate, Outlet, Route } from "react-router-dom";
-import { LoginPage, ForgotPasswordPage, RegisterPage } from "@/pages";
-import { useUserStore } from "@/stores/useUserStore";
+import { Route } from "react-router-dom";
+import { MainLayout, TransitionLayout } from "@/layouts";
+import { HomePage, JobDetail } from "@/pages";
 
-// Logic bảo vệ
-function PublicRouteGuard() {
-  const token = useUserStore((s) => s.token);
-  if (token) {
-    return <Navigate to="/" replace />;
-  }
-  return <Outlet />;
-}
-
-// Danh sách route public
 export function PublicRoutes() {
   return (
-    <Route element={<PublicRouteGuard />}>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      {/* <Route path="/register" element={<RegisterPage />} /> */}
+    <Route element={<TransitionLayout />}>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/jobs/:id" element={<JobDetail />} />
+      </Route>
     </Route>
   );
 }

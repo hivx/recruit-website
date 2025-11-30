@@ -11,10 +11,11 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
+      {/* Nội dung trang */}
+      <div className="flex-1 w-full">
         <Outlet />
-      </main>
+        {children}
+      </div>
     </div>
   );
 }

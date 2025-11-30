@@ -1,21 +1,18 @@
 import { useState } from "react";
-import { JobSearchBar } from "@/components/JobSearchBar";
+import { JobSearchBar, JobList } from "@/components";
 import type { JobSearchQuery } from "@/components/JobSearchBar";
-import { JobList } from "@/pages";
 
 export function HomePage() {
   const [page, setPage] = useState(1);
   const [queryObj, setQueryObj] = useState<JobSearchQuery>({});
 
   return (
-    <div className="w-full flex flex-col items-center mt-10 px-4">
-      {/* SEARCH BAR — full width cố định */}
-      <div className="min w-4xl mb-10">
-        <JobSearchBar onSearch={setQueryObj} />
-      </div>
+    <div className="w-full">
+      {/* Banner FULL WIDTH */}
+      <JobSearchBar onSearch={setQueryObj} />
 
-      {/* JOB LIST — không ảnh hưởng search bar */}
-      <div className="w-full max-w-8xl">
+      {/* Job list + container */}
+      <div className="max-w-7xl mx-auto px-4 mt-12">
         <JobList
           page={page}
           limit={9}

@@ -19,7 +19,6 @@ export function Navbar() {
     navigate("/login");
   }
 
-  // Close dropdown khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -31,75 +30,143 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="w-full bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/jobs" className="flex items-center gap-2">
-          <img src={logo} alt="logo" className="h-10 w-auto rounded-md" />
-          <span className="text-xl font-bold text-blue-600">SSMART</span>
+    <nav className="w-full h-20 bg-white/90 backdrop-blur shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-full">
+        {/* LOGO */}
+        <Link to="/" className="h-full flex items-center">
+          <img
+            src={logo}
+            alt="logo"
+            className="h-[220%] w-auto object-contain block"
+          />
         </Link>
 
-        {/* Avatar + name + dropdown */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setOpen((s) => !s)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            <img
-              src={avatarSrc}
-              alt="avatar"
-              className="h-10 w-10 rounded-full object-cover border"
-            />
+        {/* NAVBAR RIGHT */}
+        <div className="flex items-center gap-4">
+          {/* CHƯA ĐĂNG NHẬP */}
+          {!user && (
+            <>
+              <Link
+                to="/register"
+                className="
+                  px-4 py-2 rounded-full border border-green-600 text-green-600 
+                  font-medium hover:bg-green-50 hover:shadow-sm active:scale-95 
+                  transition-all duration-150
+                "
+              >
+                Đăng ký
+              </Link>
 
-            <span className="font-medium text-gray-700">{user?.name}</span>
+              <Link
+                to="/login"
+                className="
+                  px-4 py-2 rounded-full bg-green-600 text-white font-medium 
+                  hover:bg-green-700 hover:shadow active:scale-95 
+                  transition-all duration-150
+                "
+              >
+                Đăng nhập
+              </Link>
 
-            <ChevronDown className="w-5 h-5 text-gray-500" />
-          </button>
+              <Link
+                to="/employer"
+                className="
+                  px-4 py-2 rounded-full bg-gray-100 text-gray-700 
+                  hover:bg-gray-200 hover:shadow-sm active:scale-95 
+                  transition-all duration-150
+                "
+              >
+                Đăng tin tuyển dụng ngay!
+              </Link>
+            </>
+          )}
 
-          {/* DROPDOWN */}
-          {open && (
-            <div className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-xl border p-4 z-50">
-              {/* User info */}
-              <div className="flex gap-3">
+          {/* ĐÃ ĐĂNG NHẬP */}
+          {user && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setOpen((s) => !s)}
+                className="
+                  flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-gray-100 
+                  transition-all duration-150
+                "
+              >
                 <img
-                  src={avatarSrc || "/placeholder-avatar.png"}
+                  src={avatarSrc}
                   alt="avatar"
-                  className="h-14 w-14 rounded-full object-cover"
+                  className="
+                    h-10 w-10 rounded-full object-cover border 
+                    hover:shadow-md hover:scale-[1.03] transition-all duration-200
+                  "
                 />
 
-                <div className="flex flex-col">
-                  <p className="font-bold text-gray-800">{user?.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {user?.isVerified
-                      ? "Tài khoản đã xác thực"
-                      : "Chưa xác thực"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    ID {user?.id} — {user?.email}
-                  </p>
+                <span className="font-medium text-gray-700">{user.name}</span>
+
+                <ChevronDown
+                  className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                    open ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* DROPDOWN */}
+              {open && (
+                <div
+                  className="
+                    absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-xl border p-4 z-50
+                    animate-fade-slide
+                  "
+                >
+                  {/* User info */}
+                  <div className="flex gap-3">
+                    <img
+                      src={avatarSrc || "/placeholder-avatar.png"}
+                      alt="avatar"
+                      className="h-14 w-14 rounded-full object-cover shadow-sm"
+                    />
+
+                    <div className="flex flex-col">
+                      <p className="font-bold text-gray-800">{user.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {user.isVerified
+                          ? "Tài khoản đã xác thực"
+                          : "Chưa xác thực"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        ID {user.id} — {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t my-3"></div>
+
+                  {/* Profile */}
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/profile");
+                    }}
+                    className="
+                      w-full text-left px-2 py-2 text-gray-700 
+                      hover:bg-gray-100 rounded-lg transition
+                    "
+                  >
+                    Trang cá nhân
+                  </button>
+
+                  {/* Logout */}
+                  <button
+                    onClick={handleLogout}
+                    className="
+                      w-full text-left px-2 py-2 text-red-600 font-medium 
+                      hover:bg-red-100 rounded-lg transition
+                    "
+                  >
+                    Đăng xuất
+                  </button>
                 </div>
-              </div>
-
-              <div className="border-t my-3"></div>
-
-              {/* Profile page */}
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/profile");
-                }}
-                className="w-full text-left px-2 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-              >
-                Trang cá nhân
-              </button>
-
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-2 py-2 text-red-600 hover:bg-red-100 rounded-lg font-medium"
-              >
-                Đăng xuất
-              </button>
+              )}
             </div>
           )}
         </div>

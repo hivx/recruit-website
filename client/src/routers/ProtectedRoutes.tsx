@@ -1,7 +1,6 @@
 import { Navigate, Outlet, Route } from "react-router-dom";
-import { MainLayout } from "@/layouts";
+import { MainLayout, TransitionLayout } from "@/layouts";
 
-import { HomePage, JobDetail } from "@/pages";
 import { useUserStore } from "@/stores/useUserStore";
 
 // Logic bảo vệ
@@ -16,12 +15,11 @@ function ProtectedRouteGuard() {
 // Danh sách route cần login
 export function ProtectedRoutes() {
   return (
-    <Route element={<ProtectedRouteGuard />}>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
-
-        {/* Thêm route bảo vệ khác ở đây */}
+    <Route element={<TransitionLayout />}>
+      <Route element={<ProtectedRouteGuard />}>
+        <Route element={<MainLayout />}>
+          {/* Thêm route bảo vệ khác ở đây */}
+        </Route>
       </Route>
     </Route>
   );

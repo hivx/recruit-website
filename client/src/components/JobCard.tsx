@@ -1,8 +1,10 @@
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAppNavigate } from "@/hooks";
 import { toggleFavorite } from "@/services/favoriteService";
-import type { Job } from "@/types/job";
+import { useUserStore } from "@/stores";
+import type { Job } from "@/types";
 import { resolveImage } from "@/utils";
 
 type JobCardProps = Readonly<{
@@ -12,20 +14,27 @@ type JobCardProps = Readonly<{
 export function JobCard({ job }: JobCardProps) {
   const logoUrl = resolveImage(job.company?.logo);
 
+  const navigate = useAppNavigate();
+
   // FE state sync với BE isFavorite
   const [isFavorite, setIsFavorite] = useState(job.isFavorite === true);
+  const token = useUserStore((s) => s.token); // 👈 Lấy token từ store
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // UI phản hồi tức thì (optimistic)
+    // Nếu chưa login → chuyển về trang login
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // ✔ Nếu đã login → toggle bình thường
     setIsFavorite((prev) => !prev);
 
-    // Gửi API lên BE
     try {
       await toggleFavorite(job.id);
     } catch {
-      // Nếu fail → rollback
       setIsFavorite((prev) => !prev);
     }
   };
@@ -81,6 +90,7 @@ export function JobCard({ job }: JobCardProps) {
         <p className="text-sm text-gray-600 font-medium">
           {job.company?.legalName}
         </p>
+        <p className="text-xs text-gray-400 pt-1">Đăng ngày {postedDate}</p>
 
         {/* Salary + Location */}
         <div className="flex flex-wrap gap-2 pt-1">
@@ -112,8 +122,6 @@ export function JobCard({ job }: JobCardProps) {
             ))}
           </div>
         )}
-
-        <p className="text-xs text-gray-400 pt-1">Đăng ngày {postedDate}</p>
       </div>
 
       {/* Heart Favorite */}

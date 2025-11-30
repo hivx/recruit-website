@@ -58,6 +58,7 @@ export function JobList({ page, limit, query, onPageChange }: JobListProps) {
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
           className="
+            cursor-pointer
             px-4 py-2 rounded-md border 
             bg-white hover:bg-gray-100 
             disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed
@@ -74,6 +75,7 @@ export function JobList({ page, limit, query, onPageChange }: JobListProps) {
           disabled={page === totalPages}
           onClick={() => onPageChange(page + 1)}
           className="
+            cursor-pointer
             px-4 py-2 rounded-md 
             bg-blue-600 text-white 
             hover:bg-blue-700 
