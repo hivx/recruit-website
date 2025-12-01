@@ -1,32 +1,30 @@
 // src/hooks/useJobs.ts
 import { useQuery } from "@tanstack/react-query";
-import { getJobs, getJobById } from "@/services";
-import type { Job, PaginatedJobs } from "@/types";
+import { getJobs, getJobById } from "@/services/jobService";
+import type { Job, PaginatedJobs, JobSearchQuery } from "@/types";
 
 /** Hook: Lấy danh sách Job với phân trang + search/filter */
-export function useJobs(
-  page = 1,
-  limit = 10,
-  queryObj: Record<string, unknown> = {},
-) {
+export function useJobs(page: number, limit: number, filter: JobSearchQuery) {
   return useQuery<PaginatedJobs<Job>, Error>({
-    queryKey: ["jobs", page, limit, queryObj], // <-- theo dõi queryObj
-    queryFn: () => getJobs(page, limit, queryObj),
+    queryKey: ["jobs", page, limit, filter], // <— cache theo filter đúng
+    queryFn: () => getJobs(page, limit, filter),
+    placeholderData: (previousData) => previousData,
     select: (data) => ({
       ...data,
-      jobs: data.jobs ?? [], // tránh undefined
+      jobs: data.jobs ?? [],
     }),
   });
 }
 
-/** Hook: Lấy chi tiết Job theo ID (BigInt → string) */
 export function useJobById(id?: string) {
   return useQuery<Job, Error>({
     queryKey: ["job", id],
-    enabled: !!id,
-    queryFn: ({ queryKey }) => {
-      const [, jobId] = queryKey;
-      return getJobById(jobId as string);
+    enabled: Boolean(id),
+    queryFn: () => {
+      if (!id) {
+        throw new Error("Missing job id");
+      }
+      return getJobById(id);
     },
   });
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { JobSearchBar, JobList } from "@/components";
-import type { JobSearchQuery } from "@/components/JobSearchBar";
+import type { JobSearchQuery } from "@/types";
 
 export function HomePage() {
   const [page, setPage] = useState(1);

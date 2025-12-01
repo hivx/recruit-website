@@ -1,7 +1,6 @@
 import { JobCard, Loader, ErrorBox } from "@/components";
-import type { JobSearchQuery } from "@/components";
 import { useJobs } from "@/hooks";
-import type { Job } from "@/types";
+import type { Job, JobSearchQuery } from "@/types";
 import { getAxiosErrorMessage } from "@/utils";
 
 export interface JobListProps {

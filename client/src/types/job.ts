@@ -153,3 +153,14 @@ export interface JobDetail extends Job {
   // Optional: nếu BE có trả thêm
   isFavorite: boolean;
 }
+
+export interface JobSearchQuery {
+  readonly search?: string;
+  readonly tags?: string[];
+  // nếu thích, có thể thêm các filter khác sau này: location, salary...
+}
+
+export interface JobSearchBarProps {
+  readonly onSearch: (q: JobSearchQuery) => void;
+  readonly backgroundImage?: string;
+}

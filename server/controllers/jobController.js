@@ -27,12 +27,16 @@ exports.getAllJobs = async (req, res) => {
     const currentUser = req.user
       ? { id: req.user.userId, role: req.user.role }
       : null;
+    const { tag, search = "", page = 1, limit = 10 } = req.query;
+    const filter = {
+      ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
+    };
 
     const result = await jobService.getAllJobs({
-      filter: { tags: req.query.tag },
-      search: req.query.search || "",
-      page: Number(req.query.page || 1),
-      limit: Number(req.query.limit || 10),
+      filter,
+      search,
+      page: Number(page),
+      limit: Number(limit),
       currentUser,
     });
 

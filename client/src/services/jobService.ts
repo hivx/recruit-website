@@ -2,26 +2,57 @@
 import { api } from "@/api";
 import type { JobListResponse, JobDetailResponse } from "@/interfaces";
 import { mapJobRaw, mapJobDetailRaw } from "@/types";
-import type { Job, PaginatedJobs, JobDetail } from "@/types";
+import type { Job, PaginatedJobs, JobDetail, JobSearchQuery } from "@/types";
 
 export async function getJobs(
   page = 1,
   limit = 10,
-  queryObj: Record<string, unknown> = {},
+  filter: JobSearchQuery = {},
 ): Promise<PaginatedJobs<Job>> {
+  const params: Record<string, unknown> = {
+    page,
+    limit,
+  };
+
+  // search text
+  if (filter.search) {
+    params.search = filter.search;
+  }
+
+  // tag[] → tag=Sale&tag=IT
+  if (Array.isArray(filter.tags) && filter.tags.length > 0) {
+    params.tag = filter.tags;
+  }
+
   const res = await api.get<JobListResponse>("/api/jobs", {
-    params: {
-      page,
-      limit,
-      ...queryObj, // <–– search, tag[], ...
-    },
+    params,
     paramsSerializer: {
-      indexes: null, // <–– để tag[]=a trở thành tag=a&tag=b
+      serialize: (paramsObj: Record<string, unknown>): string => {
+        const qs = new URLSearchParams();
+
+        for (const key of Object.keys(paramsObj)) {
+          const value = paramsObj[key];
+
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              qs.append(key, String(item));
+            }
+          } else if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          ) {
+            qs.append(key, String(value));
+          }
+          // các loại khác (object, null, undefined) → bỏ qua
+        }
+
+        return qs.toString();
+      },
     },
   });
 
   const rawJobs = res.data.jobs ?? [];
-  console.log("Fetched jobs:", rawJobs);
 
   return {
     jobs: rawJobs.map(mapJobRaw),
