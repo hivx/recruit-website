@@ -48,7 +48,16 @@ async function generateRecommendationsForUser(userId) {
     throw new Error("User vector không tồn tại");
   }
 
-  const jobVectors = await prisma.jobVector.findMany();
+  const jobVectors = await prisma.jobVector.findMany({
+    where: {
+      job: {
+        approval: {
+          status: "approved",
+        },
+      },
+    },
+  });
+
   if (jobVectors.length === 0) {
     throw new Error("Không có job vector nào để đề xuất");
   }
@@ -208,7 +217,148 @@ async function generateCandidateRecommendations(recruiterId) {
   return stored;
 }
 
+// Lấy danh sách job được recommend cho user
+async function getRecommendedJobsForUser(
+  userId,
+  { min_score = 0, location, tags = [], page = 1, limit = 10 },
+) {
+  const uid = BigInt(userId);
+  const skip = (page - 1) * limit;
+
+  // WHERE cho job_recommendation
+  const where = {
+    user_id: uid,
+    fit_score: { gte: Number(min_score) },
+  };
+
+  // Build filter bên trong job
+  const jobFilter = {};
+
+  if (location?.trim()) {
+    jobFilter.location = { contains: location.trim() };
+  }
+
+  if (Array.isArray(tags) && tags.length > 0) {
+    jobFilter.tags = {
+      some: {
+        tag: { name: { in: tags } },
+      },
+    };
+  }
+
+  if (Object.keys(jobFilter).length > 0) {
+    where.job = jobFilter;
+  }
+
+  // Query DB
+  const [rows, total] = await Promise.all([
+    prisma.jobRecommendation.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { fit_score: "desc" },
+      include: {
+        job: {
+          include: {
+            company: { select: { id: true, legal_name: true, logo: true } },
+            approval: true,
+            tags: { include: { tag: true } },
+            requiredSkills: { include: { skill: true } },
+            vector: true,
+          },
+        },
+      },
+    }),
+
+    prisma.jobRecommendation.count({ where }),
+  ]);
+
+  // FAVORITE của userId
+  let favoriteIds = new Set();
+  const favorites = await prisma.userFavoriteJobs.findMany({
+    where: { user_id: uid },
+    select: { job_id: true },
+  });
+
+  favoriteIds = new Set(favorites.map((f) => Number(f.job_id)));
+
+  // Gắn isFavorite
+  const items = rows.map((rec) => ({
+    ...rec,
+    job: {
+      ...rec.job,
+      isFavorite: favoriteIds.has(Number(rec.job.id)),
+    },
+  }));
+
+  return {
+    items,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+async function getRecommendedCandidatesForRecruiter(
+  recruiterId,
+  { min_score = 0, location, tags = [], page = 1, limit = 10 },
+) {
+  const rid = BigInt(recruiterId);
+  const skip = (page - 1) * limit;
+
+  const where = {
+    recruiter_id: rid,
+    fit_score: { gte: Number(min_score) },
+  };
+
+  // Filter theo location ứng viên
+  if (location && location.trim() !== "") {
+    where.applicant = {
+      is: {
+        preferred_location: { contains: location.trim() },
+      },
+    };
+  }
+
+  // Filter theo tag kỹ năng/lĩnh vực của ứng viên
+  if (Array.isArray(tags) && tags.length > 0) {
+    where.applicant = {
+      ...(where.applicant?.is ? { is: where.applicant.is } : {}),
+      tags: {
+        some: { tag: { name: { in: tags } } },
+      },
+    };
+  }
+
+  const [rows, total] = await Promise.all([
+    prisma.candidateRecommendation.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { fit_score: "desc" },
+      include: {
+        applicant: {
+          include: {
+            user: true,
+            tags: { include: { tag: true } },
+          },
+        },
+      },
+    }),
+    prisma.candidateRecommendation.count({ where }),
+  ]);
+
+  return {
+    items: rows,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
 module.exports = {
   generateRecommendationsForUser,
   generateCandidateRecommendations,
+  getRecommendedJobsForUser,
+  getRecommendedCandidatesForRecruiter,
 };

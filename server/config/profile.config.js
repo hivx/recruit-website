@@ -36,6 +36,6 @@ module.exports = {
 
   // Cấu hình auto recommend
   ENABLE_AUTO_RECOMMEND: true, // Bật/Tắt auto recommend
-  CRON_SCHEDULE: "0 2 * * *", // 2:00 AM mỗi đêm (* * * * *)
+  CRON_SCHEDULE: "0 0 2 * * *", // 2:00 AM mỗi đêm (*/10 * * * * *)
   BATCH_SIZE: 300, // Xử lý từng lô 300 users
 };

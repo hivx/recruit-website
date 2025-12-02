@@ -2,23 +2,24 @@ import { Heart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppNavigate } from "@/hooks";
-import { toggleFavorite } from "@/services/favoriteService";
+import { toggleFavorite } from "@/services";
 import { useUserStore } from "@/stores";
 import type { Job } from "@/types";
 import { resolveImage } from "@/utils";
 
 type JobCardProps = Readonly<{
   job: Job;
+  score?: number; // điểm fit score (nếu có) từ recommendation
 }>;
 
-export function JobCard({ job }: JobCardProps) {
+export function JobCard({ job, score }: JobCardProps) {
   const logoUrl = resolveImage(job.company?.logo);
 
   const navigate = useAppNavigate();
 
   // FE state sync với BE isFavorite
   const [isFavorite, setIsFavorite] = useState(job.isFavorite === true);
-  const token = useUserStore((s) => s.token); // 👈 Lấy token từ store
+  const token = useUserStore((s) => s.token); // Lấy token từ store
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -79,9 +80,9 @@ export function JobCard({ job }: JobCardProps) {
         <Link to={`/jobs/${job.id}`}>
           <h2
             className="
-              text-base font-semibold text-gray-900 
-              group-hover:text-blue-600 transition-colors duration-300
-            "
+        text-base font-semibold text-gray-900 
+        group-hover:text-blue-600 transition-colors duration-300
+      "
           >
             {job.title}
           </h2>
@@ -90,14 +91,21 @@ export function JobCard({ job }: JobCardProps) {
         <p className="text-sm text-gray-600 font-medium">
           {job.company?.legalName}
         </p>
+
         <p className="text-xs text-gray-400 pt-1">Đăng ngày {postedDate}</p>
+
+        {/* SCORE — moved inside INFO */}
+        {score !== undefined && (
+          <span className="inline-block mt-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md">
+            Độ phù hợp: {(score * 100).toFixed(2)}%
+          </span>
+        )}
 
         {/* Salary + Location */}
         <div className="flex flex-wrap gap-2 pt-1">
           <span className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">
             {salaryText}
           </span>
-
           {job.location && (
             <span className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">
               {job.location}
@@ -110,12 +118,12 @@ export function JobCard({ job }: JobCardProps) {
           <div className="flex flex-wrap gap-2 pt-2">
             {job.tags.map((t) => (
               <span
-                key={t.tagId}
+                key={t.tag?.id}
                 className="
-                  px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full 
-                  hover:bg-blue-100 hover:text-blue-700 
-                  transition-colors duration-200
-                "
+            px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full 
+            hover:bg-blue-100 hover:text-blue-700 
+            transition-colors duration-200
+          "
               >
                 {t.tag?.name}
               </span>

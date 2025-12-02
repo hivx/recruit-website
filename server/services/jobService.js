@@ -461,7 +461,7 @@ exports.getAllJobs = async ({
 }) => {
   const skip = (page - 1) * limit;
 
-  // Filter tag
+  // TAG filter
   const tagFilter =
     Array.isArray(filter.tags) && filter.tags.length > 0
       ? {
@@ -473,13 +473,31 @@ exports.getAllJobs = async ({
         }
       : {};
 
-  // Search
+  // LOCATION filter linh hoạt
+  const locationFilter =
+    typeof filter.location === "string" && filter.location.trim().length > 0
+      ? {
+          location: {
+            contains: filter.location.trim(),
+          },
+        }
+      : {};
+
+  // SALARY filter
+  const salaryFilter =
+    filter.salaryWanted && !Number.isNaN(filter.salaryWanted)
+      ? {
+          salary_min: { lte: filter.salaryWanted },
+          salary_max: { gte: filter.salaryWanted },
+        }
+      : {};
+
+  // SEARCH fulltext
   const searchConditions = search
     ? [
         { title: { contains: search } },
         { description: { contains: search } },
         { requirements: { contains: search } },
-        { location: { contains: search } },
         { created_by_name: { contains: search } },
         {
           company: {
@@ -489,14 +507,16 @@ exports.getAllJobs = async ({
       ]
     : [];
 
-  // Only approved
+  // WHERE final
   const where = {
     ...tagFilter,
+    ...locationFilter,
+    ...salaryFilter,
     approval: { is: { status: "approved" } },
     ...(searchConditions.length ? { OR: searchConditions } : {}),
   };
 
-  // Query jobs + count
+  // Query jobs and count
   const [jobs, total] = await Promise.all([
     prisma.job.findMany({
       where,
@@ -511,22 +531,20 @@ exports.getAllJobs = async ({
         vector: true,
       },
     }),
+
     prisma.job.count({ where }),
   ]);
 
-  // Fetch favorites ONE TIME
+  // Favorite jobs
   let favoriteIds = new Set();
-
   if (currentUser) {
     const favorites = await prisma.userFavoriteJobs.findMany({
       where: { user_id: BigInt(currentUser.id) },
       select: { job_id: true },
     });
-
     favoriteIds = new Set(favorites.map((f) => Number(f.job_id)));
   }
 
-  // Compose final list
   const jobList = jobs.map((job) => ({
     ...toJobDTO(job),
     isFavorite: currentUser ? favoriteIds.has(Number(job.id)) : false,

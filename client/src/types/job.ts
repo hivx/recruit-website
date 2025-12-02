@@ -155,12 +155,22 @@ export interface JobDetail extends Job {
 }
 
 export interface JobSearchQuery {
-  readonly search?: string;
-  readonly tags?: string[];
-  // nếu thích, có thể thêm các filter khác sau này: location, salary...
+  search?: string; // từ khóa (title, desc, company,...)
+  tags?: string[]; // lọc theo tag
+  location?: string; // lọc theo địa điểm
+  salaryWanted?: number; // mức lương mong muốn
 }
 
 export interface JobSearchBarProps {
-  readonly onSearch: (q: JobSearchQuery) => void;
-  readonly backgroundImage?: string;
+  onSearch: (q: JobSearchQuery) => void;
+  backgroundImage?: string;
+}
+
+export type JobDetailResponse = JobRaw;
+
+export interface JobListResponse {
+  jobs: JobRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

@@ -1,20 +1,23 @@
 // src/types/recommendation.ts
+import type { JobRaw, Job } from "@/types";
 
 /** Gợi ý job cho user (ứng viên) */
 export interface JobRecommendationRaw {
-  id: string;
-  user_id: string;
-  job_id: string;
+  user_id: number;
+  job_id: number;
   fit_score: number;
-  created_at: string;
+  reason: string;
+  status: string;
+  job: JobRaw;
 }
 
 export interface JobRecommendation {
-  id: string;
-  userId: string;
-  jobId: string;
+  userId: number;
+  jobId: number;
   fitScore: number;
-  createdAt: string;
+  reason: string;
+  status: string;
+  job: Job;
 }
 
 /** Gợi ý candidate cho recruiter */

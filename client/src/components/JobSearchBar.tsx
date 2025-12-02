@@ -9,6 +9,8 @@ export function JobSearchBar({
   backgroundImage,
 }: Readonly<JobSearchBarProps>) {
   const [keyword, setKeyword] = useState("");
+  const [location, setLocation] = useState(""); // NEW
+  const [salaryWanted, setSalaryWanted] = useState<number>(); // NEW
   const [openTagList, setOpenTagList] = useState(false);
 
   // Zustand store
@@ -25,18 +27,25 @@ export function JobSearchBar({
     void fetchPopular();
   }, [fetchTags, fetchPopular]);
 
-  // Khi keyword hoặc tag thay đổi → gọi search
+  // Khi bất kỳ bộ lọc nào thay đổi -> gọi search
   useEffect(() => {
     onSearch({
       search: keyword.trim(),
       tags: selected,
+      location: location.trim(),
+      salaryWanted,
     });
-  }, [keyword, selected, onSearch]);
+  }, [keyword, selected, location, salaryWanted, onSearch]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      onSearch({ search: keyword.trim(), tags: selected });
+      onSearch({
+        search: keyword.trim(),
+        tags: selected,
+        location: location.trim(),
+        salaryWanted,
+      });
     }
   };
 
@@ -78,6 +87,7 @@ export function JobSearchBar({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
+        {/* Ô search chính */}
         <div className="flex flex-col md:flex-row items-center gap-3">
           <div
             className="
@@ -99,7 +109,14 @@ export function JobSearchBar({
           </div>
 
           <button
-            onClick={() => onSearch({ search: keyword.trim(), tags: selected })}
+            onClick={() =>
+              onSearch({
+                search: keyword.trim(),
+                tags: selected,
+                location: location.trim(),
+                salaryWanted,
+              })
+            }
             className="
               bg-blue-600 hover:bg-blue-700 text-white
               px-6 py-2.5 rounded-xl font-semibold text-base
@@ -109,20 +126,45 @@ export function JobSearchBar({
             Tìm kiếm
           </button>
         </div>
+
+        {/* Ô lọc nhanh bên dưới search */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Địa điểm (VD: Hà Nội, HCM...)"
+            className="
+              w-full bg-gray-100 rounded-xl px-4 py-2
+              text-gray-700 placeholder-gray-400 text-sm
+              focus:ring-2 focus:ring-blue-500 outline-none
+            "
+          />
+
+          <input
+            type="number"
+            value={salaryWanted ?? ""}
+            onChange={(e) => setSalaryWanted(Number(e.target.value))}
+            placeholder="Mức lương mong muốn (VD: 15000000)"
+            className="
+              w-full bg-gray-100 rounded-xl px-4 py-2
+              text-gray-700 placeholder-gray-400 text-sm
+              focus:ring-2 focus:ring-blue-500 outline-none
+            "
+          />
+        </div>
       </motion.div>
 
       {/* TAG FILTER */}
       <div className="relative z-20 w-full max-w-5xl mt-4 flex flex-col items-start">
         {/* Dropdown button */}
-        {/* TAG DROPDOWN BUTTON */}
         <button
           onClick={() => setOpenTagList((o) => !o)}
           className="
-    bg-white/90 hover:bg-white text-gray-800
-    px-4 py-2 rounded-lg font-medium text-sm
-    flex items-center gap-2 transition-all
-    shadow-sm hover:shadow-md hover:scale-[1.02]
-  "
+            bg-white/90 hover:bg-white text-gray-800
+            px-4 py-2 rounded-lg font-medium text-sm
+            flex items-center gap-2 transition-all
+            shadow-sm hover:shadow-md hover:scale-[1.02]
+          "
         >
           Lĩnh vực <span className="text-gray-500">▾</span>
         </button>
@@ -131,10 +173,10 @@ export function JobSearchBar({
         {openTagList && (
           <div
             className="
-      absolute mt-2 w-56 bg-white shadow-xl rounded-lg p-2
-      max-h-60 overflow-y-auto border border-gray-200
-      animate-fadeIn
-    "
+              absolute mt-2 w-56 bg-white shadow-xl rounded-lg p-2
+              max-h-60 overflow-y-auto border border-gray-200
+              animate-fadeIn
+            "
           >
             {tags.length === 0 && (
               <p className="text-gray-500 text-sm px-2 py-1">Đang tải…</p>
@@ -148,14 +190,14 @@ export function JobSearchBar({
                   key={tag.id}
                   onClick={() => toggleTag(tag.name)}
                   className={`
-            w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2
-            transition-all
-            ${
-              active
-                ? "bg-blue-100 text-blue-600 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
-            }
-          `}
+                    w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2
+                    transition-all
+                    ${
+                      active
+                        ? "bg-blue-100 text-blue-600 font-semibold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }
+                  `}
                 >
                   <input
                     type="checkbox"

@@ -254,7 +254,7 @@
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Danh sách job public (chỉ job đã được duyệt)
+ *     summary: Lấy danh sách job public (chỉ job đã được duyệt)
  *     tags: [Jobs]
  *     parameters:
  *       - in: query
@@ -262,6 +262,7 @@
  *         schema:
  *           type: string
  *         description: Từ khoá tìm kiếm (tiêu đề, mô tả, yêu cầu, địa điểm, tên công ty)
+ *
  *       - in: query
  *         name: tag
  *         schema:
@@ -270,20 +271,39 @@
  *             type: string
  *         style: form
  *         explode: true
- *         description: Lọc theo nhiều tag (ví dụ ?tag=Node.js&tag=React)
+ *         description: Lọc theo nhiều tag (ví dụ ?tag=IT&tag=Sales)
+ *
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Lọc theo nhiều địa điểm (ví dụ ?location=HCM&location=HN)
+ *
+ *       - in: query
+ *         name: salaryWanted
+ *         schema:
+ *           type: integer
+ *         description: Mức lương mong muốn. Trả job có khoảng lương bao gồm giá trị này.
+ *
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
+ *
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
+ *
  *     responses:
  *       200:
- *         description: Danh sách job đã duyệt
+ *         description: Danh sách job đã duyệt theo điều kiện lọc & tìm kiếm
  *         content:
  *           application/json:
  *             schema:

@@ -5,3 +5,4 @@ export * from "./Loader";
 export * from "./Navbar";
 export * from "./JobSearchBar";
 export * from "./JobList";
+export * from "./RecommendedJobSection";

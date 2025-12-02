@@ -27,10 +27,33 @@ exports.getAllJobs = async (req, res) => {
     const currentUser = req.user
       ? { id: req.user.userId, role: req.user.role }
       : null;
-    const { tag, search = "", page = 1, limit = 10 } = req.query;
-    const filter = {
-      ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
-    };
+
+    const {
+      tag,
+      location,
+      salaryWanted,
+      search = "",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Build filter correctly
+    const filter = {};
+
+    // Tags always array
+    if (tag) {
+      filter.tags = Array.isArray(tag) ? tag : [tag];
+    }
+
+    // Location: service expects a SINGLE STRING
+    if (location) {
+      filter.location = String(location).trim();
+    }
+
+    // Salary
+    if (salaryWanted && !Number.isNaN(Number(salaryWanted))) {
+      filter.salaryWanted = Number(salaryWanted);
+    }
 
     const result = await jobService.getAllJobs({
       filter,
@@ -40,10 +63,12 @@ exports.getAllJobs = async (req, res) => {
       currentUser,
     });
 
-    res.json(result);
+    return res.json(result);
   } catch (err) {
     console.error("[Job List Error]", err);
-    res.status(500).json({ message: "Lỗi server khi lấy danh sách việc làm!" });
+    return res
+      .status(500)
+      .json({ message: "Lỗi server khi lấy danh sách việc làm!" });
   }
 };
 

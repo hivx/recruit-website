@@ -1,8 +1,14 @@
 // src/services/jobService.ts
 import { api } from "@/api";
-import type { JobListResponse, JobDetailResponse } from "@/interfaces";
 import { mapJobRaw, mapJobDetailRaw } from "@/types";
-import type { Job, PaginatedJobs, JobDetail, JobSearchQuery } from "@/types";
+import type {
+  Job,
+  PaginatedJobs,
+  JobDetail,
+  JobSearchQuery,
+  JobListResponse,
+  JobDetailResponse,
+} from "@/types";
 
 export async function getJobs(
   page = 1,
@@ -14,20 +20,33 @@ export async function getJobs(
     limit,
   };
 
-  // search text
-  if (filter.search) {
-    params.search = filter.search;
+  // TEXT SEARCH
+  if (filter.search && filter.search.trim().length > 0) {
+    params.search = filter.search.trim();
   }
 
-  // tag[] → tag=Sale&tag=IT
+  // TAG FILTER
   if (Array.isArray(filter.tags) && filter.tags.length > 0) {
-    params.tag = filter.tags;
+    params.tag = filter.tags; // BE expects tag=A&tag=B
+  }
+
+  // LOCATION FILTER
+  if (filter.location && filter.location.trim().length > 0) {
+    params.location = filter.location.trim();
+  }
+
+  // SALARY FILTER
+  if (
+    typeof filter.salaryWanted === "number" &&
+    !Number.isNaN(filter.salaryWanted)
+  ) {
+    params.salaryWanted = filter.salaryWanted;
   }
 
   const res = await api.get<JobListResponse>("/api/jobs", {
     params,
     paramsSerializer: {
-      serialize: (paramsObj: Record<string, unknown>): string => {
+      serialize(paramsObj: Record<string, unknown>): string {
         const qs = new URLSearchParams();
 
         for (const key of Object.keys(paramsObj)) {
@@ -44,7 +63,6 @@ export async function getJobs(
           ) {
             qs.append(key, String(value));
           }
-          // các loại khác (object, null, undefined) → bỏ qua
         }
 
         return qs.toString();

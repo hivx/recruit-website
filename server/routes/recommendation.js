@@ -5,6 +5,20 @@ const authorizeRoles = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
+// Sinh job đề xuất cho user (ứng viên)
+router.get(
+  "/:userId",
+  authMiddleware,
+  recommendationController.getRecommendedJobs,
+);
+
+// Sinh candidate đề xuất cho recruiter
+router.get(
+  "/recruiter/:userId",
+  authMiddleware,
+  recommendationController.getRecommendedCandidates,
+);
+
 // POST recommendations for a user
 router.post(
   "/:userId",

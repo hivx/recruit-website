@@ -6,7 +6,7 @@ import type { Job, PaginatedJobs, JobSearchQuery } from "@/types";
 /** Hook: Lấy danh sách Job với phân trang + search/filter */
 export function useJobs(page: number, limit: number, filter: JobSearchQuery) {
   return useQuery<PaginatedJobs<Job>, Error>({
-    queryKey: ["jobs", page, limit, filter], // <— cache theo filter đúng
+    queryKey: ["jobs", page, limit, JSON.stringify(filter)],
     queryFn: () => getJobs(page, limit, filter),
     placeholderData: (previousData) => previousData,
     select: (data) => ({

@@ -244,16 +244,16 @@ export function mapCompanyRaw(raw: CompanyRaw): Company {
 /* ---------------------------------------------------
  * RECOMMENDATION MAPPERS
  * --------------------------------------------------- */
-
-export function mapJobRecommendationRaw(
+export function mapJobRecommendation(
   raw: JobRecommendationRaw,
 ): JobRecommendation {
   return {
-    id: raw.id,
     userId: raw.user_id,
     jobId: raw.job_id,
     fitScore: raw.fit_score,
-    createdAt: raw.created_at,
+    reason: raw.reason,
+    status: raw.status,
+    job: mapJobRaw(raw.job), // Dùng lại mapper job chuẩn
   };
 }
 
