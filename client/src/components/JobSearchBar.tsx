@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTagStore } from "@/stores";
 import type { JobSearchBarProps } from "@/types";
 
@@ -48,6 +48,29 @@ export function JobSearchBar({
       });
     }
   };
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setOpenTagList(false);
+      }
+    }
+
+    if (openTagList) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openTagList]);
 
   return (
     <section
@@ -143,6 +166,8 @@ export function JobSearchBar({
           <input
             type="number"
             value={salaryWanted ?? ""}
+            min={0}
+            step={1000000}
             onChange={(e) => setSalaryWanted(Number(e.target.value))}
             placeholder="Mức lương mong muốn (VD: 15000000)"
             className="
@@ -157,60 +182,71 @@ export function JobSearchBar({
       {/* TAG FILTER */}
       <div className="relative z-20 w-full max-w-5xl mt-4 flex flex-col items-start">
         {/* Dropdown button */}
-        <button
-          onClick={() => setOpenTagList((o) => !o)}
-          className="
-            bg-white/90 hover:bg-white text-gray-800
-            px-4 py-2 rounded-lg font-medium text-sm
-            flex items-center gap-2 transition-all
-            shadow-sm hover:shadow-md hover:scale-[1.02]
-          "
-        >
-          Lĩnh vực <span className="text-gray-500">▾</span>
-        </button>
-
-        {/* TAG DROPDOWN PANEL */}
-        {openTagList && (
-          <div
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setOpenTagList((o) => !o)}
             className="
-              absolute mt-2 w-56 bg-white shadow-xl rounded-lg p-2
-              max-h-60 overflow-y-auto border border-gray-200
-              animate-fadeIn
+              bg-white/90 hover:bg-white text-gray-800
+              px-4 py-2 rounded-lg font-medium text-sm
+              flex items-center gap-2 transition-all
+              shadow-sm hover:shadow-md hover:scale-[1.02]
+              border border-gray-200
             "
           >
-            {tags.length === 0 && (
-              <p className="text-gray-500 text-sm px-2 py-1">Đang tải…</p>
-            )}
+            <span className="flex items-center gap-1">
+              Lĩnh vực{" "}
+              <span
+                className={`transition-transform ${
+                  openTagList ? "rotate-180" : ""
+                }`}
+              >
+                ▾
+              </span>
+            </span>
+          </button>
 
-            {tags.map((tag) => {
-              const active = selected.includes(tag.name);
+          {/* DROPDOWN */}
+          {openTagList && (
+            <div
+              className="
+                absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200
+                max-h-64 overflow-y-auto p-2
+                animate-dropdown
+              "
+            >
+              {tags.length === 0 && (
+                <p className="text-gray-500 text-sm px-2 py-1">Đang tải…</p>
+              )}
 
-              return (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.name)}
-                  className={`
-                    w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2
-                    transition-all
-                    ${
-                      active
-                        ? "bg-blue-100 text-blue-600 font-semibold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }
-                  `}
-                >
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    readOnly
-                    className="w-4 h-4"
-                  />
-                  {tag.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
+              {tags.map((tag) => {
+                const active = selected.includes(tag.name);
+
+                return (
+                  <button
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.name)}
+                    className={`
+              w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all
+              ${
+                active
+                  ? "bg-blue-100 text-blue-600 font-semibold"
+                  : "text-gray-700 hover:bg-gray-100"
+              }
+            `}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      readOnly
+                      className="w-4 h-4"
+                    />
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* POPULAR TAGS */}
         <div className="mt-4 flex flex-col items-start gap-2">

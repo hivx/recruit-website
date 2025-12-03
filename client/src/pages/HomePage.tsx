@@ -9,15 +9,30 @@ export function HomePage() {
   const user = useUserStore((s) => s.user);
 
   return (
-    <div className="w-full">
-      {/* Banner / Search */}
-      <JobSearchBar onSearch={setQueryObj} />
+    <div
+      className="
+        min-h-screen w-full 
+        bg-gradient-to-br from-blue-50 via-white to-blue-100 
+        pb-20 
+      "
+    >
+      {/* ===================== SEARCH BANNER ===================== */}
+      <div className="shadow-lg">
+        <JobSearchBar onSearch={setQueryObj} />
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 mt-12 space-y-16">
-        {/* ===================== NORMAL JOB LIST ===================== */}
+      {/* ===================== MAIN CONTENT ===================== */}
+      <div className="max-w-7xl mx-auto px-4 mt-16 space-y-20">
+        {/* -------- Job List -------- */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">
-            Tất cả việc làm nổi bật
+          <h2
+            className="
+              text-2xl font-bold mb-6 text-gray-800
+              flex items-center gap-2
+            "
+          >
+            <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
+            Tất cả việc làm nổi bật{" "}
           </h2>
 
           <JobList
@@ -27,11 +42,18 @@ export function HomePage() {
             onPageChange={setPage}
           />
         </section>
-        {/* ===================== RECOMMENDED JOBS ===================== */}
+
+        {/* -------- Recommended Jobs -------- */}
         {user && (
           <section>
-            <h2 className="text-2xl font-semibold mb-4">
-              Đề xuất dành cho bạn
+            <h2
+              className="
+                text-2xl font-bold mb-6 text-gray-800
+                flex items-center gap-2
+              "
+            >
+              <span className="w-2 h-6 bg-purple-500 rounded-full"></span>
+              Đề xuất dành cho bạn{" "}
             </h2>
 
             <RecommendedJobList userId={Number(user.id)} />

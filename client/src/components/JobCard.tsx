@@ -1,9 +1,9 @@
 import { Heart } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppNavigate } from "@/hooks";
 import { toggleFavorite } from "@/services";
 import { useUserStore } from "@/stores";
+import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { Job } from "@/types";
 import { resolveImage } from "@/utils";
 
@@ -14,31 +14,37 @@ type JobCardProps = Readonly<{
 
 export function JobCard({ job, score }: JobCardProps) {
   const logoUrl = resolveImage(job.company?.logo);
+  const jobId = Number(job.id);
 
   const navigate = useAppNavigate();
 
   // FE state sync với BE isFavorite
-  const [isFavorite, setIsFavorite] = useState(job.isFavorite === true);
+
   const token = useUserStore((s) => s.token); // Lấy token từ store
 
-  const handleToggle = async (e: React.MouseEvent) => {
+  const favorites = useFavoriteStore((s) => s.favorites);
+  const toggleFav = useFavoriteStore((s) => s.toggle);
+
+  const isFavorite = favorites.has(jobId);
+
+  async function handleToggle(e: React.MouseEvent) {
     e.stopPropagation();
 
-    // Nếu chưa login → chuyển về trang login
     if (!token) {
       navigate("/login");
       return;
     }
 
-    // ✔ Nếu đã login → toggle bình thường
-    setIsFavorite((prev) => !prev);
+    // Optimistic UI: toggle local ngay
+    toggleFav(jobId);
 
     try {
-      await toggleFavorite(job.id);
+      await toggleFavorite(job.id); // gọi BE
     } catch {
-      setIsFavorite((prev) => !prev);
+      // rollback nếu fail
+      toggleFav(jobId);
     }
-  };
+  }
 
   // Lương
   let salaryText: string | null = null;

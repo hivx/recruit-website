@@ -11,11 +11,13 @@ export function RecommendedJobList({ userId }: RecommendedJobListProps) {
   const [page, setPage] = useState(1);
   const limit = 9;
 
-  // Không có filters nữa
   const { data, isLoading, isError, error, refetch } = useRecommendedJobs(
     userId,
     { page, limit },
   );
+
+  const items = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
   if (isLoading) {
     return (
@@ -34,46 +36,63 @@ export function RecommendedJobList({ userId }: RecommendedJobListProps) {
     );
   }
 
-  const items = data?.items ?? [];
-  console.log(items);
-  const totalPages = data?.totalPages ?? 1;
-
   return (
-    <div className="space-y-10">
-      {/* ===== GRID ===== */}
-      {items.length === 0 ? (
-        <div className="text-center text-gray-500 py-10 text-lg">
-          Không có gợi ý phù hợp
+    <div className="animate-fade-in-up">
+      {/* WRAPPER */}
+      <div
+        className="
+          bg-white rounded-2xl shadow-lg p-6 md:p-8 
+          border border-gray-100 
+          backdrop-blur-sm space-y-8
+        "
+      >
+        {/* GRID */}
+        {items.length === 0 ? (
+          <div className="text-center text-gray-500 py-16 text-lg font-medium">
+            Không có gợi ý phù hợp
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
+            {items.map((rec) => (
+              <JobCard key={rec.jobId} job={rec.job} score={rec.fitScore} />
+            ))}
+          </div>
+        )}
+
+        {/* PAGINATION */}
+        <div className="flex justify-center items-center gap-4 pt-6">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="
+              px-5 py-2.5 rounded-xl border border-gray-300
+              bg-white text-gray-700 font-medium
+              shadow-sm hover:shadow-md hover:scale-[1.02]
+              transition-all
+              disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none disabled:scale-100
+            "
+          >
+            Trang trước
+          </button>
+
+          <span className="font-semibold text-gray-700 text-base">
+            {page} / {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="
+              px-5 py-2.5 rounded-xl 
+              bg-blue-600 text-white font-medium
+              shadow-sm hover:shadow-lg hover:bg-blue-700 hover:scale-[1.03]
+              transition-all
+              disabled:bg-blue-300 disabled:text-white disabled:shadow-none disabled:scale-100
+            "
+          >
+            Trang sau
+          </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {items.map((rec) => (
-            <JobCard key={rec.jobId} job={rec.job} score={rec.fitScore} />
-          ))}
-        </div>
-      )}
-
-      {/* ===== PAGINATION ===== */}
-      <div className="flex justify-center items-center gap-4 pt-4">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:bg-gray-200"
-        >
-          Trang trước
-        </button>
-
-        <span className="font-semibold text-gray-700">
-          {page} / {totalPages}
-        </span>
-
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300"
-        >
-          Trang sau
-        </button>
       </div>
     </div>
   );
