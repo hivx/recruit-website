@@ -84,3 +84,40 @@ export async function getJobById(id: string): Promise<JobDetail> {
   const res = await api.get<JobDetailResponse>(`/api/jobs/${id}`);
   return mapJobDetailRaw(res.data);
 }
+
+export async function getMyJobs(
+  page = 1,
+  limit = 10,
+): Promise<PaginatedJobs<Job>> {
+  try {
+    const res = await api.get<JobListResponse>("/api/jobs/my-jobs", {
+      params: { page, limit },
+    });
+
+    const data = res.data;
+
+    const rawJobs = Array.isArray(data.jobs) ? data.jobs : [];
+
+    return {
+      jobs: rawJobs.map(mapJobRaw),
+      total: typeof data.total === "number" ? data.total : 0,
+      page: typeof data.page === "number" ? data.page : page,
+      totalPages: typeof data.totalPages === "number" ? data.totalPages : 1,
+    };
+  } catch (error) {
+    // Đảm bảo không bị lỗi unsafe khi error là unknown
+    if (error instanceof Error) {
+      console.error("getMyJobs error:", error.message);
+    } else {
+      console.error("getMyJobs unknown error");
+    }
+
+    // Trả về object rỗng để UI không crash
+    return {
+      jobs: [],
+      total: 0,
+      page: 1,
+      totalPages: 1,
+    };
+  }
+}

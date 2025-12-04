@@ -6,3 +6,4 @@ export * from "./Navbar";
 export * from "./JobSearchBar";
 export * from "./JobList";
 export * from "./RecommendedJobSection";
+export * from "./recruiters";

@@ -1,6 +1,6 @@
 // src/hooks/useJobs.ts
 import { useQuery } from "@tanstack/react-query";
-import { getJobs, getJobById } from "@/services/jobService";
+import { getJobs, getJobById, getMyJobs } from "@/services/jobService";
 import type { Job, PaginatedJobs, JobSearchQuery } from "@/types";
 
 /** Hook: Lấy danh sách Job với phân trang + search/filter */
@@ -26,5 +26,18 @@ export function useJobById(id?: string) {
       }
       return getJobById(id);
     },
+  });
+}
+
+/** Hook: Lấy danh sách Job thuộc về nhà tuyển dụng hiện tại */
+export function useMyJobs(page: number, limit: number) {
+  return useQuery<PaginatedJobs<Job>, Error>({
+    queryKey: ["my-jobs", page, limit],
+    queryFn: () => getMyJobs(page, limit),
+    placeholderData: (previousData) => previousData,
+    select: (data) => ({
+      ...data,
+      jobs: data.jobs ?? [],
+    }),
   });
 }
