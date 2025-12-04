@@ -7,7 +7,13 @@ const authMiddleware = require("../middleware/authMiddleware");
 const authOptional = require("../middleware/authOptional");
 const requireRecruiterWithVerifiedCompany = require("../middleware/requireRecruiterWithVerifiedCompany");
 const authorizeRoles = require("../middleware/roleMiddleware");
-
+// GET: Lấy cập nhật cơ bản của chính mình
+router.get(
+  "/my-jobs",
+  authMiddleware,
+  authorizeRoles("recruiter", "admin"),
+  jobController.getMyJobs,
+);
 // POST: Chỉ recruiter được đăng tin
 router.post(
   "/",

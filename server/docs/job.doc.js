@@ -541,3 +541,39 @@
  *       500:
  *         description: Lỗi server khi build JobVector
  */
+
+/**
+ * @swagger
+ * /api/jobs/my-jobs:
+ *   get:
+ *     summary: Lấy danh sách bài đăng thuộc về nhà tuyển dụng hiện tại
+ *     description:
+ *       Trả về danh sách job do chính người dùng hiện tại recruiter/admin tạo ra.
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng job mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách job của nhà tuyển dụng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/JobListResponse'
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Không có quyền (chỉ recruiter hoặc admin)
+ */

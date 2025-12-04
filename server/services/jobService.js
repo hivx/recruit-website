@@ -757,3 +757,39 @@ exports.rejectJob = async (jobId, adminId, reason) => {
     reason: approval.reason,
   };
 };
+
+// ===============================
+// GET JOBS CREATED BY CURRENT USER (Lấy job tạo bởi người dùng)
+// ===============================
+exports.getMyJobs = async ({ userId, page = 1, limit = 10 }) => {
+  const skip = (page - 1) * limit;
+
+  const where = {
+    created_by: BigInt(userId),
+  };
+
+  const [jobs, total] = await Promise.all([
+    prisma.job.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      skip,
+      take: limit,
+      include: {
+        company: { select: { id: true, legal_name: true, logo: true } },
+        approval: true,
+        tags: { include: { tag: true } },
+        requiredSkills: { include: { skill: true } },
+        vector: true,
+      },
+    }),
+
+    prisma.job.count({ where }),
+  ]);
+
+  return {
+    jobs: jobs.map((job) => toJobDTO(job)),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+};
