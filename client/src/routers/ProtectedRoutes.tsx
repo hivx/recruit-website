@@ -1,8 +1,7 @@
 import { Navigate, Outlet, Route } from "react-router-dom";
-import { MainLayout, TransitionLayout } from "@/layouts";
+import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
 import { RecruiterHomePage } from "@/pages";
-
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores";
 
 // Logic bảo vệ: cần có token (đăng nhập)
 function ProtectedRouteGuard() {
@@ -17,45 +16,37 @@ function ProtectedRouteGuard() {
 export function ProtectedRecruiterRoute() {
   const user = useUserStore((s) => s.user);
 
-  // 1. Chưa đăng nhập → login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 2. Applicant không được phép → HomePage
   if (user.role === "applicant") {
     return <Navigate to="/" replace />;
   }
 
-  // 3. Recruiter + Admin → OK
   return <Outlet />;
 }
 
-// Danh sách route cần login
 export function ProtectedRoutes() {
   return (
     <Route element={<TransitionLayout />}>
       {/* Cần token */}
       <Route element={<ProtectedRouteGuard />}>
+        {/* ROUTE CHUNG SAU KHI LOGIN */}
         <Route element={<MainLayout />}>
-          {/* =============================================
-               CÁC ROUTE CHUNG SAU KHI LOGIN (applicant / recruiter / admin)
-             ============================================= */}
+          {/* Các trang Applicant + Admin + Recruiter dùng MainLayout */}
+          {/* Ví dụ: <Route path="/profile" element={<ProfilePage />} /> */}
+        </Route>
 
-          {/* =============================================
-               ROUTE DÀNH RIÊNG CHO RECRUITER & ADMIN
-             ============================================= */}
-          <Route element={<ProtectedRecruiterRoute />}>
+        {/* ROUTE DÀNH RIÊNG CHO RECRUITER */}
+        <Route element={<ProtectedRecruiterRoute />}>
+          <Route element={<RecruiterLayout />}>
             <Route path="/recruiter" element={<RecruiterHomePage />} />
             <Route path="/recruiter/jobs" element={<RecruiterHomePage />} />
-            {/* Nếu bạn có thêm trang trong dashboard recruiter */}
-            {/* <Route path="/recruiter/applicants" element={<ApplicantListPage />} /> */}
-            {/* <Route path="/recruiter/company" element={<CompanyInfoPage />} /> */}
+            {/* Các trang khác của recruiter */}
+            {/* <Route path="/recruiter/company" element={<CompanyPage />} /> */}
+            {/* <Route path="/recruiter/applicants" element={<ApplicantsPage />} /> */}
           </Route>
-
-          {/* =============================================
-               CÁC ROUTE BẢO VỆ KHÁC — thêm vào tùy bạn
-             ============================================= */}
         </Route>
       </Route>
     </Route>

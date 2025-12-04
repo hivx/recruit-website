@@ -1,6 +1,6 @@
 // src/hooks/useJobs.ts
 import { useQuery } from "@tanstack/react-query";
-import { getJobs, getJobById, getMyJobs } from "@/services/jobService";
+import { getJobs, getJobById, getMyJobs } from "@/services";
 import type { Job, PaginatedJobs, JobSearchQuery } from "@/types";
 
 /** Hook: Lấy danh sách Job với phân trang + search/filter */

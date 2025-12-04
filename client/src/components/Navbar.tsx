@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { logo } from "@/assets";
 import { useAppNavigate } from "@/hooks";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores";
 import { resolveImage } from "@/utils";
 
 export function Navbar() {

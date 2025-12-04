@@ -1,7 +1,7 @@
 // src/services/recommendationService.ts
 import { api } from "@/api";
 import type { JobRecommendationRaw, JobRecommendation } from "@/types";
-import { mapJobRecommendation } from "@/types/mappers";
+import { mapJobRecommendation } from "@/types";
 
 export interface RecommendedJobResponse {
   items: JobRecommendation[];

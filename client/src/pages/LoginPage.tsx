@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate } from "@/hooks";
-import { login } from "@/services/authService";
-import { useUserStore } from "@/stores/useUserStore";
+import { login } from "@/services";
+import { useUserStore } from "@/stores";
 import type { LoginPayload } from "@/types/auth";
 import { getAxiosErrorMessage } from "@/utils";
 

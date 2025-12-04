@@ -120,8 +120,8 @@ Bạn đã làm xong BE → FE chỉ cần render.
 Rồi mình chuyển sang Main Layout + Navbar, tiếp theo là JobList.
 
 Nếu không có ProtectedRoute, bạn truy cập /jobs chưa login cũng vào được → không đúng logic hệ
-===================================================================================
-===================================================================================
+=========================================================================================================================
+=======================================================================================================================
 Tổng quan hệ thống (theo BE bạn đã làm)
 
 Bạn có:
@@ -344,3 +344,95 @@ Admin:
 /admin/jobs/:id
 /admin/users
 /admin/companies
+
+=================================================================================================================================
+=================================================================================================================================
+🎯 1) Quản lý bài đăng tuyển dụng (Job Management)
+
+Đây là trung tâm của mọi recruiter.
+
+Recruiter cần:
+
+Xem danh sách job mình đã đăng
+
+Xem trạng thái duyệt (approved | pending | rejected)
+
+Xem số lượng ứng viên đã ứng tuyển
+
+Tạo job mới
+
+Chỉnh sửa job
+
+Xóa job
+
+Xem hiệu suất job (views, apply rate nếu có tracking)
+
+Publish/unpublish job
+
+Giúp hệ thống:
+
+Giảm spam job, cải thiện chất lượng job, dễ duyệt hơn.
+
+🎯 2) Quản lý ứng viên (Applicant Management)
+
+Dashboard tuyển dụng mà không có phần này là thiếu lớn.
+
+Recruiter cần:
+
+Xem danh sách ứng viên theo từng job
+
+Xem CV + hồ sơ ứng viên
+
+Lọc ứng viên theo trạng thái
+
+New, Reviewed, Contacted, Interviewed, Rejected, Hired
+
+Gửi email hoặc liên hệ ứng viên
+
+Đánh dấu ứng viên nổi bật
+
+Ghi chú nội bộ về ứng viên
+
+Giúp hệ thống:
+
+Dễ tracking pipeline tuyển dụng, giảm thất lạc thông tin.
+
+🎯 3) Quản lý công ty (Company Profile & Verification)
+
+Từ góc độ nền tảng, đây là thứ đảm bảo độ tin cậy.
+
+Recruiter cần:
+
+Xem thông tin công ty
+
+Cập nhật logo, mô tả công ty, website, địa chỉ
+
+Theo dõi trạng thái xét duyệt công ty (submitted, verified, rejected)
+
+Nộp lại hồ sơ khi bị từ chối
+
+Giúp hệ thống:
+
+Chống công ty ảo, chống lừa đảo, đảm bảo honest hiring.
+
+🎯 4) Dashboard thống kê (Recruiter Insights)
+
+Dashboard thống kê như bạn đang làm là đúng hướng.
+
+Recruiter cần xem:
+
+Số job đã duyệt / chờ duyệt / bị từ chối
+
+Số lượng job đăng theo tháng
+
+Tổng lượt ứng tuyển theo tháng
+
+Top job có nhiều ứng viên nhất
+
+Tỷ lệ chuyển đổi apply/job
+
+Số lượt xem job (nếu tracking)
+
+Giúp recruiter:
+
+Ra quyết định tốt hơn (tăng lương? thêm tag? thay JD?).

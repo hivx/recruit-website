@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getRecommendedJobs } from "@/services/recommendationService";
-import type { RecommendedJobResponse } from "@/services/recommendationService";
+import { getRecommendedJobs } from "@/services";
+import type { RecommendedJobResponse } from "@/services";
 
 export function useRecommendedJobs(
   userId?: number,

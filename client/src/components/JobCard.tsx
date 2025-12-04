@@ -2,8 +2,7 @@ import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppNavigate } from "@/hooks";
 import { toggleFavorite } from "@/services";
-import { useUserStore } from "@/stores";
-import { useFavoriteStore } from "@/stores/favoriteStore";
+import { useUserStore, useFavoriteStore } from "@/stores";
 import type { Job } from "@/types";
 import { resolveImage } from "@/utils";
 

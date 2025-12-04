@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useFavoriteStore } from "@/stores/favoriteStore";
+import { useFavoriteStore } from "@/stores";
 import type { Job } from "@/types";
 
 export function useSyncFavoritesFromJobs(jobs?: Job[]) {

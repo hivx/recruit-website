@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate } from "@/hooks";
-import { register } from "@/services/authService";
+import { register } from "@/services";
 import { getAxiosErrorMessage } from "@/utils";
 
 export function RegisterPage() {

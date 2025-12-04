@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MyJobList, JobStatsChart } from "@/components/recruiters";
+import { MyJobList, JobStatsDashboard } from "@/components/recruiters";
 import { useUserStore } from "@/stores";
 
 export function RecruiterHomePage() {
@@ -32,15 +32,15 @@ export function RecruiterHomePage() {
         <section>
           <h2
             className="
-              text-2xl font-bold mb-6 text-gray-800
-              flex items-center gap-2
-            "
+      text-2xl font-bold mb-6 text-gray-800
+      flex items-center gap-2
+    "
           >
             <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
             Thống kê bài đăng{" "}
           </h2>
 
-          {/* <JobStatsChart /> */}
+          <JobStatsDashboard />
         </section>
 
         {/* -------- MY JOB LIST -------- */}

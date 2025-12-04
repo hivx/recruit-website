@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { JobCard, Loader, ErrorBox } from "@/components";
-import { useRecommendedJobs } from "@/hooks/useRecommendedJobs";
+import { useRecommendedJobs } from "@/hooks";
 import { getAxiosErrorMessage } from "@/utils";
 
 export interface RecommendedJobListProps {
