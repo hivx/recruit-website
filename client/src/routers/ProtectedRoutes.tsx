@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
-import { RecruiterHomePage } from "@/pages";
+import { RecruiterHomePage, RecruiterCompanyPage } from "@/pages/recruiter";
 import { useUserStore } from "@/stores";
 
 // Logic bảo vệ: cần có token (đăng nhập)
@@ -44,7 +44,10 @@ export function ProtectedRoutes() {
             <Route path="/recruiter" element={<RecruiterHomePage />} />
             <Route path="/recruiter/jobs" element={<RecruiterHomePage />} />
             {/* Các trang khác của recruiter */}
-            {/* <Route path="/recruiter/company" element={<CompanyPage />} /> */}
+            <Route
+              path="/recruiter/company"
+              element={<RecruiterCompanyPage />}
+            />
             {/* <Route path="/recruiter/applicants" element={<ApplicantsPage />} /> */}
           </Route>
         </Route>

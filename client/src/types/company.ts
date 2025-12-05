@@ -21,6 +21,7 @@ export interface CompanyRaw {
   registered_address: string;
   incorporation_date: string | null;
   owner_id: string;
+  logo: string | null;
   created_at: string;
   updated_at: string;
   verification: CompanyVerificationRaw | null;
@@ -44,6 +45,7 @@ export interface Company {
   registeredAddress: string;
   incorporationDate: string | null;
   ownerId: string;
+  logo: string | null;
   createdAt: string;
   updatedAt: string;
   verification: CompanyVerification | null;

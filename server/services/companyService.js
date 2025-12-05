@@ -85,15 +85,56 @@ async function updateMyCompany(ownerId, payload) {
     throw e;
   }
 
-  if (payload.registration_number || payload.country_code) {
+  // ======== SHOULD UPDATE LOGIC ========
+  const shouldUpdate = (v) =>
+    !(
+      v === undefined ||
+      v === null ||
+      (typeof v === "string" && v.trim() === "")
+    );
+
+  // ======== XÂY DATA UPDATE AN TOÀN ========
+  const dataToUpdate = {};
+
+  if (shouldUpdate(payload.legal_name)) {
+    dataToUpdate.legal_name = payload.legal_name;
+  }
+  if (shouldUpdate(payload.registration_number)) {
+    dataToUpdate.registration_number = payload.registration_number;
+  }
+  if (shouldUpdate(payload.tax_id)) {
+    dataToUpdate.tax_id = payload.tax_id;
+  }
+  if (shouldUpdate(payload.country_code)) {
+    dataToUpdate.country_code = payload.country_code;
+  }
+  if (shouldUpdate(payload.registered_address)) {
+    dataToUpdate.registered_address = payload.registered_address;
+  }
+  if (shouldUpdate(payload.incorporation_date)) {
+    dataToUpdate.incorporation_date = new Date(payload.incorporation_date);
+  }
+  if (shouldUpdate(payload.logo)) {
+    dataToUpdate.logo = payload.logo;
+  }
+
+  // ======== CHECK DUPLICATE COMPANY ID IF USER UPDATE registration_number COUNTRY_CODE ========
+  if (
+    (payload.registration_number !== undefined &&
+      payload.registration_number !== "") ||
+    (payload.country_code !== undefined && payload.country_code !== "")
+  ) {
+    const newReg = payload.registration_number || company.registration_number;
+    const newCountry = payload.country_code || company.country_code;
+
     const dup = await prisma.company.findFirst({
       where: {
-        registration_number:
-          payload.registration_number ?? company.registration_number,
-        country_code: payload.country_code ?? company.country_code,
+        registration_number: newReg,
+        country_code: newCountry,
         NOT: { id: company.id },
       },
     });
+
     if (dup) {
       const e = new Error("Registration_number đã tồn tại trong quốc gia này.");
       e.status = 409;
@@ -103,19 +144,7 @@ async function updateMyCompany(ownerId, payload) {
 
   const updated = await prisma.company.update({
     where: { id: company.id },
-    data: {
-      legal_name: payload.legal_name ?? company.legal_name,
-      registration_number:
-        payload.registration_number ?? company.registration_number,
-      tax_id: payload.tax_id ?? company.tax_id,
-      country_code: payload.country_code ?? company.country_code,
-      registered_address:
-        payload.registered_address ?? company.registered_address,
-      incorporation_date: payload.incorporation_date
-        ? new Date(payload.incorporation_date)
-        : company.incorporation_date,
-      logo: payload.logo ?? company.logo,
-    },
+    data: dataToUpdate,
     include: { verification: true },
   });
 
@@ -133,14 +162,6 @@ async function submitForReview(ownerId) {
   if (!company) {
     const e = new Error("Bạn chưa có công ty.");
     e.status = 404;
-    throw e;
-  }
-  // chặn nộp lại nếu đã verified
-  if (company.verification?.status === "verified") {
-    const e = new Error(
-      "Công ty đã được xác thực, không thể nộp lại xét duyệt.",
-    );
-    e.status = 403;
     throw e;
   }
 

@@ -1,12 +1,15 @@
-export function resolveImage(path?: string | null) {
-  if (!path) {
-    return "/placeholder-avatar.png";
+export function resolveImage(src?: string | null): string {
+  const base = String(import.meta.env.VITE_API_URL);
+
+  // fallback khi không có ảnh
+  if (!src || src.trim() === "") {
+    return `${base.replace(/\/$/, "")}/uploads/pic.jpg`;
   }
 
-  // convert ENV về string an toàn
-  const base = String(import.meta.env.VITE_API_URL).replace(/\/$/, "");
+  // Nếu BE trả relative path → convert thành absolute
+  if (!src.startsWith("http")) {
+    return `${base.replace(/\/$/, "")}/${src}`;
+  }
 
-  const cleanPath = path.replace(/^\//, "");
-
-  return `${base}/${cleanPath}`;
+  return src;
 }

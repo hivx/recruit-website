@@ -235,6 +235,7 @@ export function mapCompanyRaw(raw: CompanyRaw): Company {
     registeredAddress: raw.registered_address,
     incorporationDate: raw.incorporation_date,
     ownerId: raw.owner_id,
+    logo: raw.logo ?? null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     verification: mapCompanyVerificationRaw(raw.verification),

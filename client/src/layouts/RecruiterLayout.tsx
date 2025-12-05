@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import { Navbar } from "@/components";
-import { RecruiterSidebar } from "@/components/recruiters";
+import { RecruiterSidebar } from "@/components/recruiter";
 
 type RecruiterLayoutProps = {
   readonly children?: ReactNode;

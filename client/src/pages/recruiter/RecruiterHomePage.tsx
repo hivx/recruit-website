@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MyJobList, JobStatsDashboard } from "@/components/recruiters";
+import { MyJobList, JobStatsDashboard } from "@/components/recruiter";
 import { useUserStore } from "@/stores";
 
 export function RecruiterHomePage() {

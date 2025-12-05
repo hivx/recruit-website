@@ -248,8 +248,6 @@
  *                   type: string
  *                   format: date-time
  *                   example: "2025-10-19T08:40:00.000Z"
- *       403:
- *         description: Công ty đã được xác thực, không thể nộp lại
  *       404:
  *         description: Không tìm thấy công ty
  */

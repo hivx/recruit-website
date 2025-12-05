@@ -121,7 +121,7 @@ export function Navbar() {
                   {/* User info */}
                   <div className="flex gap-3">
                     <img
-                      src={avatarSrc || "/placeholder-avatar.png"}
+                      src={avatarSrc}
                       alt="avatar"
                       className="h-14 w-14 rounded-full object-cover shadow-sm"
                     />

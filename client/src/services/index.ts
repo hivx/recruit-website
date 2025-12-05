@@ -3,3 +3,4 @@ export * from "./authService";
 export * from "./favoriteService";
 export * from "./tagService";
 export * from "./recommendationService";
+export * from "./companyService";
