@@ -1,3 +1,4 @@
+// src/layouts/RecruiterLayout.tsx
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import { Navbar } from "@/components";

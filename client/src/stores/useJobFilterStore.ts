@@ -1,3 +1,4 @@
+// src/stores/useJobFilterStore.ts
 import { create } from "zustand";
 
 type JobFilterState = {

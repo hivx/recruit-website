@@ -36,3 +36,17 @@ export interface CandidateRecommendation {
   fitScore: number;
   createdAt: string;
 }
+
+export interface RecommendedJobResponse {
+  items: JobRecommendation[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface RecommendedJobResponseRaw {
+  items: JobRecommendationRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
+}

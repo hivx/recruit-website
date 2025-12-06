@@ -1,5 +1,6 @@
+// src/services/companyService.ts
 import { api, isAxiosError } from "@/api";
-import type { CompanyRaw, Company } from "@/types";
+import type { CompanyRaw, Company, SubmitCompanyResponse } from "@/types";
 import { mapCompanyRaw } from "@/types";
 
 /** Lấy thông tin công ty của recruiter hiện tại */
@@ -35,11 +36,6 @@ export async function updateCompany(formData: FormData): Promise<Company> {
 }
 
 /** Nộp xét duyệt */
-export interface SubmitCompanyResponse {
-  company_id: string;
-  status: "submitted";
-  submitted_at: string;
-}
 
 export async function submitCompanyVerification(): Promise<SubmitCompanyResponse> {
   const res = await api.post<SubmitCompanyResponse>("/api/companies/me/submit");

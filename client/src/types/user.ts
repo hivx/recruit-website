@@ -1,5 +1,4 @@
 // src/types/user.ts
-
 export type UserRole = "admin" | "recruiter" | "applicant";
 
 /** Raw từ BE (toUserDTO) */

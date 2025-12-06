@@ -1,3 +1,4 @@
+// src/types/index.ts
 export * from "./job";
 export * from "./api";
 export * from "./user";

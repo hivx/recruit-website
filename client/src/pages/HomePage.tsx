@@ -1,3 +1,4 @@
+// src/pages/HomePage.tsx
 import { useState } from "react";
 import { JobSearchBar, JobList, RecommendedJobList } from "@/components";
 import { useUserStore } from "@/stores";

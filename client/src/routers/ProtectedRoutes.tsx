@@ -1,6 +1,11 @@
+// src/routers/ProtectedRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
-import { RecruiterHomePage, RecruiterCompanyPage } from "@/pages/recruiter";
+import {
+  RecruiterHomePage,
+  RecruiterCompanyPage,
+  RecruiterApplicantsPage,
+} from "@/pages/recruiter";
 import { useUserStore } from "@/stores";
 
 // Logic bảo vệ: cần có token (đăng nhập)
@@ -35,7 +40,6 @@ export function ProtectedRoutes() {
         {/* ROUTE CHUNG SAU KHI LOGIN */}
         <Route element={<MainLayout />}>
           {/* Các trang Applicant + Admin + Recruiter dùng MainLayout */}
-          {/* Ví dụ: <Route path="/profile" element={<ProfilePage />} /> */}
         </Route>
 
         {/* ROUTE DÀNH RIÊNG CHO RECRUITER */}
@@ -47,6 +51,10 @@ export function ProtectedRoutes() {
             <Route
               path="/recruiter/company"
               element={<RecruiterCompanyPage />}
+            />
+            <Route
+              path="/recruiter/applicants"
+              element={<RecruiterApplicantsPage />}
             />
             {/* <Route path="/recruiter/applicants" element={<ApplicantsPage />} /> */}
           </Route>

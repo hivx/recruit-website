@@ -1,6 +1,7 @@
+// src/stores/useTagStore.ts
 import { create } from "zustand";
-import type { GetTag, PopularTag } from "@/services";
 import { getAllTags, getPopularTags } from "@/services";
+import type { GetTag, PopularTag } from "@/types";
 
 interface TagStore {
   tags: GetTag[];

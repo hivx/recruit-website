@@ -1,3 +1,4 @@
+// src/pages/ForgotPasswordPage.tsx
 import { useState } from "react";
 import { api } from "@/api";
 import { Loader } from "@/components";

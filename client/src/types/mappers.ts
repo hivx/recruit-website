@@ -1,5 +1,4 @@
 // src/types/mappers.ts
-
 import type { Application, ApplicationRaw } from "./application";
 
 import type {

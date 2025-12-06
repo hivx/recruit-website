@@ -1,6 +1,7 @@
+// src/hooks/useRecommendedJobs.ts
 import { useQuery } from "@tanstack/react-query";
 import { getRecommendedJobs } from "@/services";
-import type { RecommendedJobResponse } from "@/services";
+import type { RecommendedJobResponse } from "@/types";
 
 export function useRecommendedJobs(
   userId?: number,

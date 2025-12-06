@@ -1,3 +1,4 @@
+// src/utils/resolveImage.ts
 export function resolveImage(src?: string | null): string {
   const base = String(import.meta.env.VITE_API_URL);
 

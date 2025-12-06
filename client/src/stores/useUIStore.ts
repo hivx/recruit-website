@@ -1,3 +1,4 @@
+// src/stores/useUIStore.ts
 import { create } from "zustand";
 
 type UIState = {

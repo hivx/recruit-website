@@ -1,5 +1,4 @@
 // src/types/company.ts
-
 /** Trạng thái xác minh công ty */
 export type CompanyVerificationStatus = "submitted" | "verified" | "rejected";
 
@@ -49,4 +48,31 @@ export interface Company {
   createdAt: string;
   updatedAt: string;
   verification: CompanyVerification | null;
+}
+
+/* ================= TYPES ================= */
+export interface CompanyFormState {
+  readonly legal_name: string;
+  readonly registration_number: string;
+  readonly tax_id: string;
+  readonly country_code: string;
+  readonly registered_address: string;
+  readonly incorporation_date: string;
+  readonly logo: File | null;
+}
+
+export interface CompanyFormProps {
+  readonly form: CompanyFormState;
+  readonly updateField: <K extends keyof CompanyFormState>(
+    key: K,
+    value: CompanyFormState[K],
+  ) => void;
+  readonly allowAllFields: boolean;
+  readonly editable?: boolean;
+}
+
+export interface SubmitCompanyResponse {
+  company_id: string;
+  status: "submitted";
+  submitted_at: string;
 }

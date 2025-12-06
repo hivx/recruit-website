@@ -1,3 +1,4 @@
+// src/hooks/useSyncFavorites.ts
 import { useEffect } from "react";
 import { useFavoriteStore } from "@/stores";
 import type { Job } from "@/types";

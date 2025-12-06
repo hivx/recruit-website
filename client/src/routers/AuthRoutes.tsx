@@ -1,3 +1,4 @@
+// src/routers/AuthRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { LoginPage, ForgotPasswordPage, RegisterPage } from "@/pages";
 import { useUserStore } from "@/stores";

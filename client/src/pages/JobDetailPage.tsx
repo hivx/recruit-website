@@ -1,4 +1,4 @@
-// src/pages/JobDetail.tsx
+// src/pages/JobDetailPage.tsx
 import { useParams } from "react-router-dom";
 import { ErrorBox, Loader } from "@/components";
 import { useJobById } from "@/hooks";

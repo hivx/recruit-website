@@ -1,5 +1,4 @@
 // src/types/preference.ts
-
 /** Career preference (ứng viên) raw từ BE */
 export interface CareerPreferenceRaw {
   user_id: string;

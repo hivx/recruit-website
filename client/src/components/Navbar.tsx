@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -94,6 +95,9 @@ export function Navbar() {
               >
                 <img
                   src={avatarSrc}
+                  onError={(e) => {
+                    e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+                  }}
                   alt="avatar"
                   className="
                     h-10 w-10 rounded-full object-cover border 
@@ -122,6 +126,9 @@ export function Navbar() {
                   <div className="flex gap-3">
                     <img
                       src={avatarSrc}
+                      onError={(e) => {
+                        e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+                      }}
                       alt="avatar"
                       className="h-14 w-14 rounded-full object-cover shadow-sm"
                     />

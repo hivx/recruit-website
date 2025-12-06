@@ -1,3 +1,4 @@
+// src/pages/index.ts
 export * from "./JobDetailPage";
 export * from "./LoginPage";
 export * from "./ForgotPasswordPage";

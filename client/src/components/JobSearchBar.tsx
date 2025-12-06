@@ -1,8 +1,14 @@
+// src/components/JobSearchBar.tsx
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useTagStore } from "@/stores";
-import type { JobSearchBarProps } from "@/types";
+import type { JobSearchQuery } from "@/types";
+
+export interface JobSearchBarProps {
+  onSearch: (q: JobSearchQuery) => void;
+  backgroundImage?: string;
+}
 
 export function JobSearchBar({
   onSearch,

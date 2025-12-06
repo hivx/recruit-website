@@ -1,3 +1,4 @@
+// src/components/JobList.tsx
 import { JobCard, Loader, ErrorBox } from "@/components";
 import { useJobs, useSyncFavoritesFromJobs } from "@/hooks";
 import type { Job, JobSearchQuery } from "@/types";

@@ -1,3 +1,4 @@
+// src/stores/favoriteStore.ts
 import { create } from "zustand";
 
 interface FavoriteStore {

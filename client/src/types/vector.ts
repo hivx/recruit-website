@@ -1,5 +1,4 @@
 // src/types/vector.ts
-
 /** Hồ sơ hành vi (behavior profile) raw từ BE */
 export interface BehaviorProfileRaw {
   user_id: string;

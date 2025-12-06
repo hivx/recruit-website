@@ -1,3 +1,4 @@
+// src/components/Loader.tsx
 type LoaderProps = Readonly<{
   size?: number;
 }>;

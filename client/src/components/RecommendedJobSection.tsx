@@ -1,3 +1,4 @@
+// src/components/RecommendedJobList.tsx
 import { useState } from "react";
 import { JobCard, Loader, ErrorBox } from "@/components";
 import { useRecommendedJobs } from "@/hooks";

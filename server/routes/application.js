@@ -29,7 +29,7 @@ router.get(
 );
 
 // @route   GET /api/applications/me
-// GET: Lấy danh sách ứng dụng của chính mình (applicant)
+// GET: Lấy danh sách ứng tuyển của chính mình (applicant)
 router.get("/me", authMiddleware, applicationController.getMyApplications);
 
 // @route   PATCH /api/applications/:id/review
@@ -47,6 +47,15 @@ router.put(
   authMiddleware,
   uploadCV.single("cv"), // xử lý file CV nếu có
   applicationController.updateApplication,
+);
+
+// @route   GET /api/applications/recruiter
+// GET: Lấy tất cả hồ sơ ứng tuyển cho recruiter
+router.get(
+  "/recruiter",
+  authMiddleware,
+  authorizeRoles("recruiter", "admin"),
+  applicationController.getRecruiterApplications,
 );
 
 module.exports = router;

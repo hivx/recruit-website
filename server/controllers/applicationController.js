@@ -3,7 +3,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 const applicationService = require("../services/applicationService");
 const { normalizeBigInt } = require("../utils/bigInt");
-const prisma = require("../utils/prisma");
 
 // POST: Ứng tuyển công việc (cv, phone, coverLetter theo business)
 exports.createApplication = async (req, res) => {
@@ -59,50 +58,24 @@ exports.createApplication = async (req, res) => {
 
 // GET: Lấy danh sách ứng viên theo job
 // Chỉ dành cho admin hoặc chủ job
-exports.getApplicantsByJob = async (req, res) => {
+// GET: /api/jobs/:jobId/applicants
+exports.getApplicantsByJob = async (req, res, next) => {
   try {
-    const jobId = req.params.jobId;
+    const { jobId } = req.params;
+    const user = req.user;
 
-    // 1) Lấy job & kiểm quyền trước
-    const job = await prisma.job.findUnique({
-      where: { id: BigInt(jobId) },
-      select: { id: true, created_by: true },
-    });
-    if (!job) {
-      return res.status(404).json({ message: "Không tìm thấy công việc!" });
-    }
-
-    const isOwner = job.created_by?.toString() === req.user.userId?.toString();
-    const isAdmin = req.user.role === "admin";
-    if (!isOwner && !isAdmin) {
-      return res
-        .status(403)
-        .json({ message: "Bạn không có quyền cho công việc này!" });
-    }
-
-    // 2) Lấy danh sách ứng viên (DTO đã include applicant)
-    const applications = await applicationService.getApplicationsByJob(jobId);
-
-    // 3) Trả về dữ liệu (kể cả rỗng)
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    return res.json({
-      totalApplicants: applications.length,
-      applicants: applications.map((app) => ({
-        applicantName: app.applicant?.name || null,
-        applicantEmail: app.applicant?.email || null,
-        coverLetter: app.cover_letter,
-        cv: app.cv ? `${baseUrl}/${app.cv}` : null,
-        phone: app.phone,
-        appliedAt: app.created_at,
-        status: app.status, // theo schema ApplicationStatus
-        fitScore: app.fit_score, // nếu bạn dùng field này
-      })),
+
+    const result = await applicationService.getApplicantsByJob({
+      jobId,
+      user,
+      baseUrl,
     });
+
+    return res.json(result);
   } catch (err) {
-    console.error("[Get Applicants By Job Error]", err.message);
-    return res
-      .status(500)
-      .json({ message: "Lỗi server khi lấy danh sách ứng viên!" });
+    console.error("[GetApplicantsByJob]", err);
+    next(err);
   }
 };
 
@@ -181,5 +154,28 @@ exports.updateApplication = async (req, res) => {
     console.error("[Update Application Error]", err);
     const code = err.status || 500;
     res.status(code).json({ message: err.message || "Lỗi cập nhật hồ sơ!" });
+  }
+};
+
+// GET /api/applications - Lấy tất cả hồ sơ ứng tuyển cho recruiter
+exports.getRecruiterApplications = async (req, res, next) => {
+  try {
+    const recruiterId = req.user.userId;
+
+    const { page, limit, status, jobId } = req.query;
+
+    const result = await applicationService.getApplicationsForRecruiter(
+      recruiterId,
+      {
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        status: status || undefined,
+        jobId: jobId || undefined,
+      },
+    );
+
+    return res.json(result);
+  } catch (err) {
+    next(err);
   }
 };

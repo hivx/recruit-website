@@ -1,3 +1,4 @@
+// src/components/JobCard.tsx
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppNavigate } from "@/hooks";
@@ -77,7 +78,14 @@ export function JobCard({ job, score }: JobCardProps) {
           bg-gray-50 group-hover:border-blue-300 transition-all
         "
       >
-        <img src={logoUrl} alt="logo" className="w-16 h-16 object-contain" />
+        <img
+          src={logoUrl}
+          onError={(e) => {
+            e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+          }}
+          alt="logo"
+          className="w-16 h-16 object-contain"
+        />
       </Link>
 
       {/* Info */}

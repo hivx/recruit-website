@@ -1,21 +1,10 @@
 // src/services/recommendationService.ts
 import { api } from "@/api";
-import type { JobRecommendationRaw, JobRecommendation } from "@/types";
+import type {
+  RecommendedJobResponse,
+  RecommendedJobResponseRaw,
+} from "@/types";
 import { mapJobRecommendation } from "@/types";
-
-export interface RecommendedJobResponse {
-  items: JobRecommendation[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
-interface RecommendedJobResponseRaw {
-  items: JobRecommendationRaw[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
 
 export async function getRecommendedJobs(
   userId: number,

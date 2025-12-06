@@ -1,3 +1,4 @@
+// src/components/recruiter/JobStatsChart.tsx
 import {
   Chart as ChartJS,
   ArcElement,

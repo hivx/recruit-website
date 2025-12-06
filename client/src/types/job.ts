@@ -1,9 +1,20 @@
 // src/types/job.ts
-
 /** Tag (danh mục / kỹ năng gắn với Job) */
 export interface Tag {
   id: number;
   name: string;
+}
+
+export interface GetTag {
+  id: number;
+  name: string;
+  jobCount: number;
+}
+
+export interface PopularTag {
+  tagId: number; // tagId
+  tagName: string; // tagName
+  count: number;
 }
 
 /** Raw tag từ BE (mapTags trong toJobDTO) */
@@ -159,11 +170,6 @@ export interface JobSearchQuery {
   tags?: string[]; // lọc theo tag
   location?: string; // lọc theo địa điểm
   salaryWanted?: number; // mức lương mong muốn
-}
-
-export interface JobSearchBarProps {
-  onSearch: (q: JobSearchQuery) => void;
-  backgroundImage?: string;
 }
 
 export type JobDetailResponse = JobRaw;

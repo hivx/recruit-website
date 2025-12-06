@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate } from "@/hooks";

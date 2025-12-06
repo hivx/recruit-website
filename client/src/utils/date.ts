@@ -1,3 +1,4 @@
+// src/utils/date.ts
 export function formatDateDMY(date?: string | null): string {
   if (!date) {
     return "Chưa cập nhật";

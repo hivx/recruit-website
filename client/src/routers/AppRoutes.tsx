@@ -1,3 +1,4 @@
+// src/routers/AppRoutes.tsx
 import { AnimatePresence } from "framer-motion";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { PublicRoutes, ProtectedRoutes, AuthRoutes } from "@/routers";

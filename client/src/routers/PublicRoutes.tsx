@@ -1,3 +1,4 @@
+// src/routers/PublicRoutes.tsx
 import { Route } from "react-router-dom";
 import { MainLayout, TransitionLayout } from "@/layouts";
 import { HomePage, JobDetail } from "@/pages";

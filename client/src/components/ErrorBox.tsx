@@ -1,3 +1,4 @@
+// src/components/ErrorBox.tsx
 type Props = Readonly<{
   message?: string;
   onRetry?: () => void;

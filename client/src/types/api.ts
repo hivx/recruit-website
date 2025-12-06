@@ -1,5 +1,4 @@
 // src/types/api.ts
-
 /** Lỗi trả về từ BE */
 export interface ApiError {
   message: string;

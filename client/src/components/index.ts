@@ -1,3 +1,4 @@
+// src/components/index.ts
 export * from "./JobCard";
 export * from "./ErrorFallback";
 export * from "./ErrorBox";

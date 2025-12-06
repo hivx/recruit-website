@@ -5,11 +5,22 @@ const prisma = require("../utils/prisma");
 
 // Giữ nguyên đường dẫn import DTO đúng theo cây của bạn
 const { toApplicationDTO } = require("../utils/serializers/application");
+const { AppError } = require("../utils/thrErrors");
 
 /**
  * Gợi ý: dùng 1 helper nhỏ để map list -> DTO
  */
 const mapDTO = (rows) => rows.map(toApplicationDTO);
+
+// helper: map list application sang DTO
+const mapListDTO = (list, baseUrl) =>
+  list.map((a) => {
+    const dto = toApplicationDTO(a);
+    if (dto.cv) {
+      dto.cv = `${baseUrl}/${dto.cv}`;
+    }
+    return dto;
+  });
 
 module.exports = {
   /**
@@ -169,13 +180,38 @@ module.exports = {
    * - Trả mảng DTO
    * - (Lưu ý quyền xem nên kiểm ở controller/middleware)
    */
-  async getApplicationsByJob(jobId) {
+
+  async getApplicantsByJob({ jobId, user, baseUrl }) {
+    // 1) Kiểm tra job tồn tại
+    const job = await prisma.job.findUnique({
+      where: { id: BigInt(jobId) },
+      select: { id: true, created_by: true },
+    });
+
+    if (!job) {
+      throw new AppError("Không tìm thấy công việc!", 404);
+    }
+
+    // 2) Kiểm quyền
+    const isOwner = job.created_by?.toString() === user.userId?.toString();
+    const isAdmin = user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      throw new AppError("Bạn không có quyền xem ứng viên công việc này!", 403);
+    }
+
+    // 3) Lấy danh sách ứng viên
     const rows = await prisma.application.findMany({
       where: { job_id: BigInt(jobId) },
       include: { applicant: true },
       orderBy: { created_at: "desc" },
     });
-    return mapDTO(rows);
+
+    // 4) Trả về DTO đã chuẩn hoá
+    return {
+      totalApplicants: rows.length,
+      applicants: mapListDTO(rows, baseUrl),
+    };
   },
 
   // Đánh giá (review) hồ sơ ứng viên
@@ -329,5 +365,47 @@ module.exports = {
     });
 
     return toApplicationDTO(updated);
+  },
+  /**
+   * Lấy danh sách ứng viên của recruiter (all jobs)
+   * - Có phân trang
+   * - Có lọc theo status, jobId
+   * - Trả về DTO chuẩn
+   */
+  async getApplicationsForRecruiter(
+    recruiterId,
+    { page = 1, limit = 10, status, jobId },
+  ) {
+    const skip = (page - 1) * limit;
+
+    const where = {
+      job: {
+        created_by: BigInt(recruiterId),
+      },
+      ...(status ? { status } : {}),
+      ...(jobId ? { job_id: BigInt(jobId) } : {}),
+    };
+
+    const [rows, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        include: {
+          applicant: true,
+          job: true,
+        },
+        orderBy: { created_at: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.application.count({ where }),
+    ]);
+
+    return {
+      total,
+      totalPages: Math.ceil(total / limit),
+      page,
+      limit,
+      applicants: rows.map(toApplicationDTO),
+    };
   },
 };
