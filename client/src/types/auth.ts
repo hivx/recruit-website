@@ -29,6 +29,12 @@ export interface RegisterResponse {
   };
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface ForgotPasswordResponse {
   message: string;
 }

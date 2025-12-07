@@ -1,12 +1,12 @@
 // src/pages/RegisterPage.tsx
 import { useState } from "react";
 import { Loader } from "@/components";
-import { useAppNavigate } from "@/hooks";
-import { register } from "@/services";
-import { getAxiosErrorMessage } from "@/utils";
+import { useAppNavigate, useAuth } from "@/hooks";
 
 export function RegisterPage() {
   const navigate = useAppNavigate();
+  const { register: registerUser, registerLoading } = useAuth();
+
   const [msg, setMsg] = useState("");
 
   const [form, setForm] = useState({
@@ -17,8 +17,6 @@ export function RegisterPage() {
     role: "applicant" as "applicant" | "recruiter",
   });
 
-  const [loading, setLoading] = useState(false);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
@@ -28,10 +26,8 @@ export function RegisterPage() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      await register({
+      await registerUser({
         name: form.name,
         email: form.email,
         password: form.password,
@@ -43,10 +39,8 @@ export function RegisterPage() {
       );
 
       setTimeout(() => navigate("/login"), 2000);
-    } catch (err) {
-      setMsg(getAxiosErrorMessage(err));
-    } finally {
-      setLoading(false);
+    } catch {
+      // error đã có trong hook, không cần xử lý lại
     }
   }
 
@@ -56,6 +50,7 @@ export function RegisterPage() {
         <h1 className="text-2xl font-bold text-center mb-6">Tạo tài khoản</h1>
 
         {msg && <p className="text-center text-blue-700 mb-4">{msg}</p>}
+        {/* Error */}
 
         <form
           onSubmit={(e) => {
@@ -72,6 +67,7 @@ export function RegisterPage() {
               Họ tên
             </label>
             <input
+              id="fullName"
               type="text"
               required
               className="input"
@@ -89,9 +85,11 @@ export function RegisterPage() {
               Email
             </label>
             <input
+              id="email"
               type="email"
               required
               className="input"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -106,6 +104,7 @@ export function RegisterPage() {
               Mật khẩu
             </label>
             <input
+              id="password"
               type="password"
               required
               className="input"
@@ -123,6 +122,7 @@ export function RegisterPage() {
               Xác nhận mật khẩu
             </label>
             <input
+              id="verify"
               type="password"
               required
               className="input"
@@ -139,6 +139,7 @@ export function RegisterPage() {
               Vai trò
             </label>
             <select
+              id="role"
               className="input"
               value={form.role}
               onChange={(e) =>
@@ -154,8 +155,16 @@ export function RegisterPage() {
           </div>
 
           {/* SUBMIT */}
-          <button type="submit" disabled={loading} className="btn-login">
-            {loading ? <Loader size={20} /> : "Đăng ký"}
+          <button
+            type="submit"
+            disabled={registerLoading}
+            className={`btn-login transition-all duration-200 cursor-pointer ${
+              registerLoading
+                ? "opacity-60 cursor-not-allowed scale-[0.98]"
+                : ""
+            }`}
+          >
+            {registerLoading ? <Loader size={20} /> : "Đăng ký"}
           </button>
         </form>
 

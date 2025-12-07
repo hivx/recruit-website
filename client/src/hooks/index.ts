@@ -6,3 +6,4 @@ export * from "./useSyncFavorites";
 export * from "./useMyCompany";
 export * from "./useCompanyForm";
 export * from "./useApplications";
+export * from "./useAuth";

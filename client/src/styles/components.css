@@ -55,3 +55,10 @@
   background-image: url("../assets/iconH.png"); /* file noise nhỏ 300x300 */
   opacity: 0.15;
 }
+
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(0.98);
+  transition: all 0.2s ease;
+}

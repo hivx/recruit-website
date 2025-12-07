@@ -1,3 +1,4 @@
+// src/components/recruiter/ApplicantDetailModal.tsx
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useState } from "react";
@@ -211,6 +212,7 @@ export function ApplicantDetailModal({
               </h3>
 
               <textarea
+                id="review-note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={

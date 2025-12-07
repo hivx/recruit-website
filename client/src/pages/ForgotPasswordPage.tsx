@@ -1,9 +1,7 @@
 // src/pages/ForgotPasswordPage.tsx
 import { useState } from "react";
-import { api } from "@/api";
 import { Loader } from "@/components";
-import type { ForgotPasswordResponse } from "@/types";
-import { getAxiosErrorMessage } from "@/utils";
+import { useAuth } from "@/hooks";
 
 export function ForgotPasswordPage() {
   const [form, setForm] = useState({
@@ -12,24 +10,26 @@ export function ForgotPasswordPage() {
     confirmPassword: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const { forgotPassword, forgotPasswordLoading } = useAuth();
   const [msg, setMsg] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
-    setLoading(true);
 
-    try {
-      const res = await api.post<ForgotPasswordResponse>(
-        "/api/auth/forgot-password",
-        form,
-      );
-      setMsg(res.data.message ?? "Mật khẩu đã được cập nhật!");
-    } catch (err) {
-      setMsg(getAxiosErrorMessage(err));
-    } finally {
-      setLoading(false);
+    if (form.newPassword !== form.confirmPassword) {
+      setMsg("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    const ok = await forgotPassword({
+      email: form.email,
+      newPassword: form.newPassword,
+      confirmPassword: form.confirmPassword,
+    });
+
+    if (ok) {
+      setMsg("Mật khẩu đã được đặt lại, vui lòng kiểm tra email.");
     }
   }
 
@@ -57,9 +57,11 @@ export function ForgotPasswordPage() {
               Email
             </label>
             <input
+              id="email"
               type="email"
               required
               className="input"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -74,6 +76,7 @@ export function ForgotPasswordPage() {
               Mật khẩu mới
             </label>
             <input
+              id="newPass"
               type="password"
               required
               className="input"
@@ -93,6 +96,7 @@ export function ForgotPasswordPage() {
               Xác nhận mật khẩu
             </label>
             <input
+              id="verifyPass"
               type="password"
               required
               className="input"
@@ -103,8 +107,16 @@ export function ForgotPasswordPage() {
             />
           </div>
 
-          <button type="submit" disabled={loading} className="btn-login">
-            {loading ? <Loader size={20} /> : "Xác nhận"}
+          <button
+            type="submit"
+            disabled={forgotPasswordLoading}
+            className={`btn-login transition-all duration-200 cursor-pointer ${
+              forgotPasswordLoading
+                ? "opacity-60 cursor-not-allowed scale-[0.98]"
+                : ""
+            }`}
+          >
+            {forgotPasswordLoading ? <Loader size={20} /> : "Xác nhận"}
           </button>
         </form>
 

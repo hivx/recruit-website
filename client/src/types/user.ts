@@ -36,3 +36,7 @@ export interface User {
     verificationStatus: "submitted" | "verified" | "rejected" | null;
   } | null;
 }
+
+export interface GetMeResponse {
+  user: User | null;
+}

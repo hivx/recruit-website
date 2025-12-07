@@ -126,6 +126,7 @@ export function JobSearchBar({
           >
             <Search size={20} className="text-gray-500 mr-2" />
             <input
+              id="keyword"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={handleKeyPress}
@@ -159,6 +160,7 @@ export function JobSearchBar({
         {/* Ô lọc nhanh bên dưới search */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
           <input
+            id="location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="Địa điểm (VD: Hà Nội, HCM...)"
@@ -170,6 +172,7 @@ export function JobSearchBar({
           />
 
           <input
+            id="number"
             type="number"
             value={salaryWanted ?? ""}
             min={0}
@@ -241,6 +244,7 @@ export function JobSearchBar({
             `}
                   >
                     <input
+                      id="checkbox"
                       type="checkbox"
                       checked={active}
                       readOnly

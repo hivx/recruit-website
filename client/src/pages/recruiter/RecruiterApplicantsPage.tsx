@@ -1,6 +1,6 @@
+// src/pages/recruiter/RecruiterApplicantsPage.tsx
 import { useState } from "react";
-import { ApplicantDetailModal } from "@/components/recruiter";
-import { ApplicantList } from "@/components/recruiter/ApplicantList";
+import { ApplicantDetailModal, ApplicantList } from "@/components/recruiter";
 import { useMyJobs } from "@/hooks";
 import type { Application, Job } from "@/types";
 
@@ -74,6 +74,7 @@ export function RecruiterApplicantsPage() {
             Công việc
           </label>
           <select
+            id="job"
             value={jobId ?? ""}
             onChange={(e) => {
               setJobId(e.target.value || undefined);
@@ -102,6 +103,7 @@ export function RecruiterApplicantsPage() {
             Trạng thái
           </label>
           <select
+            id="status"
             value={status ?? ""}
             onChange={(e) => {
               setStatus(e.target.value || undefined);
