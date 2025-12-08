@@ -1,6 +1,6 @@
 // src/components/recruiter/StatusBadge.tsx
 interface StatusBadgeProps {
-  readonly status?: string;
+  readonly status: string | null | undefined;
 }
 
 const MAP: Record<string, string> = {

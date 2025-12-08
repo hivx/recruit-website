@@ -1,98 +1,58 @@
-// src/hooks/useAuth.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { login, register, forgotPassword, getMe } from "@/services";
 import { useUserStore } from "@/stores";
-import type {
-  LoginPayload,
-  RegisterPayload,
-  ForgotPasswordPayload,
-  User,
-} from "@/types";
 
 export function useAuth() {
-  const queryClient = useQueryClient();
-
   const { user, token, setUser, clearUser } = useUserStore();
 
-  // -------- GET CURRENT USER --------
-  const meQuery = useQuery<User, Error>({
-    queryKey: ["auth-user"],
-    queryFn: getMe,
-    enabled: !!token,
-    retry: false,
-    staleTime: Infinity,
-  });
-
-  // Đồng bộ Zustand với react-query
-  useEffect(() => {
-    if (meQuery.data && token) {
-      if (!user || user.id !== meQuery.data.id) {
-        setUser(meQuery.data, token);
-      }
-    }
-
-    // Nếu lỗi -> logout
-    if (meQuery.error) {
-      clearUser();
-      queryClient.removeQueries({ queryKey: ["auth-user"] });
-    }
-  }, [
-    clearUser,
-    meQuery.data,
-    meQuery.error,
-    queryClient,
-    setUser,
-    token,
-    user,
-  ]);
-
-  // -------- LOGIN --------
+  // LOGIN
   const loginMutation = useMutation({
-    mutationFn: (payload: LoginPayload) => login(payload),
-    onSuccess: async (res) => {
+    mutationFn: login,
+    onSuccess: (res) => {
       setUser(res.user, res.token);
-      await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
     },
   });
 
-  // -------- REGISTER --------
+  // REGISTER
   const registerMutation = useMutation({
-    mutationFn: (payload: RegisterPayload) => register(payload),
+    mutationFn: register,
   });
 
-  // -------- FORGOT PASSWORD --------
+  // FORGOT PASSWORD
   const forgotPasswordMutation = useMutation({
-    mutationFn: (payload: ForgotPasswordPayload) => forgotPassword(payload),
+    mutationFn: forgotPassword,
   });
 
-  // -------- LOGOUT --------
+  // LOGOUT
   const logout = () => {
     clearUser();
-    queryClient.clear();
+  };
+
+  // FETCH USER MANUALLY WHEN NEEDED (ví dụ trong Profile)
+  const refreshUser = async () => {
+    const me = await getMe();
+    setUser(me, token);
   };
 
   return {
-    user: meQuery.data ?? null,
+    user,
     token,
     isAuthenticated: !!token,
 
-    // trạng thái chung
-    isLoading: meQuery.isLoading || loginMutation.isPending,
-
-    // trạng thái riêng theo action để UI disable button
+    login: loginMutation.mutateAsync,
     loginLoading: loginMutation.isPending,
+
+    register: registerMutation.mutateAsync,
     registerLoading: registerMutation.isPending,
+
+    forgotPassword: forgotPasswordMutation.mutateAsync,
     forgotPasswordLoading: forgotPasswordMutation.isPending,
 
-    // actions
-    login: loginMutation.mutateAsync,
-    register: registerMutation.mutateAsync,
-    forgotPassword: forgotPasswordMutation.mutateAsync,
     logout,
+    refreshUser,
 
+    isLoading: loginMutation.isPending,
     error:
-      meQuery.error ||
       loginMutation.error ||
       registerMutation.error ||
       forgotPasswordMutation.error,

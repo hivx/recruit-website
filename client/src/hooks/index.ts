@@ -7,3 +7,4 @@ export * from "./useMyCompany";
 export * from "./useCompanyForm";
 export * from "./useApplications";
 export * from "./useAuth";
+export * from "./useUser";

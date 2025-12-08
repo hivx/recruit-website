@@ -59,9 +59,15 @@ export function useMyApplications() {
   return useQuery<MyApplicationsResponse, Error>({
     queryKey: ["my-applications"],
     queryFn: getMyApplications,
+    staleTime: 1000 * 60 * 3,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 }
 
+/** =======================================================
+ * 4) Recruiter xem danh sách đơn ứng tuyển
+ ======================================================= */
 export function useRecruiterApplications(params: {
   page?: number;
   limit?: number;

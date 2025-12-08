@@ -79,7 +79,7 @@ export async function getMyApplications(): Promise<MyApplicationsResponse> {
 }
 
 /** =============================
- * 4) Lấy danh sách ứng tuyển của chính recruiter
+ * 4) Lấy danh sách đơn ứng tuyển vào job của recruiter
  * GET /api/applications/recruiter
  ============================== */
 export async function getRecruiterApplications(params: {

@@ -3,26 +3,35 @@ import { api } from "@/api";
 import type {
   LoginPayload,
   LoginResponse,
+  LoginResponseRaw,
   RegisterPayload,
   RegisterResponse,
   ForgotPasswordPayload,
   ForgotPasswordResponse,
   GetMeResponse,
   User,
+  RegisterResponseRaw,
 } from "@/types";
+import { mapUserRaw } from "@/types";
 
 // POST api/auth/login
 export async function login(data: LoginPayload): Promise<LoginResponse> {
-  const res = await api.post<LoginResponse>("/api/auth/login", data);
-  return res.data;
+  const res = await api.post<LoginResponseRaw>("/api/auth/login", data);
+  return {
+    ...res.data,
+    user: mapUserRaw(res.data.user),
+  };
 }
 
 // POST api/auth/register
 export async function register(
   data: RegisterPayload,
 ): Promise<RegisterResponse> {
-  const res = await api.post<RegisterResponse>("/api/auth/register", data);
-  return res.data;
+  const res = await api.post<RegisterResponseRaw>("/api/auth/register", data);
+  return {
+    ...res.data,
+    user: mapUserRaw(res.data.user),
+  };
 }
 
 // POST api/auth/forgot-password
@@ -43,5 +52,5 @@ export async function getMe(): Promise<User> {
   if (res.data.user === null) {
     throw new Error("User not found");
   }
-  return res.data.user;
+  return mapUserRaw(res.data.user);
 }

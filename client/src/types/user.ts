@@ -38,5 +38,5 @@ export interface User {
 }
 
 export interface GetMeResponse {
-  user: User | null;
+  user: UserRaw | null;
 }

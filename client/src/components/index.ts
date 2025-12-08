@@ -8,3 +8,5 @@ export * from "./JobSearchBar";
 export * from "./JobList";
 export * from "./RecommendedJobSection";
 export * from "./recruiter";
+export * from "./profile";
+export * from "./ApplicationStatusBadge";

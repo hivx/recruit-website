@@ -180,3 +180,13 @@ export interface JobListResponse {
   page: number;
   totalPages: number;
 }
+
+export interface FavoriteJobListResponseRaw {
+  jobs: JobRaw[];
+  total: number;
+}
+
+export interface FavoriteJobListResponse {
+  jobs: Job[];
+  total: number;
+}

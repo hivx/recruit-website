@@ -1,6 +1,7 @@
 // src/routers/ProtectedRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
+import { ProfilePage } from "@/pages";
 import {
   RecruiterHomePage,
   RecruiterCompanyPage,
@@ -39,7 +40,7 @@ export function ProtectedRoutes() {
       <Route element={<ProtectedRouteGuard />}>
         {/* ROUTE CHUNG SAU KHI LOGIN */}
         <Route element={<MainLayout />}>
-          {/* Các trang Applicant + Admin + Recruiter dùng MainLayout */}
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         {/* ROUTE DÀNH RIÊNG CHO RECRUITER */}
