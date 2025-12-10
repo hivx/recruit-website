@@ -3,6 +3,7 @@ import {
   FavoriteJobsCard,
   MyApplicationsCard,
   UserInfoCard,
+  MySkillsCard,
 } from "@/components/profile";
 
 export function ProfilePage() {
@@ -21,6 +22,9 @@ export function ProfilePage() {
           <FavoriteJobsCard />
           <MyApplicationsCard />
         </div>
+
+        {/* SKILL LIST — CARD TO RENDER UNDER TWO CARDS */}
+        <MySkillsCard />
       </div>
     </div>
   );

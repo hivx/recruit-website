@@ -6,3 +6,4 @@ export * from "./tagService";
 export * from "./recommendationService";
 export * from "./companyService";
 export * from "./applicationService";
+export * from "./skillService";

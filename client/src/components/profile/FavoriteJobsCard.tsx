@@ -118,7 +118,7 @@ function FavoriteJobItem({ job }: { readonly job: Job }) {
             {/* DATE */}
             <div className="flex items-center gap-2 text-xs text-gray-500 mt-3">
               <Clock size={14} />
-              <span>Thêm vào: {formatDateDMY(job.createdAt)}</span>
+              <span>Ngày thêm: {formatDateDMY(job.createdAt)}</span>
             </div>
           </div>
         </div>

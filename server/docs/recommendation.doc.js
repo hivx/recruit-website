@@ -66,6 +66,7 @@
  * @swagger
  * components:
  *   schemas:
+ *
  *     JobRecommendationItem:
  *       type: object
  *       properties:
@@ -118,6 +119,7 @@
  *                     type: string
  *                     example: "Node.js"
  *
+ *
  *     JobRecommendationListResponse:
  *       type: object
  *       properties:
@@ -134,6 +136,74 @@
  *         totalPages:
  *           type: integer
  *           example: 5
+ *
+ *
+ *     CandidateRecommendation:
+ *       type: object
+ *       properties:
+ *         recruiter_id:
+ *           type: integer
+ *           example: 9
+ *         applicant_id:
+ *           type: integer
+ *           example: 15
+ *         fit_score:
+ *           type: number
+ *           format: float
+ *           example: 0.82
+ *         reason:
+ *           type: string
+ *           nullable: true
+ *           example: "Ứng viên phù hợp với yêu cầu Node.js + 2 năm kinh nghiệm"
+ *         status:
+ *           type: string
+ *           example: "pending"
+ *         recommended_at:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-18T10:15:00.000Z"
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-18T10:20:00.000Z"
+ *
+ *         applicant:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 15
+ *             name:
+ *               type: string
+ *               example: "Nguyễn Văn Ứng Viên"
+ *             email:
+ *               type: string
+ *               example: "candidate@example.com"
+ *             avatar:
+ *               type: string
+ *               example: "uploads/avatars/15.png"
+ *             role:
+ *               type: string
+ *               example: "applicant"
+ *
+ *         recruiter:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 9
+ *             name:
+ *               type: string
+ *               example: "Trần Thị Tuyển Dụng"
+ *             email:
+ *               type: string
+ *               example: "recruiter@example.com"
+ *             avatar:
+ *               type: string
+ *               example: "uploads/avatars/9.png"
+ *             role:
+ *               type: string
+ *               example: "recruiter"
  */
 
 /**

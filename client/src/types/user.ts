@@ -40,3 +40,52 @@ export interface User {
 export interface GetMeResponse {
   user: UserRaw | null;
 }
+
+export interface UserSkillRaw {
+  id: number;
+  name: string;
+  level: number;
+  years: number;
+  note: string | null;
+}
+
+export interface UserSkill {
+  id: string;
+  name: string;
+  level: number;
+  years: number;
+  note: string | null;
+}
+
+export interface MySkillListResponseRaw {
+  total: number;
+  skills: UserSkillRaw[];
+}
+
+export interface MySkillListResponse {
+  total: number;
+  skills: UserSkill[];
+}
+
+export interface SkillPayload {
+  name: string;
+  level: number;
+  years: number;
+  note?: string | null;
+}
+
+// 1) Raw từ BE
+export interface SkillOptionRaw {
+  id: number;
+  name: string;
+}
+
+// 2) Dùng trên FE
+export interface SkillOption {
+  id: string;
+  name: string;
+}
+
+// 3) Nếu muốn type cho response list (mặc dù BE trả array thẳng)
+export type AllSkillListResponseRaw = SkillOptionRaw[];
+export type AllSkillListResponse = SkillOption[];

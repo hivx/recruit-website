@@ -180,7 +180,7 @@ export function RecruiterCompanyPage() {
                   onError: () => toast.error("Không thể gửi yêu cầu!"),
                 })
               }
-              className={`px-5 py-2.5 rounded-lg text-white ${
+              className={`px-5 py-2.5 rounded-lg text-white cursor-pointer ${
                 submitMutation.isPending
                   ? "bg-yellow-300 cursor-not-allowed"
                   : "bg-yellow-500 hover:bg-yellow-600"
@@ -192,7 +192,7 @@ export function RecruiterCompanyPage() {
 
           <button
             onClick={() => setOpenEdit(true)}
-            className="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
           >
             Chỉnh sửa thông tin
           </button>

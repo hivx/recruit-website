@@ -1,12 +1,12 @@
 // src/types/mappers.ts
-import type { Application, ApplicationRaw } from "./application";
+import type { Application, ApplicationRaw } from "@/types/application";
 
 import type {
   Company,
   CompanyRaw,
   CompanyVerification,
   CompanyVerificationRaw,
-} from "./company";
+} from "@/types/company";
 import type {
   Job,
   JobRaw,
@@ -19,7 +19,7 @@ import type {
   JobApprovalRaw,
   JobVectorRaw,
   JobDetail,
-} from "./job";
+} from "@/types/job";
 
 import type {
   CareerPreference,
@@ -28,16 +28,27 @@ import type {
   RecruiterPreferenceRaw,
   RecruiterRequiredSkill,
   RecruiterRequiredSkillRaw,
-} from "./preference";
+} from "@/types/preference";
 import type {
   JobRecommendation,
   JobRecommendationRaw,
   CandidateRecommendation,
   CandidateRecommendationRaw,
-} from "./recommendation";
-import type { User, UserRaw } from "./user";
+} from "@/types/recommendation";
+import type {
+  User,
+  UserRaw,
+  UserSkillRaw,
+  UserSkill,
+  MySkillListResponseRaw,
+  MySkillListResponse,
+  SkillOptionRaw,
+  SkillOption,
+  AllSkillListResponseRaw,
+  AllSkillListResponse,
+} from "@/types/user";
 
-import type { BehaviorProfile, BehaviorProfileRaw } from "./vector";
+import type { BehaviorProfile, BehaviorProfileRaw } from "@/types/vector";
 
 /* ---------------------------------------------------
  * Helper nhỏ: map an toàn mảng
@@ -323,4 +334,42 @@ export function mapBehaviorProfileRaw(
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
+}
+
+// ==============================
+// USER SKILL MAPPER
+// ==============================
+export function mapUserSkillRaw(raw: UserSkillRaw): UserSkill {
+  return {
+    id: String(raw.id),
+    name: raw.name,
+    level: raw.level,
+    years: raw.years,
+    note: raw.note ?? null,
+  };
+}
+
+export function mapMySkillListRaw(
+  raw: MySkillListResponseRaw,
+): MySkillListResponse {
+  return {
+    total: raw.total,
+    skills: raw.skills.map(mapUserSkillRaw),
+  };
+}
+
+// ==============================
+// ALL SKILL OPTIONS (MASTER LIST)
+// ==============================
+export function mapSkillOptionRaw(raw: SkillOptionRaw): SkillOption {
+  return {
+    id: String(raw.id),
+    name: raw.name,
+  };
+}
+
+export function mapAllSkillListRaw(
+  raw: AllSkillListResponseRaw,
+): AllSkillListResponse {
+  return raw.map(mapSkillOptionRaw);
 }

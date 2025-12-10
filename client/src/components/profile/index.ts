@@ -2,3 +2,5 @@
 export * from "./UserInfoCard";
 export * from "./FavoriteJobsCard";
 export * from "./ApplicationsCard";
+export * from "./MySkillsCard";
+export * from "./SkillModal";
