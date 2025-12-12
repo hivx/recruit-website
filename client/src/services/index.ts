@@ -7,3 +7,4 @@ export * from "./recommendationService";
 export * from "./companyService";
 export * from "./applicationService";
 export * from "./skillService";
+export * from "./preferenceService";

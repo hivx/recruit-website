@@ -2,10 +2,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { useAllSkills, useUpsertSkill, useDeleteSkill } from "@/hooks";
+import { useSkillStore } from "@/stores";
 import type { UserSkill } from "@/types";
 import { skillFormSchema, type SkillFormValues } from "@/utils";
 
@@ -16,10 +17,13 @@ interface SkillModalProps {
 }
 
 export function SkillModal({ open, onClose, skill }: SkillModalProps) {
-  const isEdit = !!skill;
+  const isEdit = Boolean(skill);
 
   const upsertMutation = useUpsertSkill();
   const deleteMutation = useDeleteSkill();
+
+  /** UI state: điều khiển dropdown */
+  const [active, setActive] = useState(false);
 
   const {
     register,
@@ -31,13 +35,14 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
   } = useForm<SkillFormValues>({
     resolver: zodResolver(skillFormSchema),
     defaultValues: {
-      name: skill?.name ?? "",
-      level: skill?.level ?? 1,
-      years: skill?.years ?? 0,
-      note: skill?.note ?? "",
+      name: "",
+      level: 1,
+      years: 0,
+      note: "",
     },
   });
-  // Khi skill thay đổi (mở modal sửa skill khác), reset form
+
+  /** Reset form khi mở modal */
   useEffect(() => {
     if (skill) {
       reset({
@@ -47,7 +52,6 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
         note: skill.note ?? "",
       });
     } else {
-      // mode thêm mới → reset form rỗng
       reset({
         name: "",
         level: 1,
@@ -59,11 +63,30 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
 
   const nameWatch = watch("name");
 
-  const { data: skillOptions } = useAllSkills(nameWatch || undefined);
+  const { data: skillOptions = [] } = useAllSkills(nameWatch || undefined);
+  const setAllSkills = useSkillStore((s) => s.setAllSkills);
 
-  // --------------------------
-  // SUBMIT HANDLER
-  // --------------------------
+  useEffect(() => {
+    if (skillOptions) {
+      setAllSkills(skillOptions);
+    }
+  }, [skillOptions, setAllSkills]);
+
+  // =============================
+  // DROPDOWN LOGIC (RÕ NGHĨA)
+  // =============================
+  const hasKeyword = (nameWatch?.length ?? 0) > 0;
+  const hasOptions = skillOptions.length > 0;
+  const nameChanged = !isEdit || nameWatch !== skill?.name;
+
+  const showDropdown =
+    active && hasOptions && nameChanged && (hasKeyword || !isEdit);
+
+  const isLoading = upsertMutation.isPending || deleteMutation.isPending;
+
+  // =============================
+  // SUBMIT
+  // =============================
   const onSubmit: SubmitHandler<SkillFormValues> = async (values) => {
     try {
       const changedName = isEdit && skill && values.name !== skill.name;
@@ -88,43 +111,34 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
     return null;
   }
 
-  const showDropdown =
-    (nameWatch?.length ?? 0) > 0 &&
-    skillOptions &&
-    skillOptions.length > 0 &&
-    // Nếu đang edit và tên chưa đổi -> Ko gợi ý
-    (!isEdit || nameWatch !== skill?.name);
-
-  const isLoading = upsertMutation.isPending || deleteMutation.isPending;
-
-  // --------------------------
+  // =============================
   // UI
-  // --------------------------
+  // =============================
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
     >
-      {/* Loading Overlay */}
+      {/* LOADING OVERLAY */}
       {isLoading && (
-        <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-50 rounded-xl">
-          <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 rounded-xl">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
         </div>
       )}
 
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         className="
-          bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl relative
-          border border-gray-100
+          relative w-full max-w-lg rounded-2xl bg-white
+          p-6 shadow-2xl border border-gray-100
         "
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="text-xl font-bold">
             {isEdit ? "Chỉnh sửa kỹ năng" : "Thêm kỹ năng mới"}
           </h3>
@@ -132,11 +146,8 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
           <button
             type="button"
             aria-label="Đóng"
-            className="
-              p-2 rounded-full hover:bg-gray-100 transition cursor-pointer
-              active:scale-95
-            "
             onClick={onClose}
+            className="rounded-full p-2 hover:bg-gray-100 transition"
           >
             <X size={20} />
           </button>
@@ -144,13 +155,11 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
 
         {/* FORM */}
         <form
+          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
           className="space-y-4"
-          onSubmit={(e) => {
-            void handleSubmit(onSubmit)(e);
-          }}
         >
-          {/* NAME FIELD */}
-          <div>
+          {/* SKILL NAME + DROPDOWN */}
+          <div className="relative">
             <label htmlFor="skillName" className="text-sm font-medium">
               Tên kỹ năng
             </label>
@@ -158,32 +167,55 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
             <input
               id="skillName"
               {...register("name")}
-              className="
-                w-full border rounded-lg px-3 py-2 mt-1 transition
-                focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none
-              "
-              placeholder="Nhập tên kỹ năng…"
               autoComplete="off"
+              placeholder="Nhập tên kỹ năng…"
+              onFocus={() => setActive(true)}
+              onBlur={(e) => {
+                // nếu blur vì click vào dropdown thì KHÔNG đóng
+                if (
+                  e.relatedTarget &&
+                  e.currentTarget.parentElement?.contains(
+                    e.relatedTarget as Node,
+                  )
+                ) {
+                  return;
+                }
+                setActive(false);
+              }}
+              className="
+      mt-1 w-full rounded-lg border px-3 py-2
+      transition outline-none
+      focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+    "
             />
 
             {errors.name && (
-              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+              <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
             )}
 
-            {/* DROPDOWN */}
             {showDropdown && (
-              <div className="mt-1 border rounded-lg bg-white max-h-40 overflow-auto shadow animate-fade-in">
+              <div
+                className="
+        absolute z-20 mt-1 w-full
+        rounded-lg border bg-white shadow
+        max-h-40 overflow-auto animate-fade-in
+      "
+              >
                 {skillOptions.map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
+                    tabIndex={0}
                     className="
-                      w-full text-left px-3 py-2 text-sm
-                      hover:bg-gray-100 focus:bg-gray-100 transition
-                    "
-                    onClick={() =>
-                      setValue("name", opt.name, { shouldValidate: true })
-                    }
+            w-full px-3 py-2 text-left text-sm
+            hover:bg-gray-100 focus:bg-gray-100
+          "
+                    onClick={() => {
+                      setValue("name", opt.name, {
+                        shouldValidate: true,
+                      });
+                      setActive(false);
+                    }}
                   >
                     {opt.name}
                   </button>
@@ -201,8 +233,8 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
               id="level"
               {...register("level", { valueAsNumber: true })}
               className="
-                w-full border rounded-lg px-3 py-2 mt-1 transition
-                focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none
+                mt-1 w-full rounded-lg border px-3 py-2
+                focus:ring-2 focus:ring-blue-400 outline-none
               "
             >
               {[1, 2, 3, 4, 5].map((lv) => (
@@ -224,8 +256,8 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
               min={0}
               {...register("years", { valueAsNumber: true })}
               className="
-                w-full border rounded-lg px-3 py-2 mt-1 transition
-                focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none
+                mt-1 w-full rounded-lg border px-3 py-2
+                focus:ring-2 focus:ring-blue-400 outline-none
               "
             />
           </div>
@@ -237,25 +269,25 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
             </label>
             <textarea
               id="note"
-              {...register("note")}
               rows={3}
+              {...register("note")}
               className="
-                w-full border rounded-lg px-3 py-2 mt-1 transition
-                focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none
+                mt-1 w-full rounded-lg border px-3 py-2
+                focus:ring-2 focus:ring-blue-400 outline-none
               "
             />
           </div>
 
-          {/* SUBMIT BUTTON */}
+          {/* SUBMIT */}
           <motion.button
             type="submit"
+            disabled={isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
-            disabled={isLoading}
             className="
-              w-full bg-blue-600 text-white py-2 rounded-lg font-medium
-              hover:bg-blue-700 active:scale-95 transition
-              disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
+              w-full rounded-lg bg-blue-600 py-2 font-medium text-white
+              hover:bg-blue-700 transition
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
             {isEdit ? "Cập nhật kỹ năng" : "Thêm kỹ năng"}

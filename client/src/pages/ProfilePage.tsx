@@ -4,9 +4,16 @@ import {
   MyApplicationsCard,
   UserInfoCard,
   MySkillsCard,
+  RecruiterPreferencesCard,
 } from "@/components/profile";
+import { useUserStore } from "@/stores";
 
 export function ProfilePage() {
+  const userRole = useUserStore((s) => s.user?.role);
+
+  const isApplicant = userRole === "applicant" || userRole === "admin";
+  const isRecruiter = userRole === "recruiter" || userRole === "admin";
+
   return (
     <div
       className="
@@ -16,15 +23,19 @@ export function ProfilePage() {
       "
     >
       <div className="mx-auto max-w-6xl space-y-8 py-10">
+        {/* ================= USER INFO ================= */}
         <UserInfoCard />
 
+        {/* ================= COMMON CARDS ================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FavoriteJobsCard />
           <MyApplicationsCard />
         </div>
 
-        {/* SKILL LIST — CARD TO RENDER UNDER TWO CARDS */}
-        <MySkillsCard />
+        {/* ================= ROLE BASED SECTION ================= */}
+        {isApplicant && <MySkillsCard />}
+
+        {isRecruiter && <RecruiterPreferencesCard />}
       </div>
     </div>
   );

@@ -178,7 +178,7 @@ export function JobSearchBar({
             min={0}
             step={1000000}
             onChange={(e) => setSalaryWanted(Number(e.target.value))}
-            placeholder="Mức lương mong muốn (VD: 15000000)"
+            placeholder="Mức lương tuyển dụng (VD: 15000000)"
             className="
               w-full bg-gray-100 rounded-xl px-4 py-2
               text-gray-700 placeholder-gray-400 text-sm

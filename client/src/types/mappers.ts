@@ -300,7 +300,8 @@ function mapRecruiterRequiredSkillRaw(
   raw: RecruiterRequiredSkillRaw,
 ): RecruiterRequiredSkill {
   return {
-    skillId: raw.skill_id,
+    id: raw.id,
+    name: raw.name,
     yearsRequired: raw.years_required,
     mustHave: raw.must_have,
   };
@@ -311,10 +312,14 @@ export function mapRecruiterPreferenceRaw(
 ): RecruiterPreference {
   return {
     userId: raw.user_id,
+    desiredLocation: raw.desired_location,
+    desiredSalaryAvg: raw.desired_salary_avg,
+    updatedAt: raw.updated_at,
+    desiredTags: raw.desired_tags.map((t) => ({
+      id: t.id,
+      name: t.name,
+    })),
     requiredSkills: mapArray(raw.required_skills, mapRecruiterRequiredSkillRaw),
-    preferredLocations: raw.preferred_locations ?? [],
-    desiredSalaryMin: raw.desired_salary_min,
-    desiredSalaryMax: raw.desired_salary_max,
   };
 }
 

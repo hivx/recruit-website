@@ -17,34 +17,61 @@ export interface CareerPreference {
   expectedCompanySize: string | null;
 }
 
-/** Recruiter required skill raw */
+/** Recruiter desired tag raw (BE → FE) */
+export interface RecruiterTagRaw {
+  id: number;
+  name: string;
+}
+
+/** Recruiter required skill raw (BE → FE) */
 export interface RecruiterRequiredSkillRaw {
-  skill_id: number;
+  id: number;
+  name: string;
   years_required: number | null;
   must_have: boolean;
 }
 
-/** Recruiter required skill FE */
-export interface RecruiterRequiredSkill {
-  skillId: number;
-  yearsRequired: number | null;
-  mustHave: boolean;
-}
-
-/** Recruiter preference raw */
+/** Recruiter preference raw (BE → FE) */
 export interface RecruiterPreferenceRaw {
   user_id: string;
+  desired_location: string | null;
+  desired_salary_avg: number | null;
+  desired_tags: RecruiterTagRaw[];
   required_skills: RecruiterRequiredSkillRaw[];
-  preferred_locations: string[];
-  desired_salary_min: number | null;
-  desired_salary_max: number | null;
+  updated_at: string;
+}
+
+/** Recruiter desired tag FE */
+export interface RecruiterTag {
+  id: number;
+  name: string;
+}
+
+/** Recruiter required skill FE */
+export interface RecruiterRequiredSkill {
+  id: number;
+  name: string;
+  yearsRequired: number | null;
+  mustHave: boolean;
 }
 
 /** Recruiter preference FE */
 export interface RecruiterPreference {
   userId: string;
+  desiredLocation: string | null;
+  desiredSalaryAvg: number | null;
+  desiredTags: RecruiterTag[];
   requiredSkills: RecruiterRequiredSkill[];
-  preferredLocations: string[];
-  desiredSalaryMin: number | null;
-  desiredSalaryMax: number | null;
+  updatedAt: string;
+}
+
+export interface RecruiterPreferenceUpsertRequest {
+  desired_location?: string | null;
+  desired_salary_avg?: number | null;
+  desired_tags?: string[]; // tên tag
+  required_skills?: {
+    name: string;
+    years_required?: number | null;
+    must_have?: boolean;
+  }[];
 }

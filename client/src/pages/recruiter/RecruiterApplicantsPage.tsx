@@ -1,7 +1,12 @@
 // src/pages/recruiter/RecruiterApplicantsPage.tsx
 import { useState } from "react";
-import { ApplicantDetailModal, ApplicantList } from "@/components/recruiter";
-import { useMyJobs } from "@/hooks";
+import {
+  ApplicantDetailModal,
+  ApplicantList,
+  ApplicantsMonthlyChart,
+  ApplicationStatusChart,
+} from "@/components/recruiter";
+import { useMyJobs, useRecruiterApplications } from "@/hooks";
 import type { Application, Job } from "@/types";
 
 /**
@@ -21,6 +26,15 @@ export function RecruiterApplicantsPage() {
   /** LẤY JOB CỦA NTD */
   const { data: jobData } = useMyJobs(1, 100);
   const jobList: Job[] = jobData?.jobs ?? [];
+
+  const { data: appsData } = useRecruiterApplications({
+    page,
+    limit: 9999,
+    status: undefined,
+    jobId: undefined,
+  });
+
+  const applicants = appsData?.applicants ?? [];
 
   return (
     <div
@@ -46,17 +60,13 @@ export function RecruiterApplicantsPage() {
       </div>
 
       {/* ============================= TOP CARDS ============================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChartCard title="Tổng quan job của bạn (mock)">
-          <div className="h-40 flex items-center justify-center text-gray-400">
-            Biểu đồ đang chờ dữ liệu API
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <ChartCard title="Trạng thái bài tuyển dụng">
+          <ApplicationStatusChart applications={applicants} />
         </ChartCard>
 
-        <ChartCard title="Số lượng ứng viên theo tháng (mock)">
-          <div className="h-40 flex items-center justify-center text-gray-400">
-            Biểu đồ đang chờ dữ liệu API
-          </div>
+        <ChartCard title="Đơn ứng tuyển theo tháng">
+          <ApplicantsMonthlyChart applications={applicants} />
         </ChartCard>
       </div>
 

@@ -8,6 +8,8 @@ export function HomePage() {
   const [page, setPage] = useState(1);
   const [queryObj, setQueryObj] = useState<JobSearchQuery>({});
   const user = useUserStore((s) => s.user);
+  const userRole = useUserStore((s) => s.user?.role);
+  const isApplicant = userRole === "applicant" || userRole === "admin";
 
   return (
     <div
@@ -45,7 +47,7 @@ export function HomePage() {
         </section>
 
         {/* -------- Recommended Jobs -------- */}
-        {user && (
+        {user && isApplicant && (
           <section>
             <h2
               className="

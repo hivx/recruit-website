@@ -1,15 +1,23 @@
 // src/components/profile/MySkillsCard.tsx
 import { motion } from "framer-motion";
 import { PlusCircle, Wrench, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { SkillModal } from "@/components/profile";
 import { useMySkills, useDeleteSkill } from "@/hooks";
+import { useSkillStore } from "@/stores";
 import type { UserSkill } from "@/types";
 
 export function MySkillsCard() {
   const { data, isLoading, error } = useMySkills();
   const deleteSkill = useDeleteSkill();
+
+  const setMySkills = useSkillStore((s) => s.setMySkills);
+  useEffect(() => {
+    if (data?.skills) {
+      setMySkills(data.skills);
+    }
+  }, [data, setMySkills]);
 
   const [openSkillModal, setOpenSkillModal] = useState(false);
   const [editingSkill, setEditingSkill] = useState<UserSkill | null>(null);
