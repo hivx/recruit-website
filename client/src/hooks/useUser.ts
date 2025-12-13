@@ -1,6 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { getFavoriteJobs } from "@/services";
-import type { FavoriteJobListResponse } from "@/types";
+// src/hooks/useUser.ts
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { getFavoriteJobs, updateProfile } from "@/services";
+import type {
+  FavoriteJobListResponse,
+  UpdateProfilePayload,
+  UpdateProfileResponse,
+} from "@/types";
 
 export function useFavoriteJobs() {
   return useQuery<FavoriteJobListResponse>({
@@ -13,5 +18,21 @@ export function useFavoriteJobs() {
     retry: 1,
     refetchOnWindowFocus: false,
     enabled: true,
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UpdateProfileResponse, Error, UpdateProfilePayload>({
+    mutationFn: updateProfile,
+
+    retry: 0, // upload + email => không retry tự động
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["me"],
+      });
+    },
   });
 }

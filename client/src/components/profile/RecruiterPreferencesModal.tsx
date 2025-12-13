@@ -44,6 +44,8 @@ const PrefSchema = z.object({
     .optional(),
 });
 
+const MotionDialogPanel = motion.create(DialogPanel);
+
 const EXPERIENCE_OPTIONS = [
   { value: null, label: "-----" },
   { value: 0, label: "Không yêu cầu kinh nghiệm" },
@@ -125,15 +127,31 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       {/* OVERLAY */}
-      <div className="fixed inset-0 bg-black/40 animate-fade-in" />
+      <div
+        className="
+          fixed inset-0
+          bg-gradient-to-br from-blue-900/40 via-black/40 to-blue-800/40
+          backdrop-blur-sm
+          animate-fade-in
+        "
+      />
 
       {/* MODAL */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel
+        <MotionDialogPanel
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 10 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           className="
-            w-full max-w-2xl bg-white rounded-2xl shadow-xl
-            p-6 space-y-6 relative
-            animate-in fade-in zoom-in
+            w-full max-w-2xl
+            max-h-[80vh]
+            rounded-2xl
+            bg-white
+            shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)]
+            relative
+            border border-blue-100
+            flex flex-col
           "
         >
           {/* LOADING */}
@@ -142,14 +160,27 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
               <Loader size={32} />
             </div>
           )}
-
-          <h2 className="text-xl font-semibold text-gray-700">
-            {pref ? "Cập nhật nhu cầu tuyển dụng" : "Tạo nhu cầu tuyển dụng"}
-          </h2>
-
+          <div className="px-6 py-4 border-b border-blue-100">
+            <h2 className="text-xl font-semibold text-blue-700 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">
+                ⚙️
+              </span>
+              {pref ? "Cập nhật nhu cầu tuyển dụng" : "Tạo nhu cầu tuyển dụng"}
+            </h2>
+          </div>
           <form
             onSubmit={(e) => void handleSubmit(onSubmit)(e)}
-            className="space-y-6"
+            className="
+              flex-1
+              overflow-y-auto
+              px-6 py-4
+              space-y-6
+
+              scrollbar-thin
+              scrollbar-thumb-blue-300
+              hover:scrollbar-thumb-blue-500
+              scrollbar-track-transparent
+            "
           >
             {/* LOCATION */}
             <div>
@@ -162,7 +193,14 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
               <input
                 id="reqLocation"
                 {...register("desired_location")}
-                className="mt-1 w-full rounded-xl border px-4 py-2"
+                className="
+                  mt-1 w-full rounded-xl border
+                  px-4 py-2
+                  focus:outline-none
+                  focus:ring-2 focus:ring-blue-500/40
+                  focus:border-blue-500
+                  transition
+                "
               />
               {errors.desired_location && (
                 <p className="text-red-600 text-sm mt-1">
@@ -187,7 +225,14 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
                 {...register("desired_salary_avg", {
                   valueAsNumber: true,
                 })}
-                className="mt-1 w-full rounded-xl border px-4 py-2"
+                className="
+                  mt-1 w-full rounded-xl border
+                  px-4 py-2
+                  focus:outline-none
+                  focus:ring-2 focus:ring-blue-500/40
+                  focus:border-blue-500
+                  transition
+                "
               />
               {errors.desired_salary_avg && (
                 <p className="text-red-600 text-sm mt-1">
@@ -322,23 +367,23 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
             </div>
 
             {/* ACTIONS */}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="px-6 py-4 border-t border-blue-100 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl border"
+                className="px-4 py-2 rounded-xl border cursor-pointer"
               >
                 Hủy
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold"
+                className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold cursor-pointer"
               >
                 Lưu thông tin
               </button>
             </div>
           </form>
-        </DialogPanel>
+        </MotionDialogPanel>
       </div>
     </Dialog>
   );

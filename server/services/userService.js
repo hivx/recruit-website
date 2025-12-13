@@ -9,14 +9,14 @@ const prisma = require("../utils/prisma");
 const { toJobDTO } = require("../utils/serializers/job");
 
 module.exports = {
-  async getUserById(userId) {
-    return prisma.user.findUnique({
-      where: { id: BigInt(userId) },
-      include: {
-        favorites: { include: { job: true } },
-      },
-    });
-  },
+  // async getUserById(userId) {
+  //   return prisma.user.findUnique({
+  //     where: { id: BigInt(userId) },
+  //     include: {
+  //       favorites: { include: { job: true } },
+  //     },
+  //   });
+  // },
 
   async updateUser(userId, data) {
     return prisma.user.update({

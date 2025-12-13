@@ -1,3 +1,4 @@
+// src/hooks/useAuth.ts
 import { useMutation } from "@tanstack/react-query";
 import { login, register, forgotPassword, getMe } from "@/services";
 import { useUserStore } from "@/stores";

@@ -89,3 +89,19 @@ export interface SkillOption {
 // 3) Nếu muốn type cho response list (mặc dù BE trả array thẳng)
 export type AllSkillListResponseRaw = SkillOptionRaw[];
 export type AllSkillListResponse = SkillOption[];
+
+export interface UpdateProfilePayload {
+  name?: string;
+  email?: string;
+  avatar?: File;
+}
+
+export interface UpdateProfileResponse {
+  message: string;
+  user: User;
+}
+
+export interface ChangePasswordPayload {
+  oldPassword: string;
+  newPassword: string;
+}

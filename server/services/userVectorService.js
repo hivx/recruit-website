@@ -57,7 +57,7 @@ async function validateApplicant(uid) {
   }
 
   if (user.role !== "applicant" && user.role !== "admin") {
-    console.warn("[UserVector] Skip non-applicant:", uid.toString(), user.role);
+    console.warn("[UserVector] Skip non-applicant:", user.role, uid.toString());
     return false;
   }
 

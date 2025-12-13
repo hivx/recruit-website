@@ -8,3 +8,5 @@ export * from "./RecruiterPreferencesModal";
 export * from "./RecruiterPreferencesCard";
 export * from "./TagsInput";
 export * from "./SkillNameInput";
+export * from "./UserProfileForm";
+export * from "./UserEditModal";
