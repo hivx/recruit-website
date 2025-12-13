@@ -1,10 +1,11 @@
 // src/hooks/useUser.ts
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { getFavoriteJobs, updateProfile } from "@/services";
+import { getFavoriteJobs, updateProfile, changePassword } from "@/services";
 import type {
   FavoriteJobListResponse,
   UpdateProfilePayload,
   UpdateProfileResponse,
+  ChangePasswordPayload,
 } from "@/types";
 
 export function useFavoriteJobs() {
@@ -33,6 +34,21 @@ export function useUpdateProfile() {
       void queryClient.invalidateQueries({
         queryKey: ["me"],
       });
+    },
+  });
+}
+
+type ChangePasswordResponse = { message: string };
+
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ChangePasswordResponse, Error, ChangePasswordPayload>({
+    mutationFn: changePassword,
+    retry: 0,
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
 }

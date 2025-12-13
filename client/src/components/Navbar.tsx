@@ -1,5 +1,5 @@
 // src/components/Navbar.tsx
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, User, KeyRound, LogOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { logo } from "@/assets";
@@ -90,7 +90,7 @@ export function Navbar() {
                 className="
                   flex items-center gap-3 px-3 py-2 rounded-lg 
                   hover:bg-gray-100 
-                  transition-all duration-150
+                  transition-all duration-150 cursor-pointer
                 "
               >
                 <img
@@ -118,7 +118,9 @@ export function Navbar() {
               {open && (
                 <div
                   className="
-                    absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-xl border p-4 z-50
+                    absolute right-0 mt-3 w-72
+                    rounded-xl border bg-white p-4
+                    shadow-xl z-50
                     animate-fade-slide
                   "
                 >
@@ -127,7 +129,7 @@ export function Navbar() {
                     <img
                       src={avatarSrc}
                       onError={(e) => {
-                        e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+                        e.currentTarget.src = resolveImage(null);
                       }}
                       alt="avatar"
                       className="h-14 w-14 rounded-full object-cover shadow-sm"
@@ -146,7 +148,7 @@ export function Navbar() {
                     </div>
                   </div>
 
-                  <div className="border-t my-3"></div>
+                  <div className="my-3 border-t" />
 
                   {/* Profile */}
                   <button
@@ -155,22 +157,71 @@ export function Navbar() {
                       navigate("/profile");
                     }}
                     className="
-                      w-full text-left px-2 py-2 text-gray-700 
-                      hover:bg-gray-100 rounded-lg transition
+                      group flex w-full items-center gap-3
+                      rounded-lg px-2 py-2
+                      text-left text-gray-700
+                      transition cursor-pointer
+                      hover:bg-gray-100
                     "
                   >
-                    Trang cá nhân
+                    <User
+                      size={18}
+                      className="
+                        text-gray-400
+                        transition
+                        group-hover:text-gray-700
+                      "
+                    />
+                    <span className="text-sm font-medium">Trang cá nhân</span>
                   </button>
+
+                  {/* Change password */}
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/change-password");
+                    }}
+                    className="
+                      group flex w-full items-center gap-3
+                      rounded-lg px-2 py-2
+                      text-left text-blue-600
+                      transition cursor-pointer
+                      hover:bg-blue-50
+                    "
+                  >
+                    <KeyRound
+                      size={18}
+                      className="
+                        text-blue-400
+                        transition
+                        group-hover:text-blue-600
+                      "
+                    />
+                    <span className="text-sm font-medium">Đổi mật khẩu</span>
+                  </button>
+
+                  <div className="my-2 border-t" />
 
                   {/* Logout */}
                   <button
                     onClick={handleLogout}
                     className="
-                      w-full text-left px-2 py-2 text-red-600 font-medium 
-                      hover:bg-red-100 rounded-lg transition
+                      group flex w-full items-center gap-3
+                      rounded-lg px-2 py-2
+                      text-left text-red-600 font-medium
+                      transition cursor-pointer
+                      hover:bg-red-100
                     "
                   >
-                    Đăng xuất
+                    <LogOut
+                      size={18}
+                      className="
+                        text-red-400
+                        transition
+                        group-hover:text-red-600
+                      "
+                    />
+                    <span className="text-sm">Đăng xuất</span>
                   </button>
                 </div>
               )}

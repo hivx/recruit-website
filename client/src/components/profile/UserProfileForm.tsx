@@ -1,6 +1,7 @@
 // src/components/profile/UserProfileForm.tsx
 /* ================= INPUT ================= */
 interface InputProps {
+  readonly id: string;
   readonly label: string;
   readonly value: string;
   readonly type?: string;
@@ -9,6 +10,7 @@ interface InputProps {
 }
 
 function Input({
+  id,
   label,
   value,
   type = "text",
@@ -17,11 +19,15 @@ function Input({
 }: InputProps) {
   return (
     <div className="flex flex-col">
-      <label className="font-medium text-gray-700">{label}</label>
+      <label htmlFor={id} className="font-medium text-gray-700">
+        {label}
+      </label>
       <input
+        id={id}
         type={type}
         value={value}
         disabled={disabled}
+        autoComplete="off"
         onChange={(e) => onChange?.(e.target.value)}
         className="mt-2 px-4 py-2 border rounded-xl disabled:bg-gray-100"
       />
@@ -98,12 +104,14 @@ export function UserForm({ form, avatarUrl, updateField }: UserFormProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Input
+        id="fullName"
         label="Họ và tên"
         value={form.name}
         onChange={(v) => updateField("name", v)}
       />
 
       <Input
+        id="email"
         label="Email"
         type="email"
         value={form.email}

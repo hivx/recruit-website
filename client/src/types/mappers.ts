@@ -19,6 +19,8 @@ import type {
   JobApprovalRaw,
   JobVectorRaw,
   JobDetail,
+  JobCreatePayloadRaw,
+  JobCreatePayload,
 } from "@/types/job";
 
 import type {
@@ -377,4 +379,29 @@ export function mapAllSkillListRaw(
   raw: AllSkillListResponseRaw,
 ): AllSkillListResponse {
   return raw.map(mapSkillOptionRaw);
+}
+
+export function mapJobCreatePayloadRaw(
+  payload: JobCreatePayload,
+): JobCreatePayloadRaw {
+  return {
+    title: payload.title,
+    location: payload.location ?? null,
+    description: payload.description ?? null,
+
+    salary_min: payload.salaryMin ?? null,
+    salary_max: payload.salaryMax ?? null,
+
+    requirements: payload.requirements ?? null,
+
+    tags: payload.tags,
+
+    requiredSkills: payload.requiredSkills?.map((s) => ({
+      skill_id: s.skillId,
+      skill_name: s.skillName,
+      level_required: s.levelRequired ?? null,
+      years_required: s.yearsRequired ?? null,
+      must_have: s.mustHave ?? false,
+    })),
+  };
 }

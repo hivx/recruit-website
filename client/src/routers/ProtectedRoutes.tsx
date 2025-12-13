@@ -1,7 +1,7 @@
 // src/routers/ProtectedRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
-import { ProfilePage } from "@/pages";
+import { ProfilePage, ChangePasswordPage } from "@/pages";
 import {
   RecruiterHomePage,
   RecruiterCompanyPage,
@@ -41,6 +41,7 @@ export function ProtectedRoutes() {
         {/* ROUTE CHUNG SAU KHI LOGIN */}
         <Route element={<MainLayout />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
 
         {/* ROUTE DÀNH RIÊNG CHO RECRUITER */}

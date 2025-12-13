@@ -190,3 +190,35 @@ export interface FavoriteJobListResponse {
   jobs: Job[];
   total: number;
 }
+
+// Gửi trực tiếp cho BE
+export interface JobCreatePayloadRaw {
+  title: string;
+  location?: string | null;
+  description?: string | null;
+
+  salary_min?: number | null;
+  salary_max?: number | null;
+
+  requirements?: string | null;
+
+  tags?: string[];
+
+  requiredSkills?: JobRequiredSkillRaw[];
+}
+
+// FE dùng để submit form
+export interface JobCreatePayload {
+  title: string;
+  location?: string | null;
+  description?: string | null;
+
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+
+  requirements?: string | null;
+
+  tags?: string[];
+
+  requiredSkills?: JobRequiredSkill[];
+}

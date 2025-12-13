@@ -8,6 +8,7 @@ import type {
   JobSearchQuery,
   JobListResponse,
   JobDetailResponse,
+  JobCreatePayload,
 } from "@/types";
 
 export async function getJobs(
@@ -119,5 +120,53 @@ export async function getMyJobs(
       page: 1,
       totalPages: 1,
     };
+  }
+}
+
+// Tạo job
+export async function createJob(
+  data: JobCreatePayload,
+): Promise<JobDetail | null> {
+  try {
+    const res = await api.post<JobDetailResponse>("/api/jobs", data);
+
+    return mapJobDetailRaw(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("createJob error:", error.message);
+    }
+    return null;
+  }
+}
+
+// Sửa job
+export async function updateJob(
+  jobId: string,
+  data: JobCreatePayload,
+): Promise<JobDetail | null> {
+  try {
+    const res = await api.patch<JobDetailResponse>(`/api/jobs/${jobId}`, data);
+
+    return mapJobDetailRaw(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("updateJob error:", error.message);
+    }
+    return null;
+  }
+}
+
+// Xóa job
+export async function deleteJob(jobId: string): Promise<boolean> {
+  try {
+    await api.delete(`/api/jobs/${jobId}`);
+    return true;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("deleteJob error:", error.message);
+    } else {
+      console.error("deleteJob unknown error");
+    }
+    return false;
   }
 }
