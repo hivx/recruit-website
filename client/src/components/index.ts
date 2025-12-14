@@ -11,3 +11,4 @@ export * from "./recruiter";
 export * from "./profile";
 export * from "./ApplicationStatusBadge";
 export * from "./ChangePasswordForm";
+export * from "./ConfirmPopup";

@@ -6,6 +6,8 @@ import {
   RecruiterHomePage,
   RecruiterCompanyPage,
   RecruiterApplicantsPage,
+  CreateJobPage,
+  EditJobPage,
 } from "@/pages/recruiter";
 import { useUserStore } from "@/stores";
 
@@ -49,7 +51,6 @@ export function ProtectedRoutes() {
           <Route element={<RecruiterLayout />}>
             <Route path="/recruiter" element={<RecruiterHomePage />} />
             <Route path="/recruiter/jobs" element={<RecruiterHomePage />} />
-            {/* Các trang khác của recruiter */}
             <Route
               path="/recruiter/company"
               element={<RecruiterCompanyPage />}
@@ -58,7 +59,8 @@ export function ProtectedRoutes() {
               path="/recruiter/applicants"
               element={<RecruiterApplicantsPage />}
             />
-            {/* <Route path="/recruiter/applicants" element={<ApplicantsPage />} /> */}
+            <Route path="/recruiter/jobs/create" element={<CreateJobPage />} />
+            <Route path="/recruiter/jobs/:id/edit" element={<EditJobPage />} />
           </Route>
         </Route>
       </Route>

@@ -62,7 +62,7 @@
  *         skill_id:
  *           type: integer
  *           example: 1
- *         skill_name:
+ *         name:
  *           type: string
  *           example: "ReactJS"
  *         level_required:
@@ -150,10 +150,6 @@
  *         title:
  *           type: string
  *           example: "Lập trình viên Backend Node.js"
- *         company_id:
- *           type: string
- *           example: "1"
- *           description: "Có thể bỏ qua, hệ thống lấy từ công ty của recruiter"
  *         location:
  *           type: string
  *           example: "Hồ Chí Minh"

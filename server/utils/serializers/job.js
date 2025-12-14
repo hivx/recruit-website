@@ -38,7 +38,7 @@ const toJobDTO = (job) => {
     requiredSkills: Array.isArray(job.requiredSkills)
       ? job.requiredSkills.map((r) => ({
           skill_id: r.skill_id ?? r.skill?.id,
-          skill_name: r.skill?.name || null,
+          name: r.skill?.name || null,
           level_required: r.level_required,
           years_required: r.years_required,
           must_have: r.must_have,

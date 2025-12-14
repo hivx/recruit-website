@@ -1,6 +1,6 @@
 // src/services/jobService.ts
 import { api } from "@/api";
-import { mapJobRaw, mapJobDetailRaw } from "@/types";
+import { mapJobRaw, mapJobDetailRaw, mapJobCreatePayloadRaw } from "@/types";
 import type {
   Job,
   PaginatedJobs,
@@ -9,6 +9,7 @@ import type {
   JobListResponse,
   JobDetailResponse,
   JobCreatePayload,
+  JobCreatePayloadRaw,
 } from "@/types";
 
 export async function getJobs(
@@ -128,7 +129,9 @@ export async function createJob(
   data: JobCreatePayload,
 ): Promise<JobDetail | null> {
   try {
-    const res = await api.post<JobDetailResponse>("/api/jobs", data);
+    const payload: JobCreatePayloadRaw = mapJobCreatePayloadRaw(data);
+
+    const res = await api.post<JobDetailResponse>("/api/jobs", payload);
 
     return mapJobDetailRaw(res.data);
   } catch (error) {
@@ -145,7 +148,9 @@ export async function updateJob(
   data: JobCreatePayload,
 ): Promise<JobDetail | null> {
   try {
-    const res = await api.patch<JobDetailResponse>(`/api/jobs/${jobId}`, data);
+    const payload: JobCreatePayloadRaw = mapJobCreatePayloadRaw(data);
+
+    const res = await api.put<JobDetailResponse>(`/api/jobs/${jobId}`, payload);
 
     return mapJobDetailRaw(res.data);
   } catch (error) {

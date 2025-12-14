@@ -33,8 +33,8 @@ export interface JobTag {
 
 /** Kỹ năng yêu cầu (raw từ BE) */
 export interface JobRequiredSkillRaw {
-  skill_id: number;
-  skill_name: string | null;
+  skill_id?: number;
+  name: string | null;
   level_required: number | null;
   years_required: number | null;
   must_have: boolean;
@@ -42,8 +42,8 @@ export interface JobRequiredSkillRaw {
 
 /** Kỹ năng yêu cầu (FE) */
 export interface JobRequiredSkill {
-  skillId: number;
-  skillName: string | null;
+  skillId?: number;
+  name: string | null;
   levelRequired: number | null;
   yearsRequired: number | null;
   mustHave: boolean;

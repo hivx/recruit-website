@@ -77,7 +77,7 @@ function mapJobTagRaw(raw: JobTagRaw): JobTag {
 function mapJobRequiredSkillRaw(raw: JobRequiredSkillRaw): JobRequiredSkill {
   return {
     skillId: raw.skill_id,
-    skillName: raw.skill_name,
+    name: raw.name,
     levelRequired: raw.level_required,
     yearsRequired: raw.years_required,
     mustHave: raw.must_have,
@@ -381,6 +381,9 @@ export function mapAllSkillListRaw(
   return raw.map(mapSkillOptionRaw);
 }
 
+// ==============================
+// JOB CREATE PAYLOAD MAPPERS
+// ==============================
 export function mapJobCreatePayloadRaw(
   payload: JobCreatePayload,
 ): JobCreatePayloadRaw {
@@ -398,7 +401,7 @@ export function mapJobCreatePayloadRaw(
 
     requiredSkills: payload.requiredSkills?.map((s) => ({
       skill_id: s.skillId,
-      skill_name: s.skillName,
+      name: s.name,
       level_required: s.levelRequired ?? null,
       years_required: s.yearsRequired ?? null,
       must_have: s.mustHave ?? false,

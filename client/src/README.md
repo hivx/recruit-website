@@ -436,3 +436,73 @@ Số lượt xem job (nếu tracking)
 Giúp recruiter:
 
 Ra quyết định tốt hơn (tăng lương? thêm tag? thay JD?).
+
+============================================================================================================================================
+
+PHẦN 3 – PAGE THÊM JOB
+// src/pages/recruiter/CreateJobPage.tsx
+import { JobForm } from "@/components/job/JobForm";
+import { useCreateJob, useAppNavigate } from "@/hooks";
+
+export function CreateJobPage() {
+  const navigate = useAppNavigate();
+  const { mutateAsync, isPending } = useCreateJob();
+
+  async function handleCreate(data: JobCreatePayload) {
+    const job = await mutateAsync(data);
+    if (job) {
+      navigate("/recruiter/jobs");
+    }
+  }
+
+  return (
+    <JobForm
+      mode="create"
+      loading={isPending}
+      onSubmit={handleCreate}
+      onCancel={() => navigate("/recruiter/jobs")}
+    />
+  );
+}
+
+PHẦN 4 – PAGE SỬA JOB (QUAN TRỌNG NHẤT)
+// src/pages/recruiter/EditJobPage.tsx
+import { useParams } from "react-router-dom";
+import { JobForm } from "@/components/job/JobForm";
+import { Loader, ErrorBox } from "@/components";
+import { useJobById, useUpdateJob, useAppNavigate } from "@/hooks";
+import { getAxiosErrorMessage } from "@/utils";
+
+export function EditJobPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useAppNavigate();
+
+  const { data, isError, error } = useJobById(id);
+  const { mutateAsync, isPending } = useUpdateJob();
+
+  if (!data) {
+    return <Loader />;
+  }
+
+  if (isError) {
+    return <ErrorBox message={getAxiosErrorMessage(error)} />;
+  }
+
+  async function handleUpdate(payload: JobCreatePayload) {
+    if (!id) return;
+    const job = await mutateAsync({ jobId: id, data: payload });
+    if (job) {
+      navigate("/recruiter/jobs");
+    }
+  }
+
+  return (
+    <JobForm
+      mode="edit"
+      initialData={data}
+      loading={isPending}
+      onSubmit={handleUpdate}
+      onCancel={() => navigate("/recruiter/jobs")}
+    />
+  );
+}

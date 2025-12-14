@@ -183,10 +183,10 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
                 setActive(false);
               }}
               className="
-      mt-1 w-full rounded-lg border px-3 py-2
-      transition outline-none
-      focus:ring-2 focus:ring-blue-400 focus:border-blue-400
-    "
+                mt-1 w-full rounded-lg border px-3 py-2
+                transition outline-none
+                focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+              "
             />
 
             {errors.name && (
@@ -196,10 +196,10 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
             {showDropdown && (
               <div
                 className="
-        absolute z-20 mt-1 w-full
-        rounded-lg border bg-white shadow
-        max-h-40 overflow-auto animate-fade-in
-      "
+                  absolute z-20 mt-1 w-full
+                  rounded-lg border bg-white shadow
+                  max-h-40 overflow-auto animate-fade-in
+                "
               >
                 {skillOptions.map((opt) => (
                   <button
@@ -207,9 +207,9 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
                     type="button"
                     tabIndex={0}
                     className="
-            w-full px-3 py-2 text-left text-sm
-            hover:bg-gray-100 focus:bg-gray-100
-          "
+                      w-full px-3 py-2 text-left text-sm
+                      hover:bg-gray-100 focus:bg-gray-100
+                    "
                     onClick={() => {
                       setValue("name", opt.name, {
                         shouldValidate: true,
