@@ -1,4 +1,4 @@
-// middleware/logUserInterest.js
+// server/middleware/logUserInterest.js
 const cfg = require("../config/profile.config");
 const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");

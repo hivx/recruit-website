@@ -1,3 +1,4 @@
+// server/utils/fitScore.js
 function computeSkillMatch(userSkills = [], jobSkills = []) {
   if (!jobSkills.length) {
     return 0;

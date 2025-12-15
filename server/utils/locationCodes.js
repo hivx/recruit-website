@@ -1,3 +1,4 @@
+// server/utils/locationCodes.js
 /**
  * Chuẩn hóa toàn bộ 63 tỉnh thành Việt Nam sang mã viết tắt 2–3 ký tự.
  * Tự động loại bỏ dấu, nhận dạng viết tắt, tên gọi khác như: HCM, TPHCM, Sai Gon, SG...

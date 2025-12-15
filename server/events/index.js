@@ -1,3 +1,4 @@
+// server/events/index.js
 const listeners = {};
 
 exports.emitEvent = (event, payload) => {

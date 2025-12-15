@@ -1,4 +1,4 @@
-// services/userVectorService.js
+// server/services/userVectorService.js
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
 const { shouldRebuildVector } = require("../utils/shouldRebuildVector");

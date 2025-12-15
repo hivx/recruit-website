@@ -1,3 +1,4 @@
+//server/utils/shouldRebuildVector.js
 const cfg = require("../config/profile.config");
 const prisma = require("../utils/prisma");
 
@@ -14,7 +15,7 @@ async function shouldRebuildVector(table, idField, entityId) {
 
   const diffMinutes = (Date.now() - new Date(row.updated_at).getTime()) / 60000;
 
-  return diffMinutes >= cfg.MIN_REBUILD_VECTOR_MINUTES; // 5 phút
+  return diffMinutes >= cfg.MIN_REBUILD_VECTOR_MINUTES; // 15 phút
 }
 
 module.exports = { shouldRebuildVector };

@@ -1,4 +1,4 @@
-// controllers/profileController.js
+// server/controllers/profileController.js
 const builder = require("../services/profileBuilderService");
 const { normalizeBigInt } = require("../utils/bigInt");
 const prisma = require("../utils/prisma");

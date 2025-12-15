@@ -1,4 +1,4 @@
-// services/companyService.js
+// server/services/companyService.js
 const prisma = require("../utils/prisma");
 const { toCompanyDTO } = require("../utils/serializers/company");
 

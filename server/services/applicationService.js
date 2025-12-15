@@ -1,4 +1,4 @@
-// services/applicationService.js
+// server/services/applicationService.js
 const { logUserInterest } = require("../middleware/logUserInterest");
 const { computeFitScore } = require("../utils/fitScore");
 const prisma = require("../utils/prisma");

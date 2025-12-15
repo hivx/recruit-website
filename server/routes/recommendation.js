@@ -14,7 +14,7 @@ router.get(
 
 // Sinh candidate đề xuất cho recruiter
 router.get(
-  "/recruiter/:userId",
+  "/recruiter/:recruiterId",
   authMiddleware,
   recommendationController.getRecommendedCandidates,
 );

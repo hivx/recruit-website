@@ -1,4 +1,4 @@
-// controllers/companyController.js
+// server/controllers/companyController.js
 const companyService = require("../services/companyService");
 const { cleanupUploadedFile } = require("../utils/cleanupUpload");
 

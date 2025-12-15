@@ -1,4 +1,4 @@
-// services/userService.js
+// server/services/userService.js
 const fs = require("node:fs");
 const path = require("node:path");
 

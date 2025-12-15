@@ -1,4 +1,4 @@
-// config/profile.config.js
+// server/config/profile.config.js
 module.exports = {
   EVENT_WEIGHT: {
     view: 1, // xem chi tiết

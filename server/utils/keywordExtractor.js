@@ -1,4 +1,4 @@
-// utils/keywordExtractor.js
+// server/utils/keywordExtractor.js
 // stopword nghề nghiệp Việt + common English noise
 const STOPWORDS = new Set([
   "và",

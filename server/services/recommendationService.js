@@ -1,3 +1,4 @@
+// server/services/recommendationService.js
 const {
   countMatchingTags,
   computeJobFitScore,
@@ -339,10 +340,11 @@ async function getRecommendedCandidatesForRecruiter(
       include: {
         applicant: {
           include: {
-            user: true,
-            tags: { include: { tag: true } },
+            careerPreference: true,
+            vector: true,
           },
         },
+        recruiter: true,
       },
     }),
     prisma.candidateRecommendation.count({ where }),

@@ -1,4 +1,4 @@
-// services/jobService.js
+// server/services/jobService.js
 const { emitEvent } = require("../events");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
@@ -368,7 +368,7 @@ exports.updateJob = async (id, data) => {
       where: { id: jobId },
       data: { ...dataToUpdate, ...tagMutation },
       include: {
-        company: { select: { id: true, legal_name: true } },
+        company: { select: { id: true, legal_name: true, logo: true } },
         approval: true,
         tags: { include: { tag: true } },
       },

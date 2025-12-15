@@ -1,4 +1,4 @@
-// controllers/userController.js
+// server/controllers/userController.js
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -7,6 +7,7 @@ const recruiterVectorService = require("../services/recruiterVectorService");
 const userService = require("../services/userService");
 const userVectorService = require("../services/userVectorService");
 
+const { normalizeBigInt } = require("../utils/bigInt");
 const { toUserDTO } = require("../utils/serializers/user"); // DTO
 
 exports.toggleFavoriteJob = async (req, res) => {
@@ -125,10 +126,12 @@ exports.rebuildUserVector = async (req, res) => {
   try {
     const vector = await userVectorService.buildUserVector(req.user.userId);
 
-    res.json({
-      message: "Vector user đã được cập nhật",
-      vector,
-    });
+    res.json(
+      normalizeBigInt({
+        message: "Vector user đã được cập nhật",
+        vector,
+      }),
+    );
   } catch (err) {
     return res.status(400).json({ message: err.message });
   }
@@ -140,10 +143,12 @@ exports.rebuildRecruiterVector = async (req, res) => {
 
     const vector = await recruiterVectorService.buildRecruiterVector(userId);
 
-    return res.json({
-      message: "Vector recruiter đã được cập nhật",
-      vector: vector,
-    });
+    return res.json(
+      normalizeBigInt({
+        message: "Vector recruiter đã được cập nhật",
+        vector: vector,
+      }),
+    );
   } catch (err) {
     return res.status(400).json({
       error: err.message,

@@ -1,6 +1,7 @@
-// controllers/jobController.js
+// server/controllers/jobController.js
 const jobService = require("../services/jobService");
 const jobVectorService = require("../services/jobVectorService");
+const { normalizeBigInt } = require("../utils/bigInt");
 
 /* ============================================================
    CREATE JOB
@@ -242,10 +243,12 @@ exports.buildJobVector = async (req, res) => {
 
     const vector = await jobVectorService.buildJobVector(jobId);
 
-    return res.json({
-      message: "Vector job đã được cập nhật",
-      vector,
-    });
+    return res.json(
+      normalizeBigInt({
+        message: "Vector job đã được cập nhật",
+        vector,
+      }),
+    );
   } catch (err) {
     console.error("[BuildJobVector]", err);
     return res.status(500).json({ message: err.message || "Lỗi server" });

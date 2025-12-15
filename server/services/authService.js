@@ -1,4 +1,4 @@
-// services/authService.js
+// server/services/authService.js
 const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");

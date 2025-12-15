@@ -1,4 +1,4 @@
-// controllers/authController.js
+// server/controllers/authController.js
 const jwt = require("jsonwebtoken");
 const authService = require("../services/authService");
 
