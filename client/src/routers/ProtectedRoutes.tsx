@@ -1,7 +1,13 @@
 // src/routers/ProtectedRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
-import { MainLayout, TransitionLayout, RecruiterLayout } from "@/layouts";
+import {
+  MainLayout,
+  TransitionLayout,
+  RecruiterLayout,
+  AdminLayout,
+} from "@/layouts";
 import { ProfilePage, ChangePasswordPage } from "@/pages";
+import { AdminHomePage } from "@/pages/admin";
 import {
   RecruiterHomePage,
   RecruiterCompanyPage,
@@ -35,6 +41,21 @@ export function ProtectedRecruiterRoute() {
   return <Outlet />;
 }
 
+// Logic bảo vệ: chỉ cho admin
+export function ProtectedAdminRoute() {
+  const user = useUserStore((s) => s.user);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
 export function ProtectedRoutes() {
   return (
     <Route element={<TransitionLayout />}>
@@ -61,6 +82,18 @@ export function ProtectedRoutes() {
             />
             <Route path="/recruiter/jobs/create" element={<CreateJobPage />} />
             <Route path="/recruiter/jobs/:id/edit" element={<EditJobPage />} />
+          </Route>
+        </Route>
+
+        {/* ROUTE DÀNH RIÊNG CHO ADMIN */}
+        <Route element={<ProtectedAdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminHomePage />} />
+            <Route path="/admin/dashboard" element={<AdminHomePage />} />
+            {/* Sau này thêm */}
+            {/* <Route path="/admin/jobs" element={<AdminJobsPage />} /> */}
+            {/* <Route path="/admin/companies" element={<AdminCompaniesPage />} /> */}
+            {/* <Route path="/admin/users" element={<AdminUsersPage />} /> */}
           </Route>
         </Route>
       </Route>

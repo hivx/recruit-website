@@ -263,6 +263,7 @@ exports.getMyJobs = async (req, res, next) => {
 
     const data = await jobService.getMyJobs({
       userId: req.user.userId,
+      role: req.user.role,
       page,
       limit,
     });

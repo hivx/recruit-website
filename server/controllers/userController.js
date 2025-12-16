@@ -155,3 +155,133 @@ exports.rebuildRecruiterVector = async (req, res) => {
     });
   }
 };
+
+// ================================
+// ADMIN: Create User
+// ================================
+exports.adminCreateUser = async (req, res) => {
+  try {
+    const { name, email, password, role, isVerified } = req.body;
+
+    const user = await userService.adminCreateUser({
+      name,
+      email,
+      password,
+      role,
+      isVerified,
+    });
+
+    return res.status(201).json({
+      message: "Tạo user thành công",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Create User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Update User
+// ================================
+exports.adminUpdateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, name, role, isVerified } = req.body;
+
+    const user = await userService.adminUpdateUser(id, {
+      email,
+      name,
+      role,
+      isVerified,
+    });
+
+    return res.json({
+      message: "Cập nhật user thành công",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Update User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Active / Deactive User
+// ================================
+exports.adminSetUserActive = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        message: "isActive phải là boolean",
+      });
+    }
+
+    const user = await userService.adminSetUserActive(id, isActive);
+
+    return res.json({
+      message: isActive ? "User đã được kích hoạt" : "User đã bị vô hiệu hóa",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Set User Active Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Delete User
+// ================================
+exports.adminDeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await userService.adminDeleteUser(id);
+
+    return res.json({
+      message: "Xóa user thành công",
+      ...result,
+    });
+  } catch (err) {
+    console.error("[Admin Delete User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: List Users
+// ================================
+exports.adminListUsers = async (req, res) => {
+  try {
+    const { role, isVerified, page = 1, limit = 20 } = req.query;
+
+    const data = await userService.adminListUsers({
+      role,
+      isVerified:
+        typeof isVerified === "string" ? isVerified === "true" : undefined,
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    return res.json({
+      ...data,
+      users: data.users.map(toUserDTO),
+    });
+  } catch (err) {
+    console.error("[Admin List Users Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};

@@ -54,4 +54,46 @@ router.post(
   userController.rebuildRecruiterVector,
 );
 
+// ================================
+// ADMIN USER ROUTES
+// ================================
+
+// Tất cả route bên dưới đều:
+// - đã đăng nhập
+// - role = admin
+router.use(authMiddleware);
+router.use(authorizeRoles("admin"));
+
+/**
+ * ADMIN: Tạo user mới
+ * POST /api/users/admin/users
+ */
+router.post("/admin/users", userController.adminCreateUser);
+
+/**
+ * ADMIN: Lấy danh sách user
+ * GET /api/users/admin/users
+ * Query: role, isVerified, page, limit
+ */
+router.get("/admin/users", userController.adminListUsers);
+
+/**
+ * ADMIN: Cập nhật user (name, role, isVerified)
+ * PUT /api/users/admin/users/:id
+ */
+router.put("/admin/users/:id", userController.adminUpdateUser);
+
+/**
+ * ADMIN: Active / Deactive user
+ * PATCH /api/users/admin/users/:id/status
+ * Body: { isActive: true | false }
+ */
+router.patch("/admin/users/:id/status", userController.adminSetUserActive);
+
+/**
+ * ADMIN: Xóa user (chỉ khi chưa phát sinh dữ liệu)
+ * DELETE /api/users/admin/users/:id
+ */
+router.delete("/admin/users/:id", userController.adminDeleteUser);
+
 module.exports = router;

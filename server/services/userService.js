@@ -233,4 +233,166 @@ module.exports = {
 
     return { message: "Đổi mật khẩu thành công!" };
   },
+  async adminCreateUser({ name, email, password, role, isVerified = true }) {
+    // 1. Validate cơ bản
+    if (!name || !email || !password) {
+      const err = new Error("Thiếu thông tin bắt buộc!");
+      err.status = 400;
+      throw err;
+    }
+
+    // 2. Check email trùng
+    const exists = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (exists) {
+      const err = new Error("Email đã tồn tại!");
+      err.status = 400;
+      throw err;
+    }
+
+    // 3. Hash password
+    const hashed = await bcrypt.hash(password, 10);
+
+    // 4. Create user
+    return prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: email.toLowerCase(),
+        password: hashed,
+        role: role || "applicant",
+        isVerified: Boolean(isVerified), // dùng làm active
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        created_at: true,
+      },
+    });
+  },
+  async adminUpdateUser(userId, data) {
+    const uid = BigInt(userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+    });
+    if (!user) {
+      const err = new Error("Người dùng không tồn tại!");
+      err.status = 404;
+      throw err;
+    }
+
+    const update = {};
+
+    if (data.email) {
+      update.email = data.email.trim();
+    }
+
+    if (data.name) {
+      update.name = data.name.trim();
+    }
+    if (data.role) {
+      update.role = data.role;
+    }
+
+    if (typeof data.isVerified === "boolean") {
+      update.isVerified = data.isVerified;
+    }
+
+    return prisma.user.update({
+      where: { id: uid },
+      data: update,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        updated_at: true,
+      },
+    });
+  },
+  async adminSetUserActive(userId, isActive) {
+    return this.adminUpdateUser(userId, {
+      isVerified: Boolean(isActive),
+    });
+  },
+  async adminListUsers({ role, isVerified, page = 1, limit = 20 }) {
+    const skip = (page - 1) * limit;
+
+    const where = {};
+
+    if (role) {
+      where.role = role;
+    }
+    if (typeof isVerified === "boolean") {
+      where.isVerified = isVerified;
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { created_at: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          created_at: true,
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+  async adminDeleteUser(userId) {
+    const uid = BigInt(userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+      include: {
+        jobs: { take: 1 },
+        applications: { take: 1 },
+        company: true,
+        recommendations: { take: 1 },
+      },
+    });
+
+    if (!user) {
+      const err = new Error("Người dùng không tồn tại!");
+      err.status = 404;
+      throw err;
+    }
+
+    if (
+      user.jobs.length ||
+      user.applications.length ||
+      user.company ||
+      user.recommendations.length
+    ) {
+      const err = new Error(
+        "Không thể xoá user đã phát sinh dữ liệu. Hãy deactive thay vì xoá.",
+      );
+      err.status = 400;
+      throw err;
+    }
+
+    await prisma.user.delete({
+      where: { id: uid },
+    });
+
+    return { success: true };
+  },
 };

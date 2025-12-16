@@ -48,6 +48,8 @@ import type {
   SkillOption,
   AllSkillListResponseRaw,
   AllSkillListResponse,
+  AdminUserListResponseRaw,
+  AdminUserListResponse,
 } from "@/types/user";
 
 import type { BehaviorProfile, BehaviorProfileRaw } from "@/types/vector";
@@ -406,5 +408,16 @@ export function mapJobCreatePayloadRaw(
       years_required: s.yearsRequired ?? null,
       must_have: s.mustHave ?? false,
     })),
+  };
+}
+
+export function mapAdminUserListResponse(
+  raw: AdminUserListResponseRaw,
+): AdminUserListResponse {
+  return {
+    users: raw.users.map(mapUserRaw),
+    total: raw.total,
+    page: raw.page,
+    totalPages: raw.totalPages,
   };
 }

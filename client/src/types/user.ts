@@ -105,3 +105,39 @@ export interface ChangePasswordPayload {
   oldPassword: string;
   newPassword: string;
 }
+
+/** Raw payload gửi lên BE (admin create user) */
+export interface AdminCreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+  isVerified?: boolean; // dùng làm active/deactive
+}
+
+/** Raw payload gửi lên BE (admin update user) */
+export interface AdminUpdateUserPayload {
+  name?: string;
+  role?: UserRole;
+  isVerified?: boolean;
+}
+
+export interface AdminSetUserActivePayload {
+  isActive: boolean;
+}
+
+/** Raw response từ BE */
+export interface AdminUserListResponseRaw {
+  users: UserRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+/** FE response */
+export interface AdminUserListResponse {
+  users: User[];
+  total: number;
+  page: number;
+  totalPages: number;
+}

@@ -1,6 +1,5 @@
 // src/components/recruiter/index.ts
 export * from "./MyJobList";
-export * from "./JobStatsChart";
 export * from "./RecruiterSidebar";
 export * from "./CompanyForm";
 export * from "./InfoRow";

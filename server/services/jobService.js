@@ -507,12 +507,15 @@ exports.getAllJobs = async ({
       ]
     : [];
 
+  const isAdmin = currentUser?.role === "admin";
   // WHERE final
   const where = {
     ...tagFilter,
     ...locationFilter,
     ...salaryFilter,
-    approval: { is: { status: "approved" } },
+    ...(!isAdmin && {
+      approval: { is: { status: "approved" } },
+    }),
     ...(searchConditions.length ? { OR: searchConditions } : {}),
   };
 
@@ -761,11 +764,15 @@ exports.rejectJob = async (jobId, adminId, reason) => {
 // ===============================
 // GET JOBS CREATED BY CURRENT USER (Lấy job tạo bởi người dùng)
 // ===============================
-exports.getMyJobs = async ({ userId, page = 1, limit = 10 }) => {
+exports.getMyJobs = async ({ userId, role, page = 1, limit = 10 }) => {
   const skip = (page - 1) * limit;
 
+  const isAdmin = role === "admin";
+
   const where = {
-    created_by: BigInt(userId),
+    ...(!isAdmin && {
+      created_by: BigInt(userId),
+    }),
   };
 
   const [jobs, total] = await Promise.all([
