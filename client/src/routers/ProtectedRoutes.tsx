@@ -7,7 +7,11 @@ import {
   AdminLayout,
 } from "@/layouts";
 import { ProfilePage, ChangePasswordPage } from "@/pages";
-import { AdminHomePage } from "@/pages/admin";
+import {
+  AdminHomePage,
+  AdminJobsPage,
+  AdminCompaniesPage,
+} from "@/pages/admin";
 import {
   RecruiterHomePage,
   RecruiterCompanyPage,
@@ -90,10 +94,8 @@ export function ProtectedRoutes() {
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminHomePage />} />
             <Route path="/admin/dashboard" element={<AdminHomePage />} />
-            {/* Sau này thêm */}
-            {/* <Route path="/admin/jobs" element={<AdminJobsPage />} /> */}
-            {/* <Route path="/admin/companies" element={<AdminCompaniesPage />} /> */}
-            {/* <Route path="/admin/users" element={<AdminUsersPage />} /> */}
+            <Route path="/admin/jobs" element={<AdminJobsPage />} />
+            <Route path="/admin/companies" element={<AdminCompaniesPage />} />
           </Route>
         </Route>
       </Route>

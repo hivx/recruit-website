@@ -2,8 +2,20 @@
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate, useAuth } from "@/hooks";
+import { useUserStore } from "@/stores";
 import type { LoginPayload } from "@/types";
 import { getAxiosErrorMessage } from "@/utils";
+
+function getRedirectPathByRole(role?: string) {
+  switch (role) {
+    case "admin":
+      return "/admin";
+    case "recruiter":
+      return "/recruiter";
+    default:
+      return "/";
+  }
+}
 
 export function LoginPage() {
   const navigate = useAppNavigate();
@@ -18,10 +30,12 @@ export function LoginPage() {
     e.preventDefault();
 
     const accepted = await login(form);
-
-    if (accepted) {
-      navigate("/jobs");
+    if (!accepted) {
+      return;
     }
+
+    const role = useUserStore.getState().user?.role;
+    navigate(getRedirectPathByRole(role));
   }
 
   return (

@@ -117,6 +117,7 @@ export interface AdminCreateUserPayload {
 
 /** Raw payload gửi lên BE (admin update user) */
 export interface AdminUpdateUserPayload {
+  email?: string;
   name?: string;
   role?: UserRole;
   isVerified?: boolean;

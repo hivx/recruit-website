@@ -1,4 +1,4 @@
-// src/components/CompanyModal.tsx
+// src/components/recruiter/MyCompanyModal.tsx
 import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 

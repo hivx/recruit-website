@@ -8,7 +8,7 @@ import {
   useAppNavigate,
 } from "@/hooks";
 import type { Job } from "@/types";
-import { getAxiosErrorMessage, Toast } from "@/utils";
+import { getAxiosErrorMessage } from "@/utils";
 
 export interface MyJobListProps {
   readonly page: number;
@@ -25,7 +25,6 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   const navigate = useAppNavigate();
   const { mutateAsync: deleteJobMutate } = useDeleteJob();
@@ -73,15 +72,11 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
     }
 
     setDeleting(true);
-    const success = await deleteJobMutate(selectedJob.id);
+
+    await deleteJobMutate(selectedJob.id);
     setDeleting(false);
     setConfirmOpen(false);
-
-    if (success) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
-      setMode("view"); // reset mode sau khi xóa
-    }
+    setMode("view"); // reset mode sau khi xóa
 
     setSelectedJob(null);
   }
@@ -106,7 +101,7 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
             onClick={() => navigate("/recruiter/jobs/create")}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition cursor-pointer"
           >
-            + Thêm
+            + Tạo mới
           </button>
 
           <button
@@ -236,9 +231,6 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
         }}
         onConfirm={() => void handleConfirmDelete()}
       />
-
-      {/* TOAST */}
-      {showToast && <Toast message="Xóa tin tuyển dụng thành công" />}
     </div>
   );
 }

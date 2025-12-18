@@ -9,7 +9,7 @@ import { resolveImage } from "@/utils";
 
 type JobCardProps = Readonly<{
   job: Job;
-  score?: number; // điểm fit score (nếu có) từ recommendation
+  score?: number;
 }>;
 
 export function JobCard({ job, score }: JobCardProps) {
@@ -93,9 +93,9 @@ export function JobCard({ job, score }: JobCardProps) {
         <Link to={`/jobs/${job.id}`}>
           <h2
             className="
-        text-base font-semibold text-gray-900 
-        group-hover:text-blue-600 transition-colors duration-300
-      "
+              text-base font-semibold text-gray-900 
+              group-hover:text-blue-600 transition-colors duration-300
+            "
           >
             {job.title}
           </h2>
@@ -133,10 +133,10 @@ export function JobCard({ job, score }: JobCardProps) {
               <span
                 key={t.tag?.id}
                 className="
-            px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full 
-            hover:bg-blue-100 hover:text-blue-700 
-            transition-colors duration-200
-          "
+                  px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full 
+                  hover:bg-blue-100 hover:text-blue-700 
+                  transition-colors duration-200
+                "
               >
                 {t.tag?.name}
               </span>

@@ -97,7 +97,7 @@ exports.submitForReview = async (req, res) => {
   }
 };
 
-// PATCH /api/admin/company/:id/verify  (admin duyệt hoặc từ chối)
+// PATCH /api/company/admin/:id/verify  (admin duyệt hoặc từ chối)
 exports.verifyCompany = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -116,5 +116,57 @@ exports.verifyCompany = async (req, res) => {
     res
       .status(err.status || 500)
       .json({ message: err.message || "Lỗi duyệt công ty" });
+  }
+};
+
+// GET /api/companies/admin
+exports.listCompanies = async (req, res) => {
+  try {
+    // An toàn: middleware đã chặn role, nhưng check lại không thừa
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        message: "Chỉ admin được phép truy cập",
+      });
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+
+    const result = await companyService.listCompanies({ page, limit });
+
+    res.json(result);
+  } catch (err) {
+    console.error("[Admin List Companies]", err);
+    res.status(500).json({
+      message: err.message || "Lỗi lấy danh sách công ty",
+    });
+  }
+};
+
+// GET /api/companies/:id
+exports.getCompanyDetail = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        message: "Chỉ admin được phép truy cập",
+      });
+    }
+
+    const companyId = req.params.id;
+
+    const company = await companyService.getCompanyDetail(companyId);
+
+    if (!company) {
+      return res.status(404).json({
+        message: "Không tìm thấy công ty",
+      });
+    }
+
+    res.json(company);
+  } catch (err) {
+    console.error("[Admin Get Company Detail]", err);
+    res.status(500).json({
+      message: err.message || "Lỗi lấy thông tin công ty",
+    });
   }
 };

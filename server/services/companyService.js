@@ -239,10 +239,52 @@ async function verifyCompany(companyId, adminId, action) {
   };
 }
 
+/**
+ * ADMIN: Lấy danh sách tất cả công ty.
+ */
+async function listCompanies({ page, limit }) {
+  const skip = (page - 1) * limit;
+
+  const [rows, total] = await Promise.all([
+    prisma.company.findMany({
+      skip,
+      take: limit,
+      orderBy: { created_at: "desc" },
+      include: {
+        verification: true,
+      },
+    }),
+    prisma.company.count(),
+  ]);
+
+  return {
+    companies: rows.map(toCompanyDTO),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+/**
+ * Lấy thông tin chi tiết của 1 công ty.
+ */
+async function getCompanyDetail(companyId) {
+  const company = await prisma.company.findUnique({
+    where: { id: BigInt(companyId) },
+    include: {
+      verification: true,
+    },
+  });
+
+  return toCompanyDTO(company);
+}
+
 module.exports = {
   createCompany,
   getMyCompany,
   updateMyCompany,
   submitForReview,
   verifyCompany,
+  listCompanies,
+  getCompanyDetail,
 };

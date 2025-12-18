@@ -1,4 +1,4 @@
-// src/components/recruiter/StatusBadge.tsx
+// src/components/StatusBadge.tsx
 interface StatusBadgeProps {
   readonly status: string | null | undefined;
 }

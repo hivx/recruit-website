@@ -1,6 +1,12 @@
 // src/services/jobService.ts
 import { api } from "@/api";
-import { mapJobRaw, mapJobDetailRaw, mapJobCreatePayloadRaw } from "@/types";
+import {
+  mapJobRaw,
+  mapJobDetailRaw,
+  mapJobCreatePayloadRaw,
+  mapApproveJobResponse,
+  mapRejectJobResponse,
+} from "@/types";
 import type {
   Job,
   PaginatedJobs,
@@ -10,6 +16,11 @@ import type {
   JobDetailResponse,
   JobCreatePayload,
   JobCreatePayloadRaw,
+  ApproveJobResponse,
+  ApproveJobResponseRaw,
+  RejectJobResponse,
+  RejectJobResponseRaw,
+  RejectJobPayload,
 } from "@/types";
 
 export async function getJobs(
@@ -173,5 +184,47 @@ export async function deleteJob(jobId: string): Promise<boolean> {
       console.error("deleteJob unknown error");
     }
     return false;
+  }
+}
+
+// ADMIN duyệt job
+export async function approveJob(
+  jobId: string,
+): Promise<ApproveJobResponse | null> {
+  try {
+    const res = await api.patch<ApproveJobResponseRaw>(
+      `/api/jobs/admin/${jobId}/approve`,
+    );
+
+    return mapApproveJobResponse(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("approveJob error:", error.message);
+    } else {
+      console.error("approveJob unknown error");
+    }
+    return null;
+  }
+}
+
+// ADMIN từ chối job
+export async function rejectJob(
+  jobId: string,
+  payload: RejectJobPayload,
+): Promise<RejectJobResponse | null> {
+  try {
+    const res = await api.patch<RejectJobResponseRaw>(
+      `/api/jobs/admin/${jobId}/reject`,
+      payload,
+    );
+
+    return mapRejectJobResponse(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("rejectJob error:", error.message);
+    } else {
+      console.error("rejectJob unknown error");
+    }
+    return null;
   }
 }

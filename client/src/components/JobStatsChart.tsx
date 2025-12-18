@@ -34,7 +34,7 @@ export function JobStatsDashboard() {
   const rejected = jobs.filter((j) => j.approval?.status === "rejected").length;
 
   const pieData = {
-    labels: ["Đã duyệt", "Chờ duyệt", "Từ chối"],
+    labels: ["Đã được duyệt", "Đang chờ duyệt", "Bị từ chối"],
     datasets: [
       {
         data: [approved, pending, rejected],

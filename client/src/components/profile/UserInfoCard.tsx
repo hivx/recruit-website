@@ -2,9 +2,8 @@
 import { motion } from "framer-motion";
 import { Pencil, Mail, Calendar, Building2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { Loader } from "@/components";
+import { Loader, StatusBadge } from "@/components";
 import { UserEditModal } from "@/components/profile";
-import { StatusBadge } from "@/components/recruiter";
 import { useUserStore } from "@/stores";
 import { resolveImage, formatDateDMY } from "@/utils";
 

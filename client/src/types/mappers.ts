@@ -6,6 +6,10 @@ import type {
   CompanyRaw,
   CompanyVerification,
   CompanyVerificationRaw,
+  CompanyListResponse,
+  CompanyListResponseRaw,
+  VerifyCompanyResponseRaw,
+  VerifyCompanyResponse,
 } from "@/types/company";
 import type {
   Job,
@@ -21,6 +25,10 @@ import type {
   JobDetail,
   JobCreatePayloadRaw,
   JobCreatePayload,
+  ApproveJobResponseRaw,
+  ApproveJobResponse,
+  RejectJobResponseRaw,
+  RejectJobResponse,
 } from "@/types/job";
 
 import type {
@@ -125,6 +133,7 @@ export function mapJobRaw(raw: JobRaw): Job {
 
     requirements: raw.requirements,
     createdBy: raw.created_by,
+    createdByName: raw.created_by_name,
     companyId: raw.company_id,
 
     company: raw.company
@@ -419,5 +428,49 @@ export function mapAdminUserListResponse(
     total: raw.total,
     page: raw.page,
     totalPages: raw.totalPages,
+  };
+}
+
+export function mapCompanyListResponse(
+  raw: CompanyListResponseRaw,
+): CompanyListResponse {
+  return {
+    companies: raw.companies.map(mapCompanyRaw),
+    total: raw.total,
+    page: raw.page,
+    totalPages: raw.totalPages,
+  };
+}
+
+export function mapApproveJobResponse(
+  raw: ApproveJobResponseRaw,
+): ApproveJobResponse {
+  return {
+    jobId: raw.jobId,
+    status: raw.status,
+    auditedAt: raw.audited_at,
+  };
+}
+
+export function mapRejectJobResponse(
+  raw: RejectJobResponseRaw,
+): RejectJobResponse {
+  return {
+    jobId: raw.jobId,
+    status: raw.status,
+    reason: raw.reason,
+    auditedAt: raw.audited_at,
+  };
+}
+
+export function mapVerifyCompanyResponseRaw(
+  raw: VerifyCompanyResponseRaw,
+): VerifyCompanyResponse {
+  return {
+    companyId: raw.company_id,
+    status: raw.status,
+    rejectionReason: raw.rejection_reason,
+    verifiedAt: raw.verified_at,
+    reviewedBy: raw.reviewed_by,
   };
 }

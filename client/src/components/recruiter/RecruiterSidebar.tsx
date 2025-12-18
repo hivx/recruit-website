@@ -1,4 +1,4 @@
-// src/components/RecruiterSidebar.tsx
+// src/components/recruiter/RecruiterSidebar.tsx
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   PanelLeftOpen,

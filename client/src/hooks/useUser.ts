@@ -128,6 +128,7 @@ export function useAdminUpdateUser() {
       // Refresh list
       void queryClient.invalidateQueries({
         queryKey: ["admin-users"],
+        exact: false,
       });
 
       // Optional: cập nhật cache chi tiết user nếu có

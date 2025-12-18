@@ -3,13 +3,8 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { Loader, ErrorBox } from "@/components";
-import {
-  Modal,
-  CompanyForm,
-  StatusBadge,
-  InfoRow,
-} from "@/components/recruiter";
+import { Loader, ErrorBox, StatusBadge } from "@/components";
+import { Modal, CompanyForm, InfoRow } from "@/components/recruiter";
 import {
   useMyCompany,
   useCreateCompany,

@@ -14,3 +14,4 @@ export * from "./ChangePasswordForm";
 export * from "./ConfirmPopup";
 export * from "./admin";
 export * from "./JobStatsChart";
+export * from "./StatusBadge";

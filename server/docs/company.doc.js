@@ -251,3 +251,83 @@
  *       404:
  *         description: Không tìm thấy công ty
  */
+
+/**
+ * @swagger
+ * /api/companies/admin:
+ *   get:
+ *     summary: Admin lấy danh sách tất cả công ty
+ *     description: |
+ *       Chỉ admin được phép truy cập.
+ *       Hỗ trợ phân trang.
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số bản ghi mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách công ty
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 companies:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CompanyResponse'
+ *                 total:
+ *                   type: integer
+ *                   example: 120
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 6
+ *       403:
+ *         description: Không có quyền (chỉ admin)
+ */
+
+/**
+ * @swagger
+ * /api/companies/{id}:
+ *   get:
+ *     summary: Admin lấy chi tiết thông tin một công ty
+ *     description: |
+ *       Chỉ admin được phép truy cập.
+ *       Trả về đầy đủ thông tin công ty và trạng thái xác thực.
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của công ty
+ *     responses:
+ *       200:
+ *         description: Thông tin chi tiết công ty
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CompanyResponse'
+ *       403:
+ *         description: Không có quyền (chỉ admin)
+ *       404:
+ *         description: Không tìm thấy công ty
+ */

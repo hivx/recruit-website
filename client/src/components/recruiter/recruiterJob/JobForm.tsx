@@ -1,4 +1,15 @@
 // src/components/recruiter/recruiterJob/JobForm.tsx
+import {
+  Briefcase,
+  MapPin,
+  BadgeDollarSign,
+  FileText,
+  Tag,
+  Wrench,
+  Plus,
+  X,
+  Save,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { SkillNameInput } from "@/components/profile";
 import type { JobCreatePayload, JobDetail, JobRequiredSkill } from "@/types";
@@ -141,24 +152,35 @@ export function JobForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-2xl shadow-lg p-6 md:p-8 space-y-6 border border-gray-100"
+      className="
+        rounded-2xl p-6 md:p-8 space-y-6
+        bg-gradient-to-br from-blue-50 via-white to-blue-100
+        shadow-lg border border-blue-100
+      "
     >
       {/* ================= HEADER ================= */}
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl font-semibold text-gray-900">
-          {mode === "create" ? "Thêm tin tuyển dụng" : "Sửa tin tuyển dụng"}
-        </h2>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
+            <Briefcase className="w-5 h-5" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {mode === "create" ? "Thêm tin tuyển dụng" : "Sửa tin tuyển dụng"}
+          </h2>
+        </div>
 
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
             className="
-            px-3 py-2 rounded-lg
-            bg-gray-100 text-gray-700
-            hover:bg-gray-200 transition cursor-pointer
-          "
+              inline-flex items-center gap-1
+              px-3 py-2 rounded-lg
+              bg-gray-100 text-gray-700
+              hover:bg-gray-200 transition cursor-pointer
+            "
           >
+            <X className="w-4 h-4" />
             Hủy
           </button>
         )}
@@ -169,17 +191,23 @@ export function JobForm({
         <label htmlFor="title" className="text-sm font-medium text-gray-700">
           Tiêu đề
         </label>
-        <input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          className="
-          w-full border rounded-xl px-4 py-2.5
-          focus:ring-2 focus:ring-blue-400
-          focus:border-blue-400 outline-none
-        "
-        />
+
+        <div className="relative">
+          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="
+              w-full pl-10 pr-4 py-2.5
+              border rounded-xl
+              focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+              transition outline-none
+            "
+            placeholder="Ví dụ: Backend Node.js Developer"
+          />
+        </div>
       </div>
 
       {/* ================= LOCATION + SALARY ================= */}
@@ -192,16 +220,21 @@ export function JobForm({
           >
             Địa điểm
           </label>
-          <input
-            id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="
-            w-full border rounded-xl px-4 py-2.5
-            focus:ring-2 focus:ring-blue-400 outline-none
-          "
-            placeholder="Địa điểm"
-          />
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="
+                w-full pl-10 pr-4 py-2.5
+                border rounded-xl
+                focus:ring-2 focus:ring-blue-400
+                transition outline-none
+              "
+              placeholder="Hà Nội, Phú Thọ, Đà Nẵng,..."
+            />
+          </div>
         </div>
 
         {/* SALARY */}
@@ -210,40 +243,50 @@ export function JobForm({
             htmlFor="salaryMin"
             className="text-sm font-medium text-gray-700"
           >
-            Mức lương
+            Mức lương (VNĐ)
           </label>
-
           <div className="grid grid-cols-2 gap-3">
-            <input
-              id="salaryMin"
-              type="number"
-              value={salaryMin ?? ""}
-              min={0}
-              step={1000000}
-              onChange={(e) =>
-                setSalaryMin(e.target.value ? Number(e.target.value) : null)
-              }
-              className="
-              border rounded-xl px-4 py-2.5
-              focus:ring-2 focus:ring-blue-400 outline-none
-            "
-              placeholder="Từ"
-            />
-            <input
-              id="salaryMax"
-              type="number"
-              value={salaryMax ?? ""}
-              min={0}
-              step={1000000}
-              onChange={(e) =>
-                setSalaryMax(e.target.value ? Number(e.target.value) : null)
-              }
-              className="
-              border rounded-xl px-4 py-2.5
-              focus:ring-2 focus:ring-blue-400 outline-none
-            "
-              placeholder="Đến"
-            />
+            <div className="relative">
+              <BadgeDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                id="salaryMin"
+                type="number"
+                value={salaryMin ?? ""}
+                min={0}
+                step={1000000}
+                onChange={(e) =>
+                  setSalaryMin(e.target.value ? Number(e.target.value) : null)
+                }
+                className="
+                  w-full pl-10 pr-4 py-2.5
+                  border rounded-xl
+                  focus:ring-2 focus:ring-blue-400
+                  outline-none transition
+                "
+                placeholder="Từ"
+              />
+            </div>
+
+            <div className="relative">
+              <BadgeDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                id="salaryMax"
+                type="number"
+                value={salaryMax ?? ""}
+                min={0}
+                step={1000000}
+                onChange={(e) =>
+                  setSalaryMax(e.target.value ? Number(e.target.value) : null)
+                }
+                className="
+                  w-full pl-10 pr-4 py-2.5
+                  border rounded-xl
+                  focus:ring-2 focus:ring-blue-400
+                  outline-none transition
+                "
+                placeholder="Đến"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -256,15 +299,22 @@ export function JobForm({
         >
           Mô tả công việc
         </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="
-          w-full border rounded-xl px-4 py-2.5 min-h-[100px]
-          focus:ring-2 focus:ring-blue-400 outline-none
-        "
-        />
+
+        <div className="relative">
+          <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="
+              w-full pl-10 pr-4 py-2.5 min-h-[110px]
+              border rounded-xl
+              focus:ring-2 focus:ring-blue-400
+              transition outline-none
+            "
+            placeholder="Mô tả ngắn gọn về công việc…"
+          />
+        </div>
       </div>
 
       {/* ================= REQUIREMENTS ================= */}
@@ -289,31 +339,43 @@ export function JobForm({
       {/* ================= TAGS ================= */}
       <div className="space-y-2">
         <label htmlFor="tags" className="text-sm font-medium text-gray-700">
-          Tags
+          Ngành nghề/lĩnh vực
         </label>
-        <input
-          id="tags"
-          value={tagsText}
-          onChange={(e) =>
-            setTags(
-              e.target.value
-                .split(",")
-                .map((x) => x.trim())
-                .filter(Boolean),
-            )
-          }
-          className="
-          w-full border rounded-xl px-4 py-2.5
-          focus:ring-2 focus:ring-blue-400 outline-none
-        "
-          placeholder="Node.js, React, PostgreSQL"
-        />
+
+        <div className="relative">
+          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            id="tags"
+            value={tagsText}
+            onChange={(e) =>
+              setTags(
+                e.target.value
+                  .split(",")
+                  .map((x) => x.trim())
+                  .filter(Boolean),
+              )
+            }
+            className="
+              w-full pl-10 pr-4 py-2.5
+              border rounded-xl
+              focus:ring-2 focus:ring-blue-400
+              outline-none transition
+            "
+            placeholder="Node.js, React, PostgreSQL"
+          />
+        </div>
+
+        <p className="text-xs text-gray-500">Ngăn cách các tag bằng dấu phẩy</p>
       </div>
 
       {/* ================= REQUIRED SKILLS ================= */}
       <div className="space-y-3">
-        <label htmlFor="reqSkill" className="text-sm font-medium text-gray-700">
-          Required skills
+        <label
+          htmlFor="reqSkill"
+          className="flex items-center gap-2 text-sm font-medium text-gray-700"
+        >
+          <Wrench className="w-4 h-4 text-gray-500" />
+          Kỹ năng yêu cầu
         </label>
 
         {/* INPUT ROW */}
@@ -380,12 +442,15 @@ export function JobForm({
             type="button"
             onClick={handleAddSkill}
             className="
-            px-3 py-2 rounded-lg
-            bg-blue-600 text-white text-sm
-            hover:bg-blue-700 transition cursor-pointer
-          "
+              inline-flex items-center gap-1
+              px-3 py-2 rounded-lg
+              bg-blue-600 text-white text-sm
+              hover:bg-blue-700 active:scale-[0.97]
+              transition cursor-pointer
+            "
           >
-            + Thêm
+            <Plus className="w-4 h-4" />
+            Thêm
           </button>
         </div>
 
@@ -398,10 +463,11 @@ export function JobForm({
               <div
                 key={s.name}
                 className="
-                flex items-center gap-3
-                border rounded-xl px-3 py-2
-                hover:border-blue-300 transition
-              "
+                  flex items-center gap-3
+                  border rounded-xl px-3 py-2
+                  hover:border-blue-400 hover:bg-blue-50
+                  transition
+                "
               >
                 <strong>{s.name}</strong>
                 <span className="text-xs">Lv: {s.levelRequired ?? "N/A"}</span>
@@ -428,11 +494,16 @@ export function JobForm({
           type="submit"
           disabled={loading}
           className="
-          px-5 py-2.5 rounded-xl
-          bg-blue-600 text-white font-medium
-          hover:bg-blue-700 disabled:opacity-60 cursor-pointer
-        "
+            inline-flex items-center gap-2
+            px-6 py-2.5 rounded-xl
+            bg-blue-600 text-white font-medium
+            hover:bg-blue-700
+            disabled:opacity-60 disabled:cursor-not-allowed
+            active:scale-[0.98]
+            transition cursor-pointer
+          "
         >
+          <Save className="w-4 h-4" />
           {submitLabel}
         </button>
       </div>

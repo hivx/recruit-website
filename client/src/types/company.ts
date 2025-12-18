@@ -76,3 +76,41 @@ export interface SubmitCompanyResponse {
   status: "submitted";
   submitted_at: string;
 }
+
+// Raw từ BE: GET /api/companies/admin
+export interface CompanyListResponseRaw {
+  companies: CompanyRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface CompanyListResponse {
+  companies: Company[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface VerifyCompanyPayload {
+  status: CompanyVerificationStatus;
+  reason?: string; // chỉ cần khi rejected
+}
+
+/* ===== RAW (BE) ===== */
+export interface VerifyCompanyResponseRaw {
+  company_id: string;
+  status: CompanyVerificationStatus;
+  rejection_reason: string | null;
+  verified_at: string | null;
+  reviewed_by: string | null;
+}
+
+/* ===== FE (camelCase) ===== */
+export interface VerifyCompanyResponse {
+  companyId: string;
+  status: CompanyVerificationStatus;
+  rejectionReason: string | null;
+  verifiedAt: string | null;
+  reviewedBy: string | null;
+}

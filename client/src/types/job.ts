@@ -108,6 +108,7 @@ export interface JobRaw {
   salary_max: number | null;
   requirements: string | null;
   created_by: string;
+  created_by_name: string;
   company_id: string;
 
   company?: {
@@ -142,6 +143,7 @@ export interface Job {
   requirements: string | null;
 
   createdBy: string;
+  createdByName: string;
   companyId: string;
 
   company?: {
@@ -221,4 +223,35 @@ export interface JobCreatePayload {
   tags?: string[];
 
   requiredSkills?: JobRequiredSkill[];
+}
+
+export interface JobApprovalBaseResponse {
+  jobId: string;
+  status: "approved" | "rejected";
+}
+
+export interface ApproveJobResponseRaw extends JobApprovalBaseResponse {
+  status: "approved";
+  audited_at: string;
+}
+
+export interface RejectJobResponseRaw extends JobApprovalBaseResponse {
+  status: "rejected";
+  reason: string | null;
+  audited_at: string;
+}
+
+export interface ApproveJobResponse extends JobApprovalBaseResponse {
+  status: "approved";
+  auditedAt: string;
+}
+
+export interface RejectJobResponse extends JobApprovalBaseResponse {
+  status: "rejected";
+  reason: string | null;
+  auditedAt: string;
+}
+
+export interface RejectJobPayload {
+  reason: string;
 }

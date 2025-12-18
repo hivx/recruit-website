@@ -44,4 +44,14 @@ router.patch(
   companyController.verifyCompany,
 );
 
+// ADMIN – COMPANY MANAGEMENT
+router.get(
+  "/admin",
+  authMiddleware,
+  authorizeRoles("admin"),
+  companyController.listCompanies,
+);
+
+router.get("/:id", authMiddleware, companyController.getCompanyDetail);
+
 module.exports = router;

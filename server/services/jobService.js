@@ -758,6 +758,7 @@ exports.rejectJob = async (jobId, adminId, reason) => {
     job_id: job.id.toString(),
     status: approval.status,
     reason: approval.reason,
+    audited_at: approval.audited_at,
   };
 };
 

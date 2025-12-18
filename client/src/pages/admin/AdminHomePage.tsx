@@ -1,5 +1,12 @@
+// src/pages/admin/AdminHomePage.tsx
 import { JobStatsDashboard } from "@/components";
-import { AdminUserList, AdminUserRoleStatsChart } from "@/components/admin";
+import {
+  AdminUserList,
+  AdminUserRoleStatsChart,
+  AdminUserMonthlyStatsChart,
+  CompanyVerificationChart,
+  CompanyApprovalKpi,
+} from "@/components/admin";
 import { useUserStore } from "@/stores";
 
 export function AdminHomePage() {
@@ -43,7 +50,31 @@ export function AdminHomePage() {
         </section>
 
         {/* -------- COMPANY APPROVAL STATISTICS -------- */}
-        {/* 
+        <section className="bg-white rounded-2xl shadow p-6">
+          <h2
+            className="
+      text-2xl font-bold mb-6 text-gray-800
+      flex items-center gap-2
+    "
+          >
+            <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
+            Thống kê phê duyệt công ty{" "}
+          </h2>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
+            {/* LEFT: CHART */}
+            <div className="xl:col-span-2 flex">
+              <CompanyVerificationChart />
+            </div>
+
+            {/* RIGHT: KPI SUMMARY */}
+            <div className="flex flex-col justify-center gap-4">
+              <CompanyApprovalKpi />
+            </div>
+          </div>
+        </section>
+
+        {/* -------- USER MANAGEMENT -------- */}
         <section>
           <h2
             className="
@@ -51,18 +82,22 @@ export function AdminHomePage() {
               flex items-center gap-2
             "
           >
-            <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
-            Thống kê công ty
+            <span className="w-2 h-6 bg-green-500 rounded-full"></span>
+            Danh sách người dùng{" "}
+          </h2>
+          <AdminUserList />
+        </section>
+
+        <section className="mt-10">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+            <span className="w-2 h-6 bg-purple-500 rounded-full"></span>
+            Thống kê người dùng{" "}
           </h2>
 
-          <AdminCompanyApprovalStatsChart />
-        </section>
-        */}
-
-        {/* -------- USER STATISTICS -------- */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <AdminUserList />
-          <AdminUserRoleStatsChart />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <AdminUserRoleStatsChart />
+            <AdminUserMonthlyStatsChart />
+          </div>
         </section>
       </div>
     </div>

@@ -3,7 +3,6 @@ export * from "./MyJobList";
 export * from "./RecruiterSidebar";
 export * from "./CompanyForm";
 export * from "./InfoRow";
-export * from "./StatusBadge";
 export * from "./MyCompanyModal";
 export * from "./ApplicantCard";
 export * from "./ApplicantList";

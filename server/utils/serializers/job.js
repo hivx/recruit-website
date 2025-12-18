@@ -24,6 +24,7 @@ const toJobDTO = (job) => {
     salary_max: job.salary_max ?? null,
     requirements: job.requirements,
     created_by: toStr(job.created_by),
+    created_by_name: job.created_by_name,
     company_id: toStr(job.company_id),
 
     company: job.company

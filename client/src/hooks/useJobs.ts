@@ -7,6 +7,8 @@ import {
   createJob,
   updateJob,
   deleteJob,
+  approveJob,
+  rejectJob,
 } from "@/services";
 import type {
   Job,
@@ -14,7 +16,10 @@ import type {
   JobSearchQuery,
   JobDetail,
   JobCreatePayload,
+  ApproveJobResponse,
+  RejectJobResponse,
 } from "@/types";
+import { Toast, getAxiosErrorMessage } from "@/utils";
 
 /** Hook: Lấy danh sách Job với phân trang + search/filter */
 export function useJobs(page: number, limit: number, filter: JobSearchQuery) {
@@ -63,6 +68,7 @@ export function useCreateJob() {
     mutationFn: (data) => createJob(data),
 
     onSuccess: (job) => {
+      Toast.success("Tạo tin tuyển dụng thành công!");
       if (!job) {
         return;
       }
@@ -79,6 +85,9 @@ export function useCreateJob() {
       // Cache detail job vừa tạo
       queryClient.setQueryData(["job", job.id], job);
     },
+    onError: (err) => {
+      Toast.error(getAxiosErrorMessage(err));
+    },
   });
 }
 
@@ -94,6 +103,7 @@ export function useUpdateJob() {
     mutationFn: ({ jobId, data }) => updateJob(jobId, data),
 
     onSuccess: (job) => {
+      Toast.success("Cập nhật thành công!");
       if (!job) {
         return;
       }
@@ -110,6 +120,9 @@ export function useUpdateJob() {
         queryKey: ["my-jobs"],
       });
     },
+    onError: (err) => {
+      Toast.error(getAxiosErrorMessage(err));
+    },
   });
 }
 
@@ -121,6 +134,7 @@ export function useDeleteJob() {
     mutationFn: (jobId) => deleteJob(jobId),
 
     onSuccess: (success, jobId) => {
+      Toast.success("Xóa tin tuyển dụng thành công!");
       if (!success) {
         return;
       }
@@ -138,6 +152,102 @@ export function useDeleteJob() {
       void queryClient.invalidateQueries({
         queryKey: ["my-jobs"],
       });
+    },
+    onError: (err) => {
+      Toast.error(getAxiosErrorMessage(err));
+    },
+  });
+}
+
+interface ApproveJobInput {
+  jobId: string;
+}
+
+// Hook: ADMIN duyệt job
+export function useApproveJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApproveJobResponse | null, Error, ApproveJobInput>({
+    mutationFn: ({ jobId }) => approveJob(jobId),
+
+    onSuccess: (res, { jobId }) => {
+      if (!res) {
+        Toast.error("Duyệt tin thất bại!");
+        return;
+      }
+
+      Toast.success("Đã duyệt tin tuyển dụng!");
+
+      // Update job detail cache nếu có
+      queryClient.setQueryData(["job", jobId], (old: JobDetail | undefined) =>
+        old
+          ? {
+              ...old,
+              approval: {
+                ...old.approval,
+                status: "approved",
+                auditedAt: res.auditedAt,
+                reason: null,
+              },
+            }
+          : old,
+      );
+
+      // Refresh lists
+      void queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      void queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+
+    onError: (err) => {
+      Toast.error(getAxiosErrorMessage(err));
+    },
+  });
+}
+
+interface RejectJobInput {
+  jobId: string;
+  reason: string;
+}
+
+// Hook: ADMIN từ chối job
+export function useRejectJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation<RejectJobResponse | null, Error, RejectJobInput>({
+    mutationFn: ({ jobId, reason }) => rejectJob(jobId, { reason }),
+
+    onSuccess: (res, { jobId }) => {
+      if (!res) {
+        Toast.error("Từ chối tin thất bại!");
+        return;
+      }
+
+      Toast.success("Đã từ chối tin tuyển dụng!");
+
+      // Update job detail cache nếu có
+      queryClient.setQueryData(["job", jobId], (old: JobDetail | undefined) =>
+        old
+          ? {
+              ...old,
+              approval: {
+                ...old.approval,
+                status: "rejected",
+                reason: res.reason,
+                auditedAt: res.auditedAt,
+              },
+            }
+          : old,
+      );
+
+      // Refresh lists
+      void queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      void queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+
+    onError: (err) => {
+      Toast.error(getAxiosErrorMessage(err));
     },
   });
 }
