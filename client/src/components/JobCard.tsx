@@ -5,7 +5,7 @@ import { useAppNavigate } from "@/hooks";
 import { toggleFavorite } from "@/services";
 import { useUserStore, useFavoriteStore } from "@/stores";
 import type { Job } from "@/types";
-import { resolveImage } from "@/utils";
+import { resolveImage, formatDateDMY } from "@/utils";
 
 type JobCardProps = Readonly<{
   job: Job;
@@ -19,7 +19,6 @@ export function JobCard({ job, score }: JobCardProps) {
   const navigate = useAppNavigate();
 
   // FE state sync với BE isFavorite
-
   const token = useUserStore((s) => s.token); // Lấy token từ store
 
   const favorites = useFavoriteStore((s) => s.favorites);
@@ -56,9 +55,7 @@ export function JobCard({ job, score }: JobCardProps) {
     salaryText = `${job.salaryMax.toLocaleString()} VND`;
   }
 
-  const postedDate = job.createdAt
-    ? new Date(job.createdAt).toLocaleDateString("vi-VN")
-    : "N/A";
+  const postedDate = formatDateDMY(job.createdAt);
 
   return (
     <div

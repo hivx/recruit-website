@@ -201,7 +201,7 @@ export function RecruiterPreferencesCard() {
                             bg-red-100 text-red-700
                           "
                         >
-                          Bắt buộc
+                          Ưu tiên
                         </span>
                       )}
                     </div>

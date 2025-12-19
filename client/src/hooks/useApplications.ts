@@ -1,12 +1,15 @@
 // src/hooks/useApplications.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  applyToJob,
+  updateApplication,
   getApplicantsByJob,
   reviewApplicant,
   getMyApplications,
   getRecruiterApplications,
 } from "@/services";
 import type {
+  Application,
   ApplicantsByJobResponse,
   ReviewApplicantPayload,
   ReviewApplicantResponse,
@@ -79,5 +82,76 @@ export function useRecruiterApplications(params: {
     queryFn: () => getRecruiterApplications(params),
     placeholderData: (prev) => prev,
     staleTime: 5_000,
+  });
+}
+
+/** =======================================================
+ * 5) Applicant ứng tuyển công việc
+ ======================================================= */
+export function useApplyToJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string; application: Application },
+    Error,
+    {
+      jobId: string;
+      coverLetter: string;
+      phone?: string;
+      cvFile: File;
+    }
+  >({
+    mutationFn: (payload) => applyToJob(payload),
+
+    async onSuccess(_, variables) {
+      // Refresh danh sách hồ sơ của applicant
+      await queryClient.invalidateQueries({
+        queryKey: ["my-applications"],
+      });
+
+      // Refresh danh sách ứng viên của job
+      await queryClient.invalidateQueries({
+        queryKey: ["applicants-by-job", variables.jobId],
+      });
+    },
+  });
+}
+
+/** =======================================================
+ * 6) Applicant cập nhật hồ sơ ứng tuyển
+ ======================================================= */
+export function useUpdateApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string; application: Application },
+    Error,
+    {
+      applicationId: string;
+      payload: {
+        coverLetter?: string;
+        phone?: string;
+        cvFile?: File;
+      };
+    }
+  >({
+    mutationFn: ({ applicationId, payload }) =>
+      updateApplication(applicationId, payload),
+
+    async onSuccess(result) {
+      const app = result.application;
+
+      // Refresh danh sách hồ sơ của applicant
+      await queryClient.invalidateQueries({
+        queryKey: ["my-applications"],
+      });
+
+      // Nếu biết jobId → refresh danh sách ứng viên của job
+      if (app.jobId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["applicants-by-job", app.jobId],
+        });
+      }
+    },
   });
 }

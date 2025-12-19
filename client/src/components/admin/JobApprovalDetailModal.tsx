@@ -208,7 +208,7 @@ export function JobApprovalDetailModal({
                   <span className="font-medium">{s.name}</span>
                   <span className="text-gray-600">
                     Cấp {s.levelRequired} · {s.yearsRequired} năm kinh nghiệm
-                    {s.mustHave && " · Bắt buộc"}
+                    {s.mustHave && " · Ưu tiên"}
                   </span>
                 </li>
               ))}

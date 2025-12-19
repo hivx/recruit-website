@@ -235,13 +235,13 @@ export function JobSearchBar({
                     key={tag.id}
                     onClick={() => toggleTag(tag.name)}
                     className={`
-              w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all
-              ${
-                active
-                  ? "bg-blue-100 text-blue-600 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
-              }
-            `}
+                      w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all
+                      ${
+                        active
+                          ? "bg-blue-100 text-blue-600 font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }
+                    `}
                   >
                     <input
                       id="checkbox"

@@ -347,7 +347,7 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
                       {...register(`required_skills.${index}.must_have`)}
                       className="accent-blue-600"
                     />
-                    Bắt buộc{" "}
+                    Ưu tiên{" "}
                   </label>
 
                   {/* Remove */}

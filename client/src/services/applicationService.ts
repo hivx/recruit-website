@@ -1,6 +1,8 @@
 // src/services/applicationService.ts
 import { api, isAxiosError } from "@/api";
 import type {
+  Application,
+  ApplicationRaw,
   RecruiterApplicationsResponse,
   RecruiterApplicationsResponseRaw,
   ApplicantsByJobResponse,
@@ -97,4 +99,90 @@ export async function getRecruiterApplications(params: {
     ...res.data,
     applicants: res.data.applicants.map(mapApplicationRaw),
   };
+}
+
+/** =============================
+ * 5) Ứng tuyển công việc
+ * POST /api/applications
+ ============================== */
+export async function applyToJob(params: {
+  jobId: string;
+  coverLetter: string;
+  phone?: string;
+  cvFile: File;
+}): Promise<{ message: string; application: Application }> {
+  try {
+    const formData = new FormData();
+    formData.append("jobId", params.jobId);
+    formData.append("coverLetter", params.coverLetter);
+    if (params.phone) {
+      formData.append("phone", params.phone);
+    }
+    formData.append("cv", params.cvFile);
+
+    const res = await api.post<{
+      message: string;
+      application: ApplicationRaw;
+    }>("/api/applications", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return {
+      message: res.data.message,
+      application: mapApplicationRaw(res.data.application),
+    };
+  } catch (err: unknown) {
+    if (isAxiosError(err)) {
+      throw err;
+    }
+    throw new Error("Unexpected error while applying for job");
+  }
+}
+
+/** =============================
+ * 6) Cập nhật hồ sơ ứng tuyển
+ * PUT /api/applications/:id
+ ============================== */
+export async function updateApplication(
+  applicationId: string,
+  params: {
+    coverLetter?: string;
+    phone?: string;
+    cvFile?: File;
+  },
+): Promise<{ message: string; application: Application }> {
+  try {
+    const formData = new FormData();
+
+    if (params.coverLetter !== undefined) {
+      formData.append("coverLetter", params.coverLetter);
+    }
+    if (params.phone !== undefined) {
+      formData.append("phone", params.phone);
+    }
+    if (params.cvFile) {
+      formData.append("cv", params.cvFile);
+    }
+
+    const res = await api.put<{
+      message: string;
+      application: ApplicationRaw;
+    }>(`/api/applications/${applicationId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return {
+      message: res.data.message,
+      application: mapApplicationRaw(res.data.application),
+    };
+  } catch (err: unknown) {
+    if (isAxiosError(err)) {
+      throw err;
+    }
+    throw new Error("Unexpected error while updating application");
+  }
 }

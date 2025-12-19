@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { Job } from "@/types";
+import { formatDateDMY } from "@/utils";
 
 interface JobApprovalCardProps {
   readonly job: Job;
@@ -41,9 +42,7 @@ export function JobApprovalCard({ job, onClick }: JobApprovalCardProps) {
       ? `${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()}`
       : "Thỏa thuận";
 
-  const updatedDate = job.updatedAt
-    ? new Date(job.updatedAt).toLocaleDateString("vi-VN")
-    : "—";
+  const updatedDate = formatDateDMY(job.updatedAt);
 
   const tags = job.tags?.map((t) => t.tag?.name) ?? [];
   const visibleTags = tags.slice(0, 3);
