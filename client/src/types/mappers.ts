@@ -38,6 +38,10 @@ import type {
   RecruiterPreferenceRaw,
   RecruiterRequiredSkill,
   RecruiterRequiredSkillRaw,
+  PreferenceTag,
+  PreferenceTagRaw,
+  CareerPreferenceUpsert,
+  CareerPreferenceUpsertRaw,
 } from "@/types/preference";
 import type {
   JobRecommendation,
@@ -297,16 +301,61 @@ export function mapCandidateRecommendationRaw(
  * PREFERENCE MAPPERS
  * --------------------------------------------------- */
 
+function mapPreferenceTagRaw(raw: PreferenceTagRaw): PreferenceTag {
+  return {
+    id: raw.id,
+    name: raw.name,
+  };
+}
+
 export function mapCareerPreferenceRaw(
   raw: CareerPreferenceRaw,
 ): CareerPreference {
   return {
     userId: raw.user_id,
-    desiredRoles: raw.desired_roles ?? [],
-    desiredLocations: raw.desired_locations ?? [],
-    desiredSalary: raw.desired_salary,
-    expectedCompanySize: raw.expected_company_size,
+    desiredTitle: raw.desired_title ?? "",
+    desiredCompany: raw.desired_company ?? "",
+    desiredLocation: raw.desired_location ?? "",
+    desiredSalary: raw.desired_salary ?? null,
+    tags: mapArray(raw.tags, mapPreferenceTagRaw),
+    updatedAt: raw.updated_at,
+    createdAt: raw.created_at,
   };
+}
+
+export function mapCareerPreferenceUpsert(
+  payload: CareerPreferenceUpsert,
+): CareerPreferenceUpsertRaw {
+  const raw: CareerPreferenceUpsertRaw = {};
+
+  if (payload.desiredTitle !== undefined) {
+    raw.desired_title =
+      payload.desiredTitle.trim() === "" ? null : payload.desiredTitle.trim();
+  }
+
+  if (payload.desiredCompany !== undefined) {
+    raw.desired_company =
+      payload.desiredCompany.trim() === ""
+        ? null
+        : payload.desiredCompany.trim();
+  }
+
+  if (payload.desiredLocation !== undefined) {
+    raw.desired_location =
+      payload.desiredLocation.trim() === ""
+        ? null
+        : payload.desiredLocation.trim();
+  }
+
+  if (payload.desiredSalary !== undefined) {
+    raw.desired_salary = payload.desiredSalary;
+  }
+
+  if (payload.tags !== undefined) {
+    raw.tags = payload.tags.map((t) => t.trim()).filter(Boolean);
+  }
+
+  return raw;
 }
 
 function mapRecruiterRequiredSkillRaw(

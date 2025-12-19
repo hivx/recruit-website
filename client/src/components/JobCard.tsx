@@ -1,5 +1,5 @@
 // src/components/JobCard.tsx
-import { Heart } from "lucide-react";
+import { Heart, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppNavigate } from "@/hooks";
 import { toggleFavorite } from "@/services";
@@ -18,9 +18,8 @@ export function JobCard({ job, score }: JobCardProps) {
 
   const navigate = useAppNavigate();
 
-  // FE state sync với BE isFavorite
-  const token = useUserStore((s) => s.token); // Lấy token từ store
-
+  // Auth + favorite state
+  const token = useUserStore((s) => s.token);
   const favorites = useFavoriteStore((s) => s.favorites);
   const toggleFav = useFavoriteStore((s) => s.toggle);
 
@@ -34,18 +33,19 @@ export function JobCard({ job, score }: JobCardProps) {
       return;
     }
 
-    // Optimistic UI: toggle local ngay
+    // Optimistic UI
     toggleFav(jobId);
 
     try {
-      await toggleFavorite(job.id); // gọi BE
+      await toggleFavorite(job.id);
     } catch {
-      // rollback nếu fail
-      toggleFav(jobId);
+      toggleFav(jobId); // rollback
     }
   }
 
-  // Lương
+  /* =============================
+     SALARY DISPLAY
+  ============================= */
   let salaryText: string | null = null;
   if (job.salaryMin && job.salaryMax) {
     salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
@@ -55,7 +55,17 @@ export function JobCard({ job, score }: JobCardProps) {
     salaryText = `${job.salaryMax.toLocaleString()} VND`;
   }
 
+  /* =============================
+     DATE LOGIC
+  ============================= */
   const postedDate = formatDateDMY(job.createdAt);
+  const updatedDate = formatDateDMY(job.updatedAt);
+
+  const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
+
+  const isOutdated =
+    job.updatedAt &&
+    Date.now() - new Date(job.updatedAt).getTime() > SIX_MONTHS_MS;
 
   return (
     <div
@@ -66,7 +76,7 @@ export function JobCard({ job, score }: JobCardProps) {
         p-5 flex gap-4 transform hover:-translate-y-1
       "
     >
-      {/* Logo */}
+      {/* ================= LOGO ================= */}
       <Link
         to={`/jobs/${job.id}`}
         className="
@@ -78,14 +88,14 @@ export function JobCard({ job, score }: JobCardProps) {
         <img
           src={logoUrl}
           onError={(e) => {
-            e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+            e.currentTarget.src = resolveImage(null);
           }}
           alt="logo"
           className="w-16 h-16 object-contain"
         />
       </Link>
 
-      {/* Info */}
+      {/* ================= INFO ================= */}
       <div className="flex-1 space-y-1">
         <Link to={`/jobs/${job.id}`}>
           <h2
@@ -102,20 +112,36 @@ export function JobCard({ job, score }: JobCardProps) {
           {job.company?.legalName}
         </p>
 
-        <p className="text-xs text-gray-400 pt-1">Đăng ngày {postedDate}</p>
+        {/* ===== DATES ===== */}
+        <div className="pt-1 space-y-0.5">
+          <p className="text-xs text-gray-400">Đăng ngày {postedDate}</p>
 
-        {/* SCORE — moved inside INFO */}
+          <p className="flex items-center gap-1 text-xs text-gray-400">
+            Cập nhật {updatedDate}
+            {isOutdated && (
+              <span className="ml-2 inline-flex items-center gap-1 text-yellow-600 font-medium">
+                <AlertTriangle className="w-4 h-4" />
+                Quá 6 tháng chưa được cập nhật!
+              </span>
+            )}
+          </p>
+        </div>
+
+        {/* ===== SCORE ===== */}
         {score !== undefined && (
           <span className="inline-block mt-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md">
             Độ phù hợp: {(score * 100).toFixed(2)}%
           </span>
         )}
 
-        {/* Salary + Location */}
+        {/* ===== SALARY + LOCATION ===== */}
         <div className="flex flex-wrap gap-2 pt-1">
-          <span className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">
-            {salaryText}
-          </span>
+          {salaryText && (
+            <span className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">
+              {salaryText}
+            </span>
+          )}
+
           {job.location && (
             <span className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">
               {job.location}
@@ -123,7 +149,7 @@ export function JobCard({ job, score }: JobCardProps) {
           )}
         </div>
 
-        {/* Tags */}
+        {/* ===== TAGS ===== */}
         {job.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
             {job.tags.map((t) => (
@@ -142,7 +168,7 @@ export function JobCard({ job, score }: JobCardProps) {
         )}
       </div>
 
-      {/* Heart Favorite */}
+      {/* ================= FAVORITE ================= */}
       <button
         onClick={(e) => {
           void handleToggle(e);

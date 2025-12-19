@@ -624,16 +624,18 @@ exports.getPopularTags = async () => {
   }));
 };
 
-//  Lấy tất cả tag có sử dụng bởi job
+//  Lấy tất cả tag
 exports.getAllTags = async () => {
   const tags = await prisma.tag.findMany({
-    where: { jobs: { some: {} } },
+    // where: { jobs: { some: {} } },
     select: {
       id: true,
       name: true,
       _count: { select: { jobs: true } },
     },
-    orderBy: { id: "asc" },
+    orderBy: {
+      name: "asc",
+    },
   });
 
   return tags.map((t) => ({

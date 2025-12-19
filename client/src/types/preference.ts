@@ -2,23 +2,47 @@
 /** Career preference (ứng viên) raw từ BE */
 export interface CareerPreferenceRaw {
   user_id: string;
-  desired_roles: string[];
-  desired_locations: string[];
+  desired_title: string | null;
+  desired_company: string | null;
+  desired_location: string | null;
   desired_salary: number | null;
-  expected_company_size: string | null;
+  tags: PreferenceTagRaw[];
+  updated_at: string;
+  created_at: string;
 }
 
 /** Career preference FE */
 export interface CareerPreference {
   userId: string;
-  desiredRoles: string[];
-  desiredLocations: string[];
+  desiredTitle: string;
+  desiredCompany: string;
+  desiredLocation: string;
   desiredSalary: number | null;
-  expectedCompanySize: string | null;
+  tags: PreferenceTag[];
+  updatedAt: string;
+  createdAt: string;
+}
+
+/** Payload raw FE → BE (snake_case) */
+export interface CareerPreferenceUpsertRaw {
+  desired_title?: string | null;
+  desired_company?: string | null;
+  desired_location?: string | null;
+  desired_salary?: number | null;
+  tags?: string[];
+}
+
+/** Payload FE (camelCase) */
+export interface CareerPreferenceUpsert {
+  desiredTitle?: string;
+  desiredCompany?: string;
+  desiredLocation?: string;
+  desiredSalary?: number | null;
+  tags?: string[];
 }
 
 /** Recruiter desired tag raw (BE → FE) */
-export interface RecruiterTagRaw {
+export interface PreferenceTagRaw {
   id: number;
   name: string;
 }
@@ -36,13 +60,13 @@ export interface RecruiterPreferenceRaw {
   user_id: string;
   desired_location: string | null;
   desired_salary_avg: number | null;
-  desired_tags: RecruiterTagRaw[];
+  desired_tags: PreferenceTagRaw[];
   required_skills: RecruiterRequiredSkillRaw[];
   updated_at: string;
 }
 
 /** Recruiter desired tag FE */
-export interface RecruiterTag {
+export interface PreferenceTag {
   id: number;
   name: string;
 }
@@ -60,7 +84,7 @@ export interface RecruiterPreference {
   userId: string;
   desiredLocation: string | null;
   desiredSalaryAvg: number | null;
-  desiredTags: RecruiterTag[];
+  desiredTags: PreferenceTag[];
   requiredSkills: RecruiterRequiredSkill[];
   updatedAt: string;
 }

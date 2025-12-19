@@ -7,6 +7,7 @@ import {
   UserInfoCard,
   MySkillsCard,
   RecruiterPreferencesCard,
+  CareerPreferencesCard,
 } from "@/components/profile";
 import { useAllSkills } from "@/hooks";
 import { useUserStore, useSkillStore } from "@/stores";
@@ -44,6 +45,7 @@ export function ProfilePage() {
               <FavoriteJobsCard />
               <MyApplicationsCard />
             </div>
+            <CareerPreferencesCard />
 
             <MySkillsCard />
           </>
