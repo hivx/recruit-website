@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 const { toJobDTO } = require("../utils/serializers/job");
+const emailService = require("./emailService");
 
 module.exports = {
   // async getUserById(userId) {
@@ -233,6 +234,7 @@ module.exports = {
 
     return { message: "Đổi mật khẩu thành công!" };
   },
+
   async adminCreateUser({ name, email, password, role, isVerified = true }) {
     // 1. Validate cơ bản
     if (!name || !email || !password) {
@@ -273,6 +275,8 @@ module.exports = {
       },
     });
   },
+
+  // Admin update user
   async adminUpdateUser(userId, data) {
     const uid = BigInt(userId);
 
@@ -315,11 +319,94 @@ module.exports = {
       },
     });
   },
+
+  // Admin active / deactive user
   async adminSetUserActive(userId, isActive) {
-    return this.adminUpdateUser(userId, {
-      isVerified: Boolean(isActive),
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+      select: { id: true, name: true, email: true, isVerified: true },
     });
+
+    if (!user) {
+      const e = new Error("Không tìm thấy người dùng.");
+      e.status = 404;
+      throw e;
+    }
+
+    const nextIsVerified = Boolean(isActive);
+    const shouldSendEmail = user.isVerified !== nextIsVerified;
+
+    const updated = await this.adminUpdateUser(userId, {
+      isVerified: nextIsVerified,
+    });
+
+    // ===== GỬI EMAIL (GỘP LUÔN) =====
+    if (shouldSendEmail && user.email) {
+      try {
+        const subject = nextIsVerified
+          ? "Tài khoản của bạn đã được kích hoạt"
+          : "Tài khoản của bạn đã bị vô hiệu hóa";
+
+        const html = nextIsVerified
+          ? `
+            <div style="font-family: Arial; line-height:1.6;">
+              <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+              <p>
+                Tài khoản của bạn đã được
+                <b style="color:#16a34a;">kích hoạt</b>.
+              </p>
+
+              <p>
+                Bạn hiện có thể đăng nhập và sử dụng các chức năng của hệ thống.
+              </p>
+
+              <p style="margin:24px 0;">
+                <a href="${process.env.CLIENT_URL}/login"
+                  style="
+                    padding:10px 16px;
+                    background:#16a34a;
+                    color:#fff;
+                    text-decoration:none;
+                    border-radius:6px;
+                    font-weight:600;
+                  ">
+                  Đăng nhập hệ thống
+                </a>
+              </p>
+
+              <p>Trân trọng,<br/><b>Recruitment System</b></p>
+            </div>
+          `
+          : `
+            <div style="font-family: Arial; line-height:1.6;">
+              <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+              <p>
+                Tài khoản của bạn hiện
+                <b style="color:#dc2626;">đã bị vô hiệu hóa</b>.
+              </p>
+
+              <p>
+                Nếu bạn muốn muốn khiếu nại hoặc cần hỗ trợ,
+                vui lòng liên hệ với quản trị viên của hệ thống.
+              </p>
+
+              <p>Trân trọng,<br/><b>Recruitment System</b></p>
+            </div>
+          `;
+
+        await emailService.sendEmail(user.email, subject, html);
+      } catch (e) {
+        console.error("[Email User Active] send failed:", e?.message);
+        // không throw
+      }
+    }
+
+    return updated;
   },
+
+  // Admin list users
   async adminListUsers({ role, isVerified, page = 1, limit = 20 }) {
     const skip = (page - 1) * limit;
 
@@ -357,6 +444,8 @@ module.exports = {
       totalPages: Math.ceil(total / limit),
     };
   },
+
+  // Admin delete user
   async adminDeleteUser(userId) {
     const uid = BigInt(userId);
 

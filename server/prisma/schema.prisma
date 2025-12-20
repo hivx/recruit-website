@@ -66,7 +66,7 @@ model CompanyVerification {
   reviewed_by      BigInt?
   company_id       BigInt                    @unique
   status           CompanyVerificationStatus @default(submitted)
-  rejection_reason String?                   @db.VarChar(255)
+  rejection_reason String?                   @db.Text
   submitted_at     DateTime                  @default(now())
   verified_at      DateTime?
   company          Company                   @relation(fields: [company_id], references: [id], onDelete: Cascade)
@@ -82,10 +82,10 @@ model Job {
   created_by        BigInt
   created_by_name   String                @db.VarChar(200)
   location          String?               @db.VarChar(100)
-  description       String?               @db.LongText
+  description       String?               @db.Text
   salary_min        Int?
   salary_max        Int?
-  requirements      String?               @db.VarChar(500)
+  requirements      String?               @db.Text
   quality_score     Float?                @default(0)
   application_count Int                   @default(0)
   created_at        DateTime              @default(now())
@@ -113,7 +113,7 @@ model JobApproval {
   id         BigInt            @id @default(autoincrement())
   job_id     BigInt            @unique
   status     JobApprovalStatus @default(pending)
-  reason     String?           @db.VarChar(255)
+  reason     String?           @db.Text
   auditor_id BigInt?
   audited_at DateTime?
   updated_at DateTime          @default(now()) @updatedAt
@@ -174,13 +174,13 @@ model Application {
   id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String            @db.VarChar(1000)
+  cover_letter String            @db.Text
   cv           String?
   phone        String?
   status       ApplicationStatus @default(pending)
   fit_score    Float?            @default(0)
   created_at   DateTime          @default(now())
-  review_note  String?           @db.VarChar(500)
+  review_note  String?           @db.Text
   reviewed_at  DateTime?
   reviewed_by  BigInt?
   updated_at   DateTime          @default(now()) @updatedAt
@@ -292,7 +292,7 @@ model JobRecommendation {
   user_id        BigInt
   job_id         BigInt
   fit_score      Float?    @default(0)
-  reason         String?   @db.VarChar(255)
+  reason         String?   @db.Text
   is_sent        Boolean   @default(false)
   sent_at        DateTime?
   status         String?   @db.VarChar(50)
@@ -312,7 +312,7 @@ model CandidateRecommendation {
   recruiter_id   BigInt
   applicant_id   BigInt
   fit_score      Float?   @default(0)
-  reason         String?  @db.VarChar(255)
+  reason         String?  @db.Text
   status         String?  @db.VarChar(50)
   recommended_at DateTime @default(now())
   updated_at     DateTime @default(now()) @updatedAt
@@ -340,7 +340,7 @@ model UserSkill {
   skill_id Int
   level    Int?
   years    Int?
-  note     String? @db.VarChar(255)
+  note     String? @db.Text
   skill    Skill   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
   user     User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 

@@ -1,11 +1,6 @@
 // src/routers/ProtectedRoutes.tsx
 import { Navigate, Outlet, Route } from "react-router-dom";
-import {
-  MainLayout,
-  TransitionLayout,
-  RecruiterLayout,
-  AdminLayout,
-} from "@/layouts";
+import { MainLayout, RecruiterLayout, AdminLayout } from "@/layouts";
 import { ProfilePage, ChangePasswordPage } from "@/pages";
 import {
   AdminHomePage,
@@ -62,7 +57,7 @@ export function ProtectedAdminRoute() {
 
 export function ProtectedRoutes() {
   return (
-    <Route element={<TransitionLayout />}>
+    <Route>
       {/* Cần token */}
       <Route element={<ProtectedRouteGuard />}>
         {/* ROUTE CHUNG SAU KHI LOGIN */}
@@ -73,29 +68,23 @@ export function ProtectedRoutes() {
 
         {/* ROUTE DÀNH RIÊNG CHO RECRUITER */}
         <Route element={<ProtectedRecruiterRoute />}>
-          <Route element={<RecruiterLayout />}>
-            <Route path="/recruiter" element={<RecruiterHomePage />} />
-            <Route path="/recruiter/jobs" element={<RecruiterHomePage />} />
-            <Route
-              path="/recruiter/company"
-              element={<RecruiterCompanyPage />}
-            />
-            <Route
-              path="/recruiter/applicants"
-              element={<RecruiterApplicantsPage />}
-            />
-            <Route path="/recruiter/jobs/create" element={<CreateJobPage />} />
-            <Route path="/recruiter/jobs/:id/edit" element={<EditJobPage />} />
+          <Route path="/recruiter" element={<RecruiterLayout />}>
+            <Route index element={<RecruiterHomePage />} />
+            <Route path="jobs" element={<RecruiterHomePage />} />
+            <Route path="company" element={<RecruiterCompanyPage />} />
+            <Route path="applicants" element={<RecruiterApplicantsPage />} />
+            <Route path="jobs/create" element={<CreateJobPage />} />
+            <Route path="jobs/:id/edit" element={<EditJobPage />} />
           </Route>
         </Route>
 
         {/* ROUTE DÀNH RIÊNG CHO ADMIN */}
         <Route element={<ProtectedAdminRoute />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<AdminHomePage />} />
-            <Route path="/admin/dashboard" element={<AdminHomePage />} />
-            <Route path="/admin/jobs" element={<AdminJobsPage />} />
-            <Route path="/admin/companies" element={<AdminCompaniesPage />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminHomePage />} />
+            <Route path="dashboard" element={<AdminHomePage />} />
+            <Route path="jobs" element={<AdminJobsPage />} />
+            <Route path="companies" element={<AdminCompaniesPage />} />
           </Route>
         </Route>
       </Route>

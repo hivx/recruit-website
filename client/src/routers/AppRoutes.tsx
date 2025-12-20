@@ -20,7 +20,7 @@ export function AppRouter() {
   }, []);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       <Routes>
         {/* Public that everyone can access */}
         {PublicRoutes()}

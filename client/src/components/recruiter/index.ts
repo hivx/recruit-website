@@ -9,3 +9,4 @@ export * from "./ApplicantList";
 export * from "./ApplicantDetailModal ";
 export * from "./ApplicationChart";
 export * from "./recruiterJob";
+export * from "./RecruiterJobCard";

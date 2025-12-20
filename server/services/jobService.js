@@ -374,6 +374,24 @@ exports.updateJob = async (id, data) => {
       },
     });
 
+    // ===== RESET APPROVAL IF JOB CHANGED =====
+    const shouldResetApproval =
+      Object.keys(dataToUpdate).length > 1 ||
+      tags !== undefined ||
+      requiredSkills !== undefined;
+
+    if (shouldResetApproval) {
+      await tx.jobApproval.updateMany({
+        where: { job_id: jobId },
+        data: {
+          status: "pending",
+          reason: null,
+          auditor_id: null,
+          audited_at: null,
+        },
+      });
+    }
+
     await updateRequiredSkills(tx);
 
     return updated;
@@ -651,15 +669,20 @@ exports.approveJob = async (jobId, adminId) => {
     where: { id: BigInt(jobId) },
     include: {
       approval: true,
-      creator: { select: { id: true, name: true, email: true } }, // lấy chủ job để gửi mail
+      creator: { select: { id: true, name: true, email: true } },
       company: { select: { legal_name: true } },
     },
   });
+
   if (!job) {
     const e = new Error("Không tìm thấy job.");
     e.status = 404;
     throw e;
   }
+
+  // ===== 3.1 IDENTITY CHECK (chặn gửi trùng) =====
+  const previousStatus = job.approval?.status;
+  const shouldSendEmail = previousStatus !== "approved";
 
   const approval = await prisma.jobApproval.upsert({
     where: { job_id: job.id },
@@ -677,23 +700,63 @@ exports.approveJob = async (jobId, adminId) => {
     },
   });
 
-  // Gửi email thông báo cho recruiter
-  try {
-    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}`;
-    await emailService.sendEmail(
-      job.creator.email,
-      "Bài đăng tuyển dụng đã được DUYỆT",
-      `
-        <p>Chào ${job.creator.name},</p>
-        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã được <b>DUYỆT</b>.</p>
-        <p>Bạn có thể xem chi tiết tại: <a href="${manageUrl}">${manageUrl}</a></p>
-        <p>Trân trọng,</p>
-        <p>Recruitment System</p>
-      `,
-    );
-  } catch (error_) {
-    console.error("[Email Approve Job] send failed:", error_?.message);
-    // không throw để tránh làm fail API duyệt
+  // ===== GỬI EMAIL CHỈ KHI TRẠNG THÁI THỰC SỰ ĐỔI =====
+  if (shouldSendEmail) {
+    try {
+      const manageUrl = `${process.env.CLIENT_URL}/jobs/${job.id.toString()}`;
+
+      const subject = "Bài đăng tuyển dụng của bạn đã được duyệt";
+
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+          <p>Chào <b>${job.creator.name}</b>,</p>
+
+          <p>
+            Bài đăng tuyển dụng
+            <b>${job.title}</b>
+            ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+            đã được <b style="color:#0ea5e9;">DUYỆT</b>.
+          </p>
+
+          <p>
+            Bài đăng của bạn hiện đã được hiển thị và bắt đầu tiếp cận ứng viên phù hợp.
+          </p>
+
+          <p style="margin: 24px 0;">
+            <a
+              href="${manageUrl}"
+              style="
+                display: inline-block;
+                padding: 10px 16px;
+                background-color: #0ea5e9;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+              "
+            >
+              Xem bài đăng tuyển dụng
+            </a>
+          </p>
+
+          <p>
+            Nếu cần chỉnh sửa nội dung hoặc theo dõi ứng viên, bạn có thể thực hiện trực tiếp tại trang quản lý job.
+          </p>
+
+          <p>Chúc bạn sớm tìm được ứng viên phù hợp.</p>
+
+          <p style="margin-top: 32px;">
+            Trân trọng,<br />
+            <b>Recruitment System</b>
+          </p>
+        </div>
+      `;
+
+      await emailService.sendEmail(job.creator.email, subject, html);
+    } catch (error_) {
+      console.error("[Email Approve Job] send failed:", error_?.message);
+      // không throw để tránh làm fail API duyệt
+    }
   }
 
   return {
@@ -713,11 +776,16 @@ exports.rejectJob = async (jobId, adminId, reason) => {
       company: { select: { legal_name: true } },
     },
   });
+
   if (!job) {
     const e = new Error("Không tìm thấy job.");
     e.status = 404;
     throw e;
   }
+
+  // ===== 3.1 IDENTITY CHECK (chặn gửi email trùng) =====
+  const previousStatus = job.approval?.status;
+  const shouldSendEmail = previousStatus !== "rejected";
 
   const approval = await prisma.jobApproval.upsert({
     where: { job_id: job.id },
@@ -736,24 +804,76 @@ exports.rejectJob = async (jobId, adminId, reason) => {
     },
   });
 
-  // Gửi email thông báo từ chối cho recruiter
-  try {
-    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}/edit`;
-    await emailService.sendEmail(
-      job.creator.email,
-      "Bài đăng tuyển dụng bị TỪ CHỐI",
-      `
-        <p>Chào ${job.creator.name},</p>
-        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã bị <b>TỪ CHỐI</b>.</p>
-        <p><b>Lý do:</b> ${reason || "Không có lý do cụ thể."}</p>
-        <p>Vui lòng chỉnh sửa và nộp lại: <a href="${manageUrl}">${manageUrl}</a></p>
-        <p>Trân trọng,</p>
-        <p>Recruitment System</p>
-      `,
-    );
-  } catch (error_) {
-    console.error("[Email Reject Job] send failed:", error_?.message);
-    // không throw để tránh làm fail API
+  // ===== GỬI EMAIL CHỈ KHI TRẠNG THÁI THỰC SỰ ĐỔI =====
+  if (shouldSendEmail) {
+    try {
+      const editUrl = `${process.env.CLIENT_URL}/recruiter/jobs`;
+
+      const subject = "Bài đăng tuyển dụng cần chỉnh sửa trước khi hiển thị";
+
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+          <p>Chào <b>${job.creator.name}</b>,</p>
+
+          <p>
+            Bài đăng tuyển dụng
+            <b>${job.title}</b>
+            ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+            <b style="color:#dc2626;">chưa được phê duyệt</b> tại thời điểm này.
+          </p>
+
+          <p>
+            Dưới đây là lý do để bạn có thể rà soát và điều chỉnh nội dung:
+          </p>
+
+          <blockquote
+            style="
+              margin: 16px 0;
+              padding: 12px 16px;
+              background-color: #fef2f2;
+              border-left: 4px solid #dc2626;
+            "
+          >
+            ${reason || "Không có lý do cụ thể."}
+          </blockquote>
+
+          <p>
+            Sau khi cập nhật, bạn có thể gửi lại bài đăng để được xem xét phê duyệt.
+          </p>
+
+          <p style="margin: 24px 0;">
+            <a
+              href="${editUrl}"
+              style="
+                display: inline-block;
+                padding: 10px 16px;
+                background-color: #dc2626;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+              "
+            >
+              Chỉnh sửa bài đăng
+            </a>
+          </p>
+
+          <p>
+            Nếu bạn cần hỗ trợ thêm trong quá trình chỉnh sửa, vui lòng phản hồi lại email này hoặc liên hệ đội ngũ hỗ trợ.
+          </p>
+
+          <p style="margin-top: 32px;">
+            Trân trọng,<br />
+            <b>Recruitment System</b>
+          </p>
+        </div>
+      `;
+
+      await emailService.sendEmail(job.creator.email, subject, html);
+    } catch (error_) {
+      console.error("[Email Reject Job] send failed:", error_?.message);
+      // không throw để tránh làm fail API
+    }
   }
 
   return {

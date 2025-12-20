@@ -1,6 +1,7 @@
 // server/services/companyService.js
 const prisma = require("../utils/prisma");
 const { toCompanyDTO } = require("../utils/serializers/company");
+const emailService = require("./emailService");
 
 /**
  * Recruiter tạo company (1-1). Sau khi tạo, tạo luôn CompanyVerification(status = submitted).
@@ -187,6 +188,101 @@ async function submitForReview(ownerId) {
   };
 }
 
+async function sendCompanyVerificationEmail({
+  company,
+  owner,
+  status,
+  reason,
+}) {
+  if (!owner?.email) {
+    return;
+  }
+
+  const manageUrl = `${process.env.CLIENT_URL}/recruiter/company`;
+
+  let subject;
+  let html;
+
+  if (status === "verified") {
+    subject = "Công ty của bạn đã được xác thực";
+
+    html = `
+      <div style="font-family: Arial; line-height:1.6;">
+        <p>Chào <b>${owner.name}</b>,</p>
+
+        <p>
+          Công ty <b>${company.legal_name}</b> đã được
+          <b style="color:#16a34a;">xác thực thành công</b>.
+        </p>
+
+        <p>Bạn có thể đăng tin tuyển dụng và sử dụng đầy đủ chức năng.</p>
+
+        <p style="margin:24px 0;">
+          <a href="${manageUrl}" style="
+            padding:10px 16px;
+            background:#16a34a;
+            color:#fff;
+            text-decoration:none;
+            border-radius:6px;
+            font-weight:600;
+          ">
+            Quản lý thông tin công ty
+          </a>
+        </p>
+
+        <p>Trân trọng,<br/><b>Recruitment System</b></p>
+      </div>
+    `;
+  } else {
+    subject = "Công ty chưa được xác thực – cần bổ sung thông tin";
+
+    html = `
+      <div style="font-family: Arial; line-height:1.6;">
+        <p>Chào <b>${owner.name}</b>,</p>
+
+        <p>
+          Hồ sơ công ty <b>${company.legal_name}</b> hiện
+          <b style="color:#dc2626;">chưa được xác thực</b>.
+        </p>
+
+        <p>Lý do:</p>
+
+        <blockquote style="
+          margin:16px 0;
+          padding:12px 16px;
+          background:#fef2f2;
+          border-left:4px solid #dc2626;
+        ">
+          ${reason}
+        </blockquote>
+
+        <p>Vui lòng cập nhật và gửi lại để được xem xét.</p>
+
+        <p style="margin:24px 0;">
+          <a href="${manageUrl}" style="
+            padding:10px 16px;
+            background:#dc2626;
+            color:#fff;
+            text-decoration:none;
+            border-radius:6px;
+            font-weight:600;
+          ">
+            Cập nhật hồ sơ công ty
+          </a>
+        </p>
+
+        <p>Trân trọng,<br/><b>Recruitment System</b></p>
+      </div>
+    `;
+  }
+
+  try {
+    await emailService.sendEmail(owner.email, subject, html);
+  } catch (e) {
+    console.error("[Email Company Verify] send failed:", e?.message);
+  }
+}
+
 /**
  * ADMIN: phê duyệt công ty (verified) hoặc từ chối (rejected + reason).
  */
@@ -203,15 +299,25 @@ async function verifyCompany(companyId, adminId, action) {
     throw e;
   }
 
-  // tồn tại company?
+  // ===== Lấy company + verification cũ + owner =====
   const company = await prisma.company.findUnique({
     where: { id: BigInt(companyId) },
+    include: {
+      verification: true,
+      owner: { select: { id: true, name: true, email: true } },
+    },
   });
+
   if (!company) {
     const e = new Error("Không tìm thấy công ty.");
     e.status = 404;
     throw e;
   }
+
+  // ===== IDENTITY CHECK (chặn gửi email trùng) =====
+  const previousStatus = company.verification?.status;
+  const nextStatus = action.status;
+  const shouldSendEmail = previousStatus !== nextStatus;
 
   const updated = await prisma.companyVerification.upsert({
     where: { company_id: company.id },
@@ -229,6 +335,16 @@ async function verifyCompany(companyId, adminId, action) {
       reviewed_by: BigInt(adminId),
     },
   });
+
+  // ===== GỬI EMAIL CHO CHỦ CÔNG TY =====
+  if (shouldSendEmail) {
+    sendCompanyVerificationEmail({
+      company,
+      owner: company.owner,
+      status: nextStatus,
+      reason: action.reason,
+    });
+  }
 
   return {
     company_id: company.id.toString(),

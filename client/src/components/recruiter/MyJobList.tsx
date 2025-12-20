@@ -1,6 +1,6 @@
 // src/components/recruiter/MyJobList.tsx
 import { useState } from "react";
-import { JobCard, Loader, ErrorBox, ConfirmPopup } from "@/components";
+import { RecruiterJobCard, Loader, ErrorBox, ConfirmPopup } from "@/components";
 import {
   useMyJobs,
   useSyncFavoritesFromJobs,
@@ -187,7 +187,7 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
                 `}
               >
                 <div className={isViewMode ? "" : "pointer-events-none"}>
-                  <JobCard job={job} />
+                  <RecruiterJobCard job={job} />
                 </div>
               </div>
             );

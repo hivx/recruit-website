@@ -5,3 +5,4 @@ export * from "./date";
 export * from "./skillSchema";
 export * from "./myToast";
 export * from "./typeGuards";
+export * from "./scrollToTop";

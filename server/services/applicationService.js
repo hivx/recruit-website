@@ -6,6 +6,7 @@ const prisma = require("../utils/prisma");
 // Giữ nguyên đường dẫn import DTO đúng theo cây của bạn
 const { toApplicationDTO } = require("../utils/serializers/application");
 const { AppError } = require("../utils/thrErrors");
+const emailService = require("./emailService");
 
 /**
  * Gợi ý: dùng 1 helper nhỏ để map list -> DTO
@@ -157,6 +158,101 @@ module.exports = {
     } catch (err) {
       console.warn("[Application] Lỗi tính fit_score:", err.message);
     }
+    // ============================
+    // 4) GỬI EMAIL (ỨNG VIÊN + NTD)
+    // ============================
+    try {
+      const job = await prisma.job.findUnique({
+        where: { id: BigInt(jobId) },
+        include: {
+          creator: { select: { name: true, email: true } }, // NTD
+          company: { select: { legal_name: true } },
+        },
+      });
+
+      const applicant = await prisma.user.findUnique({
+        where: { id: BigInt(userId) },
+        select: { name: true, email: true },
+      });
+
+      // ---- A) Email cho ỨNG VIÊN ----
+      if (applicant?.email) {
+        await emailService.sendEmail(
+          applicant.email,
+          "Bạn đã ứng tuyển thành công",
+          `
+          <div style="font-family: Arial; line-height: 1.6;">
+            <p>Chào <b>${applicant.name || "bạn"}</b>,</p>
+
+            <p>
+              Hồ sơ ứng tuyển của bạn cho vị trí
+              <b>${job.title}</b>
+              ${job.company?.legal_name ? `tại <b>${job.company.legal_name}</b>` : ""}
+              đã được gửi thành công.
+            </p>
+
+            <p>
+              Nhà tuyển dụng sẽ xem xét hồ sơ và liên hệ với bạn nếu phù hợp.
+            </p>
+
+            <p>Chúc bạn may mắn!</p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `,
+        );
+      }
+
+      // ---- B) Email cho NHÀ TUYỂN DỤNG ----
+      if (job?.creator?.email) {
+        const manageUrl = `${process.env.CLIENT_URL}/recruiter/applicants`;
+
+        await emailService.sendEmail(
+          job.creator.email,
+          "Có ứng viên mới ứng tuyển",
+          `
+          <div style="font-family: Arial; line-height: 1.6;">
+            <p>Chào <b>${job.creator.name}</b>,</p>
+
+            <p>
+              Vị trí tuyển dụng
+              <b>${job.title}</b>
+              ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+              vừa có <b>một ứng viên mới</b> nộp hồ sơ.
+            </p>
+
+            <p style="margin: 20px 0;">
+              <a href="${manageUrl}" style="
+                padding:10px 14px;
+                background:#0ea5e9;
+                color:#fff;
+                text-decoration:none;
+                border-radius:6px;
+                font-weight:600;
+              ">
+                Xem danh sách ứng viên
+              </a>
+            </p>
+
+            <p>
+              Vui lòng truy cập hệ thống để xem chi tiết hồ sơ và phản hồi ứng viên.
+            </p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `,
+        );
+      }
+    } catch (e) {
+      console.error("[Application Email] send failed:", e?.message);
+      // không throw
+    }
     return toApplicationDTO(app);
   },
 
@@ -242,6 +338,11 @@ module.exports = {
       throw err;
     }
 
+    // ===== IDENTITY CHECK: tránh gửi email trùng =====
+    const previousStatus = app.status;
+    const nextStatus = reviewData?.status ?? "accepted";
+    const shouldSendEmail = previousStatus !== nextStatus;
+
     // Cập nhật trạng thái review
     const updated = await prisma.application.update({
       where: { id: BigInt(applicationId) },
@@ -256,6 +357,80 @@ module.exports = {
         applicant: { select: { id: true, name: true, email: true } },
       },
     });
+
+    // ===== GỬI EMAIL CHO ỨNG VIÊN =====
+    if (shouldSendEmail && updated.applicant?.email) {
+      try {
+        const subjectMap = {
+          accepted: "Hồ sơ ứng tuyển của bạn đã được chấp nhận",
+          rejected: "Kết quả hồ sơ ứng tuyển",
+        };
+
+        const subject =
+          subjectMap[nextStatus] || "Cập nhật trạng thái hồ sơ ứng tuyển";
+
+        const isAccepted = nextStatus === "accepted";
+
+        const html = `
+          <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+            <p>Chào <b>${updated.applicant.name || "bạn"}</b>,</p>
+
+            <p>
+              Hồ sơ ứng tuyển của bạn cho vị trí
+              <b>${updated.job.title}</b>
+              đã được nhà tuyển dụng xem xét.
+            </p>
+
+            ${
+              isAccepted
+                ? `
+                  <p style="color:#16a34a;">
+                    Chúc mừng bạn! Hồ sơ của bạn đã được <b>chấp nhận</b>.
+                  </p>
+                  <p>
+                    Nhà tuyển dụng sẽ liên hệ với bạn trong thời gian sớm nhất để trao đổi các bước tiếp theo.
+                  </p>
+                `
+                : `
+                  <p style="color:#dc2626;">
+                    Rất tiếc, hồ sơ của bạn <b>chưa phù hợp</b> ở thời điểm hiện tại.
+                  </p>
+                `
+            }
+
+            ${
+              updated.review_note
+                ? `
+                  <blockquote style="
+                    margin: 16px 0;
+                    padding: 12px 16px;
+                    background-color: #f9fafb;
+                    border-left: 4px solid #94a3b8;
+                  ">
+                    ${updated.review_note}
+                  </blockquote>
+                `
+                : ""
+            }
+
+            <p>
+              Cảm ơn bạn đã quan tâm và ứng tuyển.
+              Chúc bạn sớm tìm được cơ hội phù hợp.
+            </p>
+
+            <p style="margin-top: 32px;">
+              Trân trọng,<br />
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `;
+
+        await emailService.sendEmail(updated.applicant.email, subject, html);
+      } catch (e) {
+        console.error("[Email Application Review] send failed:", e?.message);
+        // không throw
+      }
+    }
 
     // Trả về theo chuẩn DTO của project
     return toApplicationDTO(updated);
