@@ -283,6 +283,7 @@ module.exports = {
     const user = await prisma.user.findUnique({
       where: { id: uid },
     });
+
     if (!user) {
       const err = new Error("Người dùng không tồn tại!");
       err.status = 404;
@@ -290,23 +291,30 @@ module.exports = {
     }
 
     const update = {};
+    const changedFields = [];
 
-    if (data.email) {
+    if (data.email && data.email.trim() !== user.email) {
       update.email = data.email.trim();
+      changedFields.push("email");
     }
 
-    if (data.name) {
+    if (data.name && data.name.trim() !== user.name) {
       update.name = data.name.trim();
+      changedFields.push("name");
     }
-    if (data.role) {
+
+    if (data.role && data.role !== user.role) {
       update.role = data.role;
+      changedFields.push("role");
     }
 
     if (typeof data.isVerified === "boolean") {
       update.isVerified = data.isVerified;
+      changedFields.push("isVerified");
     }
 
-    return prisma.user.update({
+    // Không có gì thay đổi → update vẫn chạy (hoặc có thể return sớm)
+    const updated = await prisma.user.update({
       where: { id: uid },
       data: update,
       select: {
@@ -318,6 +326,55 @@ module.exports = {
         updated_at: true,
       },
     });
+
+    // ===== GỬI EMAIL THÔNG BÁO THAY ĐỔI THÔNG TIN =====
+    if (changedFields.length > 0 && user.email) {
+      try {
+        const subject = "Thông tin tài khoản của bạn đã được cập nhật";
+
+        const fieldLabels = {
+          email: "Email",
+          name: "Tên hiển thị",
+          role: "Vai trò tài khoản",
+          isVerified: "Trạng thái tài khoản",
+        };
+
+        const html = `
+          <div style="font-family: Arial; line-height:1.6; color:#111;">
+            <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+            <p>
+              Quản trị viên đã cập nhật một số thông tin trong tài khoản của bạn.
+            </p>
+
+            <ul>
+              ${changedFields
+                .map(
+                  (f) => `<li><b>${fieldLabels[f]}</b> đã được thay đổi</li>`,
+                )
+                .join("")}
+            </ul>
+
+            <p>
+              Nếu bạn không nhận ra thay đổi này hoặc có thắc mắc,
+              vui lòng liên hệ với bộ phận quản trị để được hỗ trợ.
+            </p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `;
+
+        await emailService.sendEmail(user.email, subject, html);
+      } catch (e) {
+        console.error("[Email User Update] send failed:", e?.message);
+        // không throw
+      }
+    }
+
+    return updated;
   },
 
   // Admin active / deactive user

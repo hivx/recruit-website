@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores";
 
 export const api = axios.create({
-  baseURL: (import.meta.env.VITE_API_URL as string) || "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 10000,
 });
 

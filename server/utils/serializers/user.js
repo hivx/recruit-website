@@ -11,6 +11,7 @@ const toUserDTO = (u) => {
     email: u.email,
     avatar: u.avatar,
     role: u.role,
+    receiveRecommendation: u.receive_recommendation,
     isVerified: u.isVerified,
     created_at: u.created_at,
     updated_at: u.updated_at,

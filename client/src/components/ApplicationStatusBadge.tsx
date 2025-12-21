@@ -5,7 +5,7 @@ interface ApplicantStatusProps {
 
 const MAP: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700 border border-yellow-200",
-  approved: "bg-green-100 text-green-700 border border-green-200",
+  accepted: "bg-green-100 text-green-700 border border-green-200",
   rejected: "bg-red-100 text-red-700 border border-red-200",
 };
 

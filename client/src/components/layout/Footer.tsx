@@ -49,7 +49,6 @@ export function Footer() {
             {[
               { to: "/jobs", label: "Tìm việc làm" },
               { to: "/profile", label: "Hồ sơ cá nhân" },
-              { to: "/profile", label: "Đơn ứng tuyển" },
             ].map((item) => (
               <li key={item.to}>
                 <Link

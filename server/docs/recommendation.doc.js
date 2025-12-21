@@ -310,3 +310,93 @@
  *       403:
  *         description: Không có quyền truy cập
  */
+
+/**
+ * @swagger
+ * /api/recommendations/jobs/send:
+ *   post:
+ *     summary: Gửi email đề xuất job cho ứng viên (System)
+ *     description: |
+ *       Admin trigger hệ thống gửi email đề xuất job cho các ứng viên
+ *       đã được recommend, chưa gửi email và **đã bật receive_recommendation**.
+ *
+ *       API này thường được gọi bởi cron job (daily / weekly).
+ *     tags: [Recommendation System]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               minFitScore:
+ *                 type: number
+ *                 format: float
+ *                 example: 0.6
+ *               limitPerUser:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: Kết quả gửi email đề xuất
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Gửi đề xuất job thành công"
+ *               result:
+ *                 users: 3
+ *                 sent: 12
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền (chỉ admin)
+ */
+
+/**
+ * @swagger
+ * /api/recommendations/candidates/send:
+ *   post:
+ *     summary: Gửi email đề xuất ứng viên cho nhà tuyển dụng (System)
+ *     description: |
+ *       Admin trigger hệ thống gửi email đề xuất **ứng viên** cho các nhà tuyển dụng
+ *       đã được recommend, chưa gửi email và **đã bật receive_recommendation**.
+ *
+ *       API này thường được gọi bởi cron job (daily / weekly) hoặc admin chạy thủ công.
+ *     tags: [Recommendation System]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               minFitScore:
+ *                 type: number
+ *                 format: float
+ *                 description: Ngưỡng điểm phù hợp tối thiểu
+ *                 example: 0.25
+ *               limitPerRecruiter:
+ *                 type: integer
+ *                 description: Số ứng viên tối đa gửi cho mỗi nhà tuyển dụng
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: Kết quả gửi email đề xuất ứng viên
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Gửi đề xuất ứng viên cho nhà tuyển dụng thành công."
+ *               result:
+ *                 recruiters: 4
+ *                 sent: 18
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền (chỉ admin)
+ *       500:
+ *         description: Lỗi hệ thống
+ */

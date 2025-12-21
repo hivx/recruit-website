@@ -1,7 +1,7 @@
 // src/pages/ChangePasswordPage.tsx
 import { Mail } from "lucide-react";
 import { ChangePasswordForm } from "@/components";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 
 export function ChangePasswordPage() {
   const { user } = useAuth();
