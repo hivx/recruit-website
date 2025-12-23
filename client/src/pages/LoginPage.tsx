@@ -1,4 +1,5 @@
 // src/pages/LoginPage.tsx
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate, useAuth } from "@/hooks";
@@ -41,6 +42,21 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-300 p-4">
       <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="
+            flex items-center gap-2
+            text-sm text-blue-700
+            hover:text-blue-900
+            hover:underline
+            transition cursor-pointer
+            mb-4
+          "
+        >
+          <ArrowLeft size={16} />
+          Quay về trang chủ
+        </button>
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Hệ thống tuyển dụng VIP PRO
         </h1>

@@ -70,7 +70,7 @@ export function Navbar() {
               </Link>
 
               <Link
-                to="/employer"
+                to="/recruiter/jobs"
                 className="
                   px-4 py-2 rounded-full bg-gray-100 text-gray-700 
                   hover:bg-gray-200 hover:shadow-sm active:scale-95 

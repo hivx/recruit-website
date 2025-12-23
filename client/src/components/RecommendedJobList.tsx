@@ -1,6 +1,6 @@
 // src/components/RecommendedJobList.tsx
 import { useState } from "react";
-import { JobCard, Loader, ErrorBox } from "@/components";
+import { RecommendedJobCard, Loader, ErrorBox } from "@/components";
 import { useRecommendedJobs } from "@/hooks";
 import { getAxiosErrorMessage } from "@/utils";
 
@@ -55,7 +55,12 @@ export function RecommendedJobList({ userId }: RecommendedJobListProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
             {items.map((rec) => (
-              <JobCard key={rec.jobId} job={rec.job} score={rec.fitScore} />
+              <RecommendedJobCard
+                key={rec.jobId}
+                job={rec.job}
+                score={rec.fitScore}
+                reason={rec.reason}
+              />
             ))}
           </div>
         )}
