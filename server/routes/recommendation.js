@@ -13,7 +13,7 @@ router.get(
   recommendationController.getRecommendedCandidates,
 );
 
-// Sinh job đề xuất cho user (ứng viên)
+// Lấy job đề xuất cho user (ứng viên)
 router.get(
   "/:userId",
   authMiddleware,

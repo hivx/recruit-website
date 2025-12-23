@@ -13,6 +13,7 @@ import {
   RecruiterApplicantsPage,
   CreateJobPage,
   EditJobPage,
+  RecruiterCandidatesPage,
 } from "@/pages/recruiter";
 import { useUserStore } from "@/stores";
 
@@ -75,6 +76,10 @@ export function ProtectedRoutes() {
             <Route path="applicants" element={<RecruiterApplicantsPage />} />
             <Route path="jobs/create" element={<CreateJobPage />} />
             <Route path="jobs/:id/edit" element={<EditJobPage />} />
+            <Route
+              path="recommended/candidates"
+              element={<RecruiterCandidatesPage />}
+            />
           </Route>
         </Route>
 

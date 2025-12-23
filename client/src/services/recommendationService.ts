@@ -3,8 +3,10 @@ import { api } from "@/api";
 import type {
   RecommendedJobResponse,
   RecommendedJobResponseRaw,
+  RecommendedCandidateResponse,
+  RecommendedCandidateResponseRaw,
 } from "@/types";
-import { mapJobRecommendation } from "@/types";
+import { mapJobRecommendation, mapCandidateRecommendation } from "@/types";
 
 export async function getRecommendedJobs(
   userId: number,
@@ -18,5 +20,23 @@ export async function getRecommendedJobs(
   return {
     ...res.data,
     items: res.data.items.map(mapJobRecommendation),
+  };
+}
+
+/**
+ * Lấy danh sách ứng viên được đề xuất cho recruiter
+ */
+export async function getRecommendedCandidates(
+  recruiterId: number,
+  params: Record<string, unknown> = {},
+): Promise<RecommendedCandidateResponse> {
+  const res = await api.get<RecommendedCandidateResponseRaw>(
+    `api/recommendations/recruiter/${recruiterId}`,
+    { params },
+  );
+
+  return {
+    ...res.data,
+    items: res.data.items.map(mapCandidateRecommendation),
   };
 }

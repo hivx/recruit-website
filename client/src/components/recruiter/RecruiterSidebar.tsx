@@ -6,6 +6,7 @@ import {
   SquarePen,
   Building2,
   UsersRound,
+  UserSearch,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -14,6 +15,11 @@ const menuItems = [
   { label: "Bài đăng của tôi", icon: SquarePen, to: "/recruiter/jobs" },
   { label: "Thông tin công ty", icon: Building2, to: "/recruiter/company" },
   { label: "Đơn ứng tuyển", icon: UsersRound, to: "/recruiter/applicants" },
+  {
+    label: "Ứng viên tiềm năng",
+    icon: UserSearch,
+    to: "/recruiter/recommended/candidates",
+  },
 ];
 
 export function RecruiterSidebar() {

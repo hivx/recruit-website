@@ -75,6 +75,10 @@ export function Footer() {
               { to: "/recruiter", label: "Trang quản lý" },
               { to: "/recruiter/jobs", label: "Bài đăng tuyển" },
               { to: "/recruiter/company", label: "Thông tin công ty" },
+              {
+                to: "/recruiter/recommended/candidates",
+                label: "Ứng viên tiềm năng",
+              },
             ].map((item) => (
               <li key={item.to}>
                 <Link

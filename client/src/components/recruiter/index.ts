@@ -10,3 +10,5 @@ export * from "./ApplicantDetailModal ";
 export * from "./ApplicationChart";
 export * from "./recruiterJob";
 export * from "./RecruiterJobCard";
+export * from "./RecommendedCandidateCard";
+export * from "./RecommendedCandidateList";

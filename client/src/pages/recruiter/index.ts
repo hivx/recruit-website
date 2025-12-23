@@ -4,3 +4,4 @@ export * from "./CompanyPage";
 export * from "./RecruiterApplicantsPage";
 export * from "./CreateJobPage";
 export * from "./EditJobPage";
+export * from "./RecruiterCandidatesPage";

@@ -38,7 +38,7 @@ async function recommendCandidates(req, res) {
   }
 }
 
-/// GET /api/recommendations/jobs/:userId
+/// GET /api/recommendations/:userId
 async function getRecommendedJobs(req, res) {
   try {
     const userId = req.params.userId;

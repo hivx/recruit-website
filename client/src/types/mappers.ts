@@ -285,15 +285,37 @@ export function mapJobRecommendation(
   };
 }
 
-export function mapCandidateRecommendationRaw(
+export function mapCandidateRecommendation(
   raw: CandidateRecommendationRaw,
 ): CandidateRecommendation {
   return {
     id: raw.id,
-    recruiterId: raw.recruiter_id,
-    applicantId: raw.applicant_id,
+    recruiterId: Number(raw.recruiter_id),
+    applicantId: Number(raw.applicant_id),
+
     fitScore: raw.fit_score,
-    createdAt: raw.created_at,
+    reason: raw.reason,
+    status: raw.status,
+
+    recommendedAt: raw.recommended_at,
+    updatedAt: raw.updated_at,
+
+    isSent: raw.is_sent,
+    sentAt: raw.sent_at,
+
+    applicant: {
+      id: Number(raw.applicant.id),
+      name: raw.applicant.name,
+      email: raw.applicant.email ?? null,
+      avatar: raw.applicant.avatar ?? null,
+      preferredLocation: raw.applicant.vector?.preferred_location ?? null,
+    },
+
+    recruiter: {
+      id: Number(raw.recruiter.id),
+      name: raw.recruiter.name,
+      avatar: raw.recruiter.avatar ?? null,
+    },
   };
 }
 

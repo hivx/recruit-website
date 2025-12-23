@@ -460,12 +460,27 @@ async function getRecommendedCandidatesForRecruiter(
       orderBy: { fit_score: "desc" },
       include: {
         applicant: {
-          include: {
-            careerPreference: true,
-            vector: true,
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            email: true,
+            role: true,
+            vector: {
+              select: {
+                preferred_location: true,
+              },
+            },
           },
         },
-        recruiter: true,
+        recruiter: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            role: true,
+          },
+        },
       },
     }),
     prisma.candidateRecommendation.count({ where }),

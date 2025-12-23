@@ -25,16 +25,65 @@ export interface CandidateRecommendationRaw {
   id: string;
   recruiter_id: string;
   applicant_id: string;
+
   fit_score: number;
-  created_at: string;
+  reason: string;
+  status: string;
+
+  recommended_at: string;
+  updated_at: string;
+
+  is_sent: boolean;
+  sent_at: string | null;
+
+  applicant: {
+    id: string;
+    name: string;
+    email?: string | null;
+    avatar?: string | null;
+    role: "applicant" | "admin";
+
+    vector?: {
+      preferred_location?: string | null;
+    };
+  };
+
+  recruiter: {
+    id: string;
+    name: string;
+    avatar?: string | null;
+    role: "recruiter" | "admin";
+  };
 }
 
 export interface CandidateRecommendation {
   id: string;
-  recruiterId: string;
-  applicantId: string;
+  recruiterId: number;
+  applicantId: number;
+
   fitScore: number;
-  createdAt: string;
+  reason: string;
+  status: string;
+
+  recommendedAt: string;
+  updatedAt: string;
+
+  isSent: boolean;
+  sentAt?: string | null;
+
+  applicant: {
+    id: number;
+    name: string;
+    email?: string | null;
+    avatar?: string | null;
+    preferredLocation?: string | null;
+  };
+
+  recruiter: {
+    id: number;
+    name: string;
+    avatar?: string | null;
+  };
 }
 
 export interface RecommendedJobResponse {
@@ -46,6 +95,20 @@ export interface RecommendedJobResponse {
 
 export interface RecommendedJobResponseRaw {
   items: JobRecommendationRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface RecommendedCandidateResponse {
+  items: CandidateRecommendation[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface RecommendedCandidateResponseRaw {
+  items: CandidateRecommendationRaw[];
   total: number;
   page: number;
   totalPages: number;
