@@ -541,4 +541,12 @@ module.exports = {
 
     return { success: true };
   },
+
+  // Update receive recommendation
+  async updateReceiveRecommendation(userId, receiveRecommendation) {
+    return prisma.user.update({
+      where: { id: BigInt(userId) },
+      data: { receive_recommendation: receiveRecommendation },
+    });
+  },
 };

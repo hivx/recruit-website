@@ -499,4 +499,5 @@ module.exports = {
   generateCandidateRecommendations,
   getRecommendedJobsForUser,
   getRecommendedCandidatesForRecruiter,
+  buildJobReasonFromExplanation,
 };

@@ -152,3 +152,20 @@ export async function adminDeleteUser(
 
   return res.data;
 }
+
+export async function updateReceiveRecommendation(
+  receiveRecommendation: boolean,
+): Promise<User | null> {
+  const res = await api.patch<{ user?: UserRaw }>(
+    "/api/users/me/recommendations",
+    {
+      receiveRecommendation,
+    },
+  );
+
+  if (!res.data.user) {
+    return null;
+  }
+
+  return mapUserRaw(res.data.user);
+}

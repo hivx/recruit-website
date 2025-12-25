@@ -98,7 +98,7 @@ function handleOptionalSkill(js, userSkill) {
   const { weight = 1 } = js;
   const optW = weight * 1;
 
-  // ❗ CHỈNH: không có optional skill → 0 điểm
+  // CHỈNH: không có optional skill → 0 điểm
   if (!userSkill) {
     return {
       score: 0,
@@ -120,7 +120,7 @@ function handleOptionalSkill(js, userSkill) {
 // TAG MATCH
 // =========================
 function computeTagMatch(userTags = [], jobTags = []) {
-  // ❗ CHỈNH: thêm hasData
+  // CHỈNH: thêm hasData
   if (!userTags.length || !jobTags.length) {
     return {
       score: 0.3,
@@ -181,7 +181,7 @@ function computeLocationMatch(userLoc, jobLoc) {
 // SALARY MATCH
 // =========================
 function computeSalaryMatch(expected, jobSalary) {
-  // ❗ CHỈNH: thêm comparable
+  // CHỈNH: thêm comparable
   if (!expected || !jobSalary) {
     return {
       score: 1,

@@ -180,6 +180,7 @@ model Application {
   phone        String?
   status       ApplicationStatus @default(pending)
   fit_score    Float?            @default(0)
+  fit_reason   String?           @db.Text
   created_at   DateTime          @default(now())
   review_note  String?           @db.Text
   reviewed_at  DateTime?

@@ -11,6 +11,7 @@ export interface UserRaw {
   isVerified: boolean;
   created_at: string;
   updated_at: string;
+  receive_recommendation: boolean;
 
   company: {
     id: string;
@@ -29,6 +30,7 @@ export interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  receiveRecommendation: boolean;
 
   company: {
     id: string;

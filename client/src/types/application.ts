@@ -17,6 +17,7 @@ export interface ApplicationRaw {
   review_note: string | null;
 
   fit_score: number;
+  fit_reason: string | null;
 
   created_at: string;
   updated_at: string;
@@ -49,6 +50,7 @@ export interface Application {
   reviewNote: string | null;
 
   fitScore: number;
+  fitReason: string | null;
 
   createdAt: string;
   updatedAt: string;

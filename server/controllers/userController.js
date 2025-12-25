@@ -285,3 +285,33 @@ exports.adminListUsers = async (req, res) => {
       .json({ message: err.message || "Lỗi server!" });
   }
 };
+
+// ================================
+// Update Receive Recommendation
+// ================================
+exports.updateReceiveRecommendation = async (req, res) => {
+  try {
+    const { receiveRecommendation } = req.body;
+
+    if (typeof receiveRecommendation !== "boolean") {
+      return res.status(400).json({
+        message: "receiveRecommendation phải là boolean",
+      });
+    }
+
+    const updatedUser = await userService.updateReceiveRecommendation(
+      req.user.userId,
+      receiveRecommendation,
+    );
+
+    return res.status(200).json({
+      message: "Cập nhật tùy chọn nhận gợi ý thành công",
+      user: toUserDTO(updatedUser),
+    });
+  } catch (err) {
+    console.error("[Update Receive Recommendation Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};

@@ -187,6 +187,7 @@ export function mapApplicationRaw(raw: ApplicationRaw): Application {
     reviewNote: raw.review_note,
 
     fitScore: raw.fit_score,
+    fitReason: raw.fit_reason,
 
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
@@ -223,6 +224,7 @@ export function mapUserRaw(raw: UserRaw): User {
     isVerified: raw.isVerified,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
+    receiveRecommendation: raw.receive_recommendation,
     company: raw.company
       ? {
           id: raw.company.id,

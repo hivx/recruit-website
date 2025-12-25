@@ -27,7 +27,7 @@ export const useUserStore = create<UserState>()(
           token: token ?? state.token, // nếu không truyền token thì giữ token cũ
         })),
 
-      // cập nhật 1 phần user (nếu API trả về partial hoặc bạn tự merge)
+      // cập nhật 1 phần user (nếu API trả về partial hoặc tự merge)
       updateUser: (partial) => {
         const current = get().user;
         if (!current) {

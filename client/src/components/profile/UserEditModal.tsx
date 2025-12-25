@@ -1,4 +1,5 @@
 // src/components/profile/UserEditModal.tsx
+import { Switch } from "@headlessui/react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -6,8 +7,9 @@ import { toast } from "sonner";
 import { UserForm } from "@/components/profile";
 import type { UserFormState } from "@/components/profile";
 import { useUpdateProfile } from "@/hooks";
+import { updateReceiveRecommendation } from "@/services";
 import { useUserStore } from "@/stores";
-import type { UpdateProfilePayload } from "@/types";
+import type { UpdateProfilePayload, User } from "@/types";
 import { resolveImage, getAxiosErrorMessage } from "@/utils";
 
 interface UserEditModalProps {
@@ -17,7 +19,11 @@ interface UserEditModalProps {
 
 export function UserEditModal({ open, onClose }: UserEditModalProps) {
   const user = useUserStore((s) => s.user);
+  const updateUser = useUserStore((s) => s.updateUser);
   const updateMutation = useUpdateProfile();
+  const [isUpdatingRecommendation, setIsUpdatingRecommendation] =
+    useState(false);
+  const [recommendationEnabled, setRecommendationEnabled] = useState(true);
 
   const [form, setForm] = useState<UserFormState>({
     name: "",
@@ -33,6 +39,7 @@ export function UserEditModal({ open, onClose }: UserEditModalProps) {
         email: user.email ?? "",
         avatar: null,
       });
+      setRecommendationEnabled(user.receiveRecommendation);
     }
   }, [open, user]);
 
@@ -48,47 +55,53 @@ export function UserEditModal({ open, onClose }: UserEditModalProps) {
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  function buildUpdateProfilePayload(
+    form: UserFormState,
+    user: User,
+  ): UpdateProfilePayload {
+    const payload: UpdateProfilePayload = {};
+
+    if (form.name !== (user.name ?? "")) {
+      payload.name = form.name;
+    }
+
+    if (form.email !== (user.email ?? "")) {
+      payload.email = form.email;
+    }
+
+    if (form.avatar) {
+      payload.avatar = form.avatar;
+    }
+
+    return payload;
+  }
+
   const handleSubmit = async () => {
     try {
-      const payload: UpdateProfilePayload = {};
+      const payload = buildUpdateProfilePayload(form, user);
 
-      const currentName = user.name ?? "";
-      const currentEmail = user.email ?? "";
+      const hasProfileChanges = Object.keys(payload).length > 0;
+      const hasRecommendationChange =
+        recommendationEnabled !== user.receiveRecommendation;
 
-      if (form.name !== currentName) {
-        payload.name = form.name;
+      if (hasProfileChanges) {
+        const res = await updateMutation.mutateAsync(payload);
+        handleProfileUpdateResponse(res);
       }
 
-      if (form.email !== currentEmail) {
-        payload.email = form.email;
-      }
-
-      if (form.avatar) {
-        payload.avatar = form.avatar;
-      }
-
-      const res = await updateMutation.mutateAsync(payload);
-
-      /**
-       * BE trả về:
-       * { message: string, user: UserDTO }
-       */
-      if (res?.message) {
-        // Trường hợp đổi email
-        if (res.message.toLowerCase().includes("email")) {
-          toast.info(res.message, {
-            description: "Bạn cần xác nhận để hoàn tất thay đổi email.",
-          });
-        } else {
-          // Trường hợp update thường
-          toast.success(res.message);
-        }
-      } else {
-        toast.success("Cập nhật thông tin thành công");
+      if (hasRecommendationChange) {
+        await updateRecommendationSetting(
+          recommendationEnabled,
+          user,
+          updateUser,
+          setIsUpdatingRecommendation,
+        );
       }
 
       onClose();
     } catch (err: unknown) {
+      setRecommendationEnabled(user.receiveRecommendation);
       toast.error("Không thể cập nhật thông tin", {
         description: getAxiosErrorMessage(err),
       });
@@ -144,23 +157,81 @@ export function UserEditModal({ open, onClose }: UserEditModalProps) {
             avatarUrl={avatarUrl}
             updateField={updateField}
           />
+          <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-gray-800">Nhận gợi ý việc làm</p>
+                <p className="text-sm text-gray-600">
+                  Bật để nhận email gợi ý công việc phù hợp.
+                </p>
+              </div>
+              <Switch
+                checked={recommendationEnabled}
+                disabled={isUpdatingRecommendation}
+                onChange={setRecommendationEnabled}
+                className={`${
+                  recommendationEnabled ? "bg-blue-600" : "bg-gray-300"
+                } relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                  isUpdatingRecommendation ? "opacity-60" : ""
+                }`}
+              >
+                <span
+                  className={`${
+                    recommendationEnabled ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                />
+              </Switch>
+            </div>
+          </div>
 
           {/* Actions */}
           <button
-            disabled={updateMutation.isPending}
+            disabled={updateMutation.isPending || isUpdatingRecommendation}
             onClick={() => {
               void handleSubmit();
             }}
             className={`mt-6 w-full rounded-xl py-2 text-white font-semibold cursor-pointer ${
-              updateMutation.isPending
+              updateMutation.isPending || isUpdatingRecommendation
                 ? "bg-blue-300 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {updateMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+            {updateMutation.isPending || isUpdatingRecommendation
+              ? "Đang lưu..."
+              : "Lưu thay đổi"}
           </button>
         </motion.div>
       </div>
     </>
   );
+}
+
+async function updateRecommendationSetting(
+  enabled: boolean,
+  _user: User,
+  updateUser: (u: Partial<User>) => void,
+  setLoading: (v: boolean) => void,
+) {
+  setLoading(true);
+  try {
+    const updatedUser = await updateReceiveRecommendation(enabled);
+    updateUser(updatedUser ?? { receiveRecommendation: enabled });
+  } finally {
+    setLoading(false);
+  }
+}
+
+function handleProfileUpdateResponse(res?: { message?: string }) {
+  if (!res?.message) {
+    toast.success("Cập nhật thông tin thành công");
+    return;
+  }
+
+  if (res.message.toLowerCase().includes("email")) {
+    toast.info(res.message, {
+      description: "Bạn cần xác nhận để hoàn tất thay đổi email.",
+    });
+  } else {
+    toast.success(res.message);
+  }
 }

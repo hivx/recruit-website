@@ -54,6 +54,13 @@ router.post(
   userController.rebuildRecruiterVector,
 );
 
+// PATCH: Cập nhật tùy chọn nhận gợi ý
+router.patch(
+  "/me/recommendations",
+  authMiddleware,
+  userController.updateReceiveRecommendation,
+);
+
 // ================================
 // ADMIN USER ROUTES
 // ================================

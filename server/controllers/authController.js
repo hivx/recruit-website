@@ -147,6 +147,16 @@ exports.confirmChangeEmail = async (req, res) => {
 
     const { userId, newEmail } = decoded;
 
+    const existingUser = await prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+
+    if (existingUser && existingUser.id !== BigInt(userId)) {
+      return res
+        .status(409)
+        .send("<h1>Email đã tồn tại, vui lòng chọn email khác!</h1>");
+    }
+
     await prisma.user.update({
       where: { id: BigInt(userId) },
       data: { email: newEmail },
@@ -154,6 +164,12 @@ exports.confirmChangeEmail = async (req, res) => {
 
     return res.send("<h1>Thay đổi email thành công!</h1>");
   } catch (err) {
+    if (err.code === "P2002") {
+      return res
+        .status(409)
+        .send("<h1>Email đã tồn tại, vui lòng chọn email khác!</h1>");
+    }
+
     console.error(err);
     return res.status(400).send("<h1>Link không hợp lệ hoặc đã hết hạn!</h1>");
   }

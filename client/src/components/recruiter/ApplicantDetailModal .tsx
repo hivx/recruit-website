@@ -91,7 +91,7 @@ export function ApplicantDetailModal({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0 }}
               transition={{ type: "spring", stiffness: 120, damping: 16 }}
-              className="bg-white rounded-2xl p-8 shadow-xl w-full max-w-3xl space-y-6 relative"
+              className="bg-white rounded-2xl p-8 shadow-xl w-full max-h-[90vh] flex flex-col max-w-3xl space-y-6 relative"
             >
               {/* Close button */}
               <button
@@ -116,44 +116,70 @@ export function ApplicantDetailModal({
                 </div>
               </div>
 
-              {/* INFO */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <Info label="Công việc" value={app.job?.title ?? "-"} />
-                <Info label="Ngày nộp" value={appliedDate} />
-                <Info label="Số điện thoại" value={app.phone ?? "Không có"} />
-                <Info
-                  label="Điểm phù hợp"
-                  value={`${(app.fitScore * 100).toFixed(2)}%`}
-                />
-                <Info label="Trạng thái" value={renderStatus(app.status)} />
-              </div>
-
-              {/* COVER LETTER */}
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">
-                  Thư ứng tuyển
-                </h3>
-                <p className="bg-gray-50 p-4 rounded-lg border whitespace-pre-line leading-relaxed">
-                  {app.coverLetter}
-                </p>
-              </div>
-
-              {/* CV */}
-              {app.cv && (
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2">CV</h3>
-                  <a
-                    href={resolveImage(app.cv)}
-                    target="_blank"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-block"
-                  >
-                    Xem CV
-                  </a>
+              {/* ===== BODY (SCROLLABLE) ===== */}
+              <div className="flex-1 overflow-y-auto px-8 pb-6 space-y-6">
+                {/* INFO */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <Info label="Công việc" value={app.job?.title ?? "-"} />
+                  <Info label="Ngày nộp" value={appliedDate} />
+                  <Info label="Số điện thoại" value={app.phone ?? "Không có"} />
+                  <Info
+                    label="Điểm phù hợp"
+                    value={`${(app.fitScore * 100).toFixed(2)}%`}
+                  />
+                  <Info label="Trạng thái" value={renderStatus(app.status)} />
                 </div>
-              )}
+
+                {/* FIT REASON */}
+                {app.fitReason && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <h3 className="font-semibold text-blue-800 mb-2 text-sm">
+                      Đánh giá mức độ phù hợp (hệ thống)
+                    </h3>
+
+                    <div
+                      className="
+                        max-h-40
+                        overflow-y-auto
+                        pr-2
+                        whitespace-pre-line
+                        leading-relaxed
+                        text-gray-800
+                        text-[13px]
+                      "
+                    >
+                      {app.fitReason}
+                    </div>
+                  </div>
+                )}
+
+                {/* COVER LETTER */}
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Thư ứng tuyển
+                  </h3>
+                  <p className="bg-gray-50 p-4 rounded-lg border whitespace-pre-line leading-relaxed">
+                    {app.coverLetter}
+                  </p>
+                </div>
+
+                {/* CV */}
+                {app.cv && (
+                  <div>
+                    <h3 className="font-semibold text-gray-700 mb-2">CV</h3>
+                    <a
+                      href={resolveImage(app.cv)}
+                      target="_blank"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-block"
+                    >
+                      Xem CV
+                    </a>
+                  </div>
+                )}
+              </div>
 
               {/* ACTION BUTTONS */}
-              <div className="flex justify-between pt-3">
+              <div className="px-8 py-4 flex justify-between bg-white">
                 <button
                   onClick={onClose}
                   className="px-5 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300 transition active:scale-95 cursor-pointer"

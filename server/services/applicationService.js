@@ -130,7 +130,7 @@ module.exports = {
     });
 
     // ============================
-    // 3) Tính fit_score
+    // 3) Tính fit_score + fit_reason
     // ============================
     try {
       const userVector = await prisma.userVector.findUnique({
@@ -142,14 +142,20 @@ module.exports = {
       });
 
       if (userVector && jobVector) {
-        const fit = computeFitScore(userVector, jobVector);
+        const { score, explanation } = computeFitScore(userVector, jobVector);
+
+        const reason = buildApplicationFitReason(explanation, score);
 
         await prisma.application.update({
           where: { id: app.id },
-          data: { fit_score: fit },
+          data: {
+            fit_score: score,
+            fit_reason: reason,
+          },
         });
 
-        app.fit_score = fit;
+        app.fit_score = score;
+        app.fit_reason = reason;
       } else {
         console.warn(
           "[Application] Vector không tồn tại → bỏ qua tính fit_score",
@@ -158,6 +164,7 @@ module.exports = {
     } catch (err) {
       console.warn("[Application] Lỗi tính fit_score:", err.message);
     }
+
     // ============================
     // 4) GỬI EMAIL (ỨNG VIÊN + NTD)
     // ============================
@@ -584,3 +591,53 @@ module.exports = {
     };
   },
 };
+
+function buildApplicationFitReason(expl, score) {
+  const lines = [];
+
+  // ===== OVERALL =====
+  const labelMap = {
+    high: "Phù hợp cao",
+    medium: "Phù hợp trung bình",
+    low: "Phù hợp thấp",
+  };
+
+  const label = labelMap[expl.overall] ?? "Phù hợp thấp";
+  lines.push(`Mức độ phù hợp: ${label} (${Math.round(score * 100)}%)`);
+
+  // ===== SKILL =====
+  if (expl.skills.mustCount > 0) {
+    if (expl.skills.matchedMustCount === expl.skills.mustCount) {
+      lines.push("• Đáp ứng đầy đủ kỹ năng bắt buộc");
+    } else if (expl.skills.matchedMustCount > 0) {
+      lines.push(
+        `• Đáp ứng ${expl.skills.matchedMustCount}/${expl.skills.mustCount} kỹ năng bắt buộc`,
+      );
+    } else {
+      lines.push("• Chưa đáp ứng kỹ năng bắt buộc");
+    }
+  }
+
+  // ===== TAG / FIELD =====
+  if (expl.tags.hasData && expl.tags.matched.length > 0) {
+    lines.push("• Trùng lĩnh vực tuyển dụng");
+  }
+
+  // ===== SALARY =====
+  if (expl.salary.comparable) {
+    if (expl.salary.level === "higher") {
+      lines.push("• Kỳ vọng lương thấp hơn mức đề xuất");
+    } else if (expl.salary.level === "near") {
+      lines.push("• Kỳ vọng lương phù hợp");
+    } else if (expl.salary.level === "lower") {
+      lines.push("• Kỳ vọng lương cao hơn mức đề xuất");
+    }
+  }
+
+  // ===== LOCATION =====
+  if (expl.location.level === "match") {
+    lines.push("• Phù hợp khu vực làm việc");
+  }
+
+  return lines.join("\n");
+}
