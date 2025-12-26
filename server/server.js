@@ -15,23 +15,31 @@ const prisma = require("./utils/prisma");
 const app = express();
 
 // Middleware
-const clientUrls = (process.env.CLIENT_URLS || "")
-  .split(",")
-  .map((url) => url.trim())
-  .filter(Boolean);
+const clientUrl = new Set(
+  (process.env.CLIENT_URL || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean),
+);
+
+const isProd = process.env.NODE_ENV === "production";
 
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) {
       return callback(null, true);
     }
-    if (clientUrls.length === 0 || clientUrls.includes(origin)) {
+
+    if (!isProd && origin.startsWith("http://localhost")) {
       return callback(null, true);
     }
+
+    if (clientUrl.has(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error(`CORS blocked: ${origin} not allowed`));
   },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
 };
 

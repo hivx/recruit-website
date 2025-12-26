@@ -51,17 +51,13 @@ async function validateApplicant(uid) {
     select: { role: true },
   });
 
+  const isValidRole = user?.role === "applicant" || user?.role === "admin";
+
   if (!user) {
     console.warn("[UserVector] User không tồn tại:", uid.toString());
-    return false;
   }
 
-  if (user.role !== "applicant" && user.role !== "admin") {
-    console.warn("[UserVector] Skip non-applicant:", user.role, uid.toString());
-    return false;
-  }
-
-  return true;
+  return isValidRole;
 }
 
 /**
@@ -82,7 +78,6 @@ async function buildUserVector(userId) {
   );
 
   if (!canRebuild) {
-    console.log("[SKIP] Bỏ qua build userVector: ", userId);
     return null;
   }
 

@@ -145,7 +145,7 @@ export function UserEditModal({ open, onClose }: UserEditModalProps) {
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-800"
+              className="text-gray-500 hover:text-gray-800 cursor-pointer rounded-full p-1 transition"
             >
               <X size={20} />
             </button>
@@ -160,9 +160,11 @@ export function UserEditModal({ open, onClose }: UserEditModalProps) {
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="font-medium text-gray-800">Nhận gợi ý việc làm</p>
+                <p className="font-medium text-gray-800">
+                  Bạn muốn nhận đề xuất từ hệ thống.
+                </p>
                 <p className="text-sm text-gray-600">
-                  Bật để nhận email gợi ý công việc phù hợp.
+                  Bật để nhận email đề xuất.
                 </p>
               </div>
               <Switch

@@ -47,7 +47,6 @@ async function buildRecruiterVector(userId) {
   );
 
   if (!canRebuild) {
-    console.log("[SKIP] Bỏ qua build recruiterVector: ", userId);
     return null;
   }
 

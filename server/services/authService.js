@@ -36,7 +36,7 @@ async function attachCompany(u) {
 module.exports = {
   // Đăng ký user mới (gửi mail verify bằng JWT)
   async register({ name, email, password, role }) {
-    const emailLc = (email || "").toLowerCase().trim();
+    const emailLc = email || "";
 
     if (!emailLc.endsWith("@gmail.com")) {
       throw httpError("Chỉ chấp nhận email @gmail.com!", 400);

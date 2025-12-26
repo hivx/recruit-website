@@ -1,6 +1,7 @@
 // server/services/companyService.js
 const prisma = require("../utils/prisma");
 const { toCompanyDTO } = require("../utils/serializers/company");
+const { shouldUpdate } = require("../utils/shouldUpdate");
 const emailService = require("./emailService");
 
 /**
@@ -85,14 +86,6 @@ async function updateMyCompany(ownerId, payload) {
     e.status = 403;
     throw e;
   }
-
-  // ======== SHOULD UPDATE LOGIC ========
-  const shouldUpdate = (v) =>
-    !(
-      v === undefined ||
-      v === null ||
-      (typeof v === "string" && v.trim() === "")
-    );
 
   // ======== XÂY DATA UPDATE AN TOÀN ========
   const dataToUpdate = {};

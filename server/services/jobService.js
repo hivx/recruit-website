@@ -3,6 +3,7 @@ const { emitEvent } = require("../events");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 const { toJobDTO } = require("../utils/serializers/job");
+const { shouldUpdate } = require("../utils/shouldUpdate");
 const emailService = require("./emailService");
 
 /* ============================================================
@@ -219,13 +220,6 @@ exports.updateJob = async (id, data) => {
   const jobId = BigInt(id);
 
   const { tags, requiredSkills, ...fields } = data;
-
-  const shouldUpdate = (v) =>
-    !(
-      v === undefined ||
-      v === null ||
-      (typeof v === "string" && v.trim() === "")
-    );
 
   // ========= 1. FIELD UPDATE (partial như updateApplication) =========
   const buildUpdateFields = () => {

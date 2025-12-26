@@ -21,7 +21,6 @@ async function buildJobVector(jobId) {
   const canRebuild = await shouldRebuildVector("jobVector", "job_id", jobId);
 
   if (!canRebuild) {
-    console.log("[SKIP] Bỏ qua build jobVector: ", jobId);
     return null;
   }
   const job = await prisma.job.findUnique({

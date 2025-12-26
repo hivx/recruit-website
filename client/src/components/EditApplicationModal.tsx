@@ -224,7 +224,7 @@ export function EditApplicationModal({
             disabled={updateMutation.isPending}
             onClick={() => void handleSubmit()}
             className={`
-              w-full rounded-xl py-2 text-white font-semibold
+              w-full rounded-xl py-2 text-white font-semibold cursor-pointer
               ${
                 updateMutation.isPending
                   ? "bg-blue-300 cursor-not-allowed"

@@ -287,7 +287,7 @@ export function SkillModal({ open, onClose, skill }: SkillModalProps) {
             className="
               w-full rounded-lg bg-blue-600 py-2 font-medium text-white
               hover:bg-blue-700 transition
-              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
             "
           >
             {isEdit ? "Cập nhật kỹ năng" : "Thêm kỹ năng"}

@@ -84,8 +84,6 @@ async function getRecommendedJobs(req, res) {
 async function getRecommendedCandidates(req, res) {
   try {
     const recruiterId = req.params.recruiterId;
-    console.log("params:", req.params);
-
     const {
       min_score = 0,
       page = 1,
