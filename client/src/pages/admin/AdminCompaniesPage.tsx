@@ -2,7 +2,7 @@
 import { AdminCompanyList } from "@/components/admin";
 import { useUserStore } from "@/stores";
 
-export function AdminCompaniesPage() {
+export default function AdminCompaniesPage() {
   const user = useUserStore((s) => s.user);
 
   return (

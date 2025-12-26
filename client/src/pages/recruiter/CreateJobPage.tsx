@@ -3,7 +3,7 @@ import { JobForm } from "@/components/recruiter/recruiterJob";
 import { useCreateJob, useAppNavigate } from "@/hooks";
 import type { JobCreatePayload } from "@/types";
 
-export function CreateJobPage() {
+export default function CreateJobPage() {
   const navigate = useAppNavigate();
   const { mutateAsync, isPending } = useCreateJob();
 

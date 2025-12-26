@@ -9,7 +9,7 @@ import {
 } from "@/components/admin";
 import { useUserStore } from "@/stores";
 
-export function AdminHomePage() {
+export default function AdminHomePage() {
   const user = useUserStore((s) => s.user);
 
   return (

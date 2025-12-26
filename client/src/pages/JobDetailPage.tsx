@@ -5,7 +5,7 @@ import { ErrorBox, Loader, JobDetailView } from "@/components";
 import { useJobById, useAppNavigate } from "@/hooks";
 import { getAxiosErrorMessage } from "@/utils";
 
-export function JobDetail() {
+export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useAppNavigate();
 

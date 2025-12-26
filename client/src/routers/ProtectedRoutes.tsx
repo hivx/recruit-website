@@ -1,21 +1,35 @@
 // src/routers/ProtectedRoutes.tsx
+import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Route } from "react-router-dom";
 import { MainLayout, RecruiterLayout, AdminLayout } from "@/layouts";
-import { ProfilePage, ChangePasswordPage } from "@/pages";
-import {
-  AdminHomePage,
-  AdminJobsPage,
-  AdminCompaniesPage,
-} from "@/pages/admin";
-import {
-  RecruiterHomePage,
-  RecruiterCompanyPage,
-  RecruiterApplicantsPage,
-  CreateJobPage,
-  EditJobPage,
-  RecruiterCandidatesPage,
-} from "@/pages/recruiter";
 import { useUserStore } from "@/stores";
+
+// ===== Common pages =====
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const ChangePasswordPage = lazy(() => import("@/pages/ChangePasswordPage"));
+
+// ===== Admin pages =====
+const AdminHomePage = lazy(() => import("@/pages/admin/AdminHomePage"));
+const AdminJobsPage = lazy(() => import("@/pages/admin/AdminJobsPage"));
+const AdminCompaniesPage = lazy(
+  () => import("@/pages/admin/AdminCompaniesPage"),
+);
+
+// ===== Recruiter pages =====
+const RecruiterHomePage = lazy(
+  () => import("@/pages/recruiter/RecruiterHomePage"),
+);
+const RecruiterCompanyPage = lazy(
+  () => import("@/pages/recruiter/CompanyPage"),
+);
+const RecruiterApplicantsPage = lazy(
+  () => import("@/pages/recruiter/RecruiterApplicantsPage"),
+);
+const CreateJobPage = lazy(() => import("@/pages/recruiter/CreateJobPage"));
+const EditJobPage = lazy(() => import("@/pages/recruiter/EditJobPage"));
+const RecruiterCandidatesPage = lazy(
+  () => import("@/pages/recruiter/RecruiterCandidatesPage"),
+);
 
 // Logic bảo vệ: cần có token (đăng nhập)
 function ProtectedRouteGuard() {
@@ -58,7 +72,13 @@ export function ProtectedAdminRoute() {
 
 export function ProtectedRoutes() {
   return (
-    <Route>
+    <Route
+      element={
+        <Suspense fallback={<div>Đang tải...</div>}>
+          <Outlet />
+        </Suspense>
+      }
+    >
       {/* Cần token */}
       <Route element={<ProtectedRouteGuard />}>
         {/* ROUTE CHUNG SAU KHI LOGIN */}

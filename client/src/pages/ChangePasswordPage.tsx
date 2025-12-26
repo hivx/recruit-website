@@ -3,7 +3,7 @@ import { Mail } from "lucide-react";
 import { ChangePasswordForm } from "@/components";
 import { useAuth } from "@/hooks";
 
-export function ChangePasswordPage() {
+export default function ChangePasswordPage() {
   const { user } = useAuth();
 
   return (

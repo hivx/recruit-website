@@ -12,7 +12,7 @@ import type { Application, Job } from "@/types";
 /**
  * Trang quản lý ứng viên của Recruiter
  */
-export function RecruiterApplicantsPage() {
+export default function RecruiterApplicantsPage() {
   /** PHÂN TRANG */
   const [page, setPage] = useState(1);
 

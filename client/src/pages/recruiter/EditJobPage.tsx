@@ -6,7 +6,7 @@ import { useJobById, useUpdateJob, useAppNavigate } from "@/hooks";
 import type { JobCreatePayload } from "@/types";
 import { getAxiosErrorMessage } from "@/utils";
 
-export function EditJobPage() {
+export default function EditJobPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useAppNavigate();
 

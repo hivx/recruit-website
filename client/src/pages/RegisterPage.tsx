@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate, useAuth } from "@/hooks";
 
-export function RegisterPage() {
+export default function RegisterPage() {
   const navigate = useAppNavigate();
   const { register: registerUser, registerLoading } = useAuth();
 

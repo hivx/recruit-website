@@ -23,13 +23,13 @@ export function AppRouter() {
     <AnimatePresence>
       <Routes>
         {/* Public that everyone can access */}
-        {PublicRoutes()}
+        <PublicRoutes />
 
         {/* Auth pages that logged-in users should NOT access */}
-        {AuthRoutes()}
+        <AuthRoutes />
 
         {/* Protected pages (yêu cầu phải login) */}
-        {ProtectedRoutes()}
+        <ProtectedRoutes />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

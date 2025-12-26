@@ -18,7 +18,7 @@ function getRedirectPathByRole(role?: string) {
   }
 }
 
-export function LoginPage() {
+export default function LoginPage() {
   const navigate = useAppNavigate();
   const { login, loginLoading, error } = useAuth();
 

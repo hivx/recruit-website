@@ -12,7 +12,7 @@ import {
 import { useAllSkills } from "@/hooks";
 import { useUserStore, useSkillStore } from "@/stores";
 
-export function ProfilePage() {
+export default function ProfilePage() {
   const userRole = useUserStore((s) => s.user?.role);
   const setAllSkills = useSkillStore((s) => s.setAllSkills);
 

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Loader } from "@/components";
 import { useAuth } from "@/hooks";
 
-export function ForgotPasswordPage() {
+export default function ForgotPasswordPage() {
   const [form, setForm] = useState({
     email: "",
     newPassword: "",

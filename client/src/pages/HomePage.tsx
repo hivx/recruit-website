@@ -4,7 +4,7 @@ import { JobSearchBar, JobList, RecommendedJobList } from "@/components";
 import { useUserStore } from "@/stores";
 import type { JobSearchQuery } from "@/types";
 
-export function HomePage() {
+export default function HomePage() {
   const [page, setPage] = useState(1);
   const [queryObj, setQueryObj] = useState<JobSearchQuery>({});
   const user = useUserStore((s) => s.user);

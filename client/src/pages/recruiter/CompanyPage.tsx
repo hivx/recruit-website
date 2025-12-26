@@ -14,7 +14,7 @@ import {
 } from "@/hooks";
 import { getAxiosErrorMessage, resolveImage, formatDateDMY } from "@/utils";
 
-export function RecruiterCompanyPage() {
+export default function RecruiterCompanyPage() {
   const { data: company, isLoading, isError, error, refetch } = useMyCompany();
   const createMutation = useCreateCompany();
   const updateMutation = useUpdateCompany();
