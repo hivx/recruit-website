@@ -1,6 +1,6 @@
-// client/src/providers/providers.tsx
-import type { PropsWithChildren } from "react";
+// src/providers/Providers.tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { PropsWithChildren } from "react";
 import { Toaster } from "sonner";
 
 const queryClient = new QueryClient({

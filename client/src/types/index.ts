@@ -1,6 +1,11 @@
-export * from './job';
-export * from './mappers';
-export * from './api';
-export * from './user';
-export * from './application';
-export * from './auth';
+// src/types/index.ts
+export * from "./job";
+export * from "./api";
+export * from "./user";
+export * from "./application";
+export * from "./auth";
+export * from "./company";
+export * from "./preference";
+export * from "./recommendation";
+export * from "./vector";
+export * from "./mappers";

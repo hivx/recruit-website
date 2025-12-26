@@ -62,7 +62,7 @@
  *         skill_id:
  *           type: integer
  *           example: 1
- *         skill_name:
+ *         name:
  *           type: string
  *           example: "ReactJS"
  *         level_required:
@@ -138,10 +138,6 @@
  *           items:
  *             $ref: '#/components/schemas/RequiredSkillItem'
  *         # Các field dưới đây chỉ xuất hiện tùy trường hợp (khi controller bổ sung)
- *         createdAtFormatted:
- *           type: string
- *           example: "19/10/2025 10:30"
- *           description: "Chỉ có khi controller format thêm"
  *         isFavorite:
  *           type: boolean
  *           description: "Chỉ có khi người dùng đã đăng nhập"
@@ -154,10 +150,6 @@
  *         title:
  *           type: string
  *           example: "Lập trình viên Backend Node.js"
- *         company_id:
- *           type: string
- *           example: "1"
- *           description: "Có thể bỏ qua, hệ thống lấy từ công ty của recruiter"
  *         location:
  *           type: string
  *           example: "Hồ Chí Minh"
@@ -258,7 +250,7 @@
  * @swagger
  * /api/jobs:
  *   get:
- *     summary: Danh sách job public (chỉ job đã được duyệt)
+ *     summary: Lấy danh sách job public (chỉ job đã được duyệt)
  *     tags: [Jobs]
  *     parameters:
  *       - in: query
@@ -266,6 +258,7 @@
  *         schema:
  *           type: string
  *         description: Từ khoá tìm kiếm (tiêu đề, mô tả, yêu cầu, địa điểm, tên công ty)
+ *
  *       - in: query
  *         name: tag
  *         schema:
@@ -274,20 +267,39 @@
  *             type: string
  *         style: form
  *         explode: true
- *         description: Lọc theo nhiều tag (ví dụ ?tag=Node.js&tag=React)
+ *         description: Lọc theo nhiều tag (ví dụ ?tag=IT&tag=Sales)
+ *
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Lọc theo nhiều địa điểm (ví dụ ?location=HCM&location=HN)
+ *
+ *       - in: query
+ *         name: salaryWanted
+ *         schema:
+ *           type: integer
+ *         description: Mức lương mong muốn. Trả job có khoảng lương bao gồm giá trị này.
+ *
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
+ *
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
+ *
  *     responses:
  *       200:
- *         description: Danh sách job đã duyệt
+ *         description: Danh sách job đã duyệt theo điều kiện lọc & tìm kiếm
  *         content:
  *           application/json:
  *             schema:
@@ -524,4 +536,40 @@
  *         description: Không có quyền thực hiện thao tác này
  *       500:
  *         description: Lỗi server khi build JobVector
+ */
+
+/**
+ * @swagger
+ * /api/jobs/my-jobs:
+ *   get:
+ *     summary: Lấy danh sách bài đăng thuộc về nhà tuyển dụng hiện tại
+ *     description:
+ *       Trả về danh sách job do chính người dùng hiện tại recruiter/admin tạo ra.
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng job mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách job của nhà tuyển dụng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/JobListResponse'
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Không có quyền (chỉ recruiter hoặc admin)
  */

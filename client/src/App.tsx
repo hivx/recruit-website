@@ -1,16 +1,13 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { JobDetail, JobList } from "@/pages";
-import { TestJobService } from "@/test";
+import { BrowserRouter } from "react-router-dom";
+import { AppRouter } from "@/routers";
+import { ScrollToTop } from "@/utils";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/test" element={<TestJobService />} />
-        <Route path="/jobs" element={<JobList />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
-      </Routes>
+      <ScrollToTop />
+      <AppRouter />
     </BrowserRouter>
   );
 }

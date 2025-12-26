@@ -1,15 +1,27 @@
-// services/applicationService.js
+// server/services/applicationService.js
 const { logUserInterest } = require("../middleware/logUserInterest");
 const { computeFitScore } = require("../utils/fitScore");
 const prisma = require("../utils/prisma");
 
 // Giữ nguyên đường dẫn import DTO đúng theo cây của bạn
 const { toApplicationDTO } = require("../utils/serializers/application");
+const { AppError } = require("../utils/thrErrors");
+const emailService = require("./emailService");
 
 /**
  * Gợi ý: dùng 1 helper nhỏ để map list -> DTO
  */
 const mapDTO = (rows) => rows.map(toApplicationDTO);
+
+// helper: map list application sang DTO
+const mapListDTO = (list, baseUrl) =>
+  list.map((a) => {
+    const dto = toApplicationDTO(a);
+    if (dto.cv) {
+      dto.cv = `${baseUrl}/${dto.cv}`;
+    }
+    return dto;
+  });
 
 module.exports = {
   /**
@@ -118,7 +130,7 @@ module.exports = {
     });
 
     // ============================
-    // 3) Tính fit_score
+    // 3) Tính fit_score + fit_reason
     // ============================
     try {
       const userVector = await prisma.userVector.findUnique({
@@ -130,14 +142,20 @@ module.exports = {
       });
 
       if (userVector && jobVector) {
-        const fit = computeFitScore(userVector, jobVector);
+        const { score, explanation } = computeFitScore(userVector, jobVector);
+
+        const reason = buildApplicationFitReason(explanation, score);
 
         await prisma.application.update({
           where: { id: app.id },
-          data: { fit_score: fit },
+          data: {
+            fit_score: score,
+            fit_reason: reason,
+          },
         });
 
-        app.fit_score = fit;
+        app.fit_score = score;
+        app.fit_reason = reason;
       } else {
         console.warn(
           "[Application] Vector không tồn tại → bỏ qua tính fit_score",
@@ -145,6 +163,102 @@ module.exports = {
       }
     } catch (err) {
       console.warn("[Application] Lỗi tính fit_score:", err.message);
+    }
+
+    // ============================
+    // 4) GỬI EMAIL (ỨNG VIÊN + NTD)
+    // ============================
+    try {
+      const job = await prisma.job.findUnique({
+        where: { id: BigInt(jobId) },
+        include: {
+          creator: { select: { name: true, email: true } }, // NTD
+          company: { select: { legal_name: true } },
+        },
+      });
+
+      const applicant = await prisma.user.findUnique({
+        where: { id: BigInt(userId) },
+        select: { name: true, email: true },
+      });
+
+      // ---- A) Email cho ỨNG VIÊN ----
+      if (applicant?.email) {
+        await emailService.sendEmail(
+          applicant.email,
+          "Bạn đã ứng tuyển thành công",
+          `
+          <div style="font-family: Arial; line-height: 1.6;">
+            <p>Chào <b>${applicant.name || "bạn"}</b>,</p>
+
+            <p>
+              Hồ sơ ứng tuyển của bạn cho vị trí
+              <b>${job.title}</b>
+              ${job.company?.legal_name ? `tại <b>${job.company.legal_name}</b>` : ""}
+              đã được gửi thành công.
+            </p>
+
+            <p>
+              Nhà tuyển dụng sẽ xem xét hồ sơ và liên hệ với bạn nếu phù hợp.
+            </p>
+
+            <p>Chúc bạn may mắn!</p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `,
+        );
+      }
+
+      // ---- B) Email cho NHÀ TUYỂN DỤNG ----
+      if (job?.creator?.email) {
+        const manageUrl = `${process.env.CLIENT_URL}/recruiter/applicants`;
+
+        await emailService.sendEmail(
+          job.creator.email,
+          "Có ứng viên mới ứng tuyển",
+          `
+          <div style="font-family: Arial; line-height: 1.6;">
+            <p>Chào <b>${job.creator.name}</b>,</p>
+
+            <p>
+              Vị trí tuyển dụng
+              <b>${job.title}</b>
+              ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+              vừa có <b>một ứng viên mới</b> nộp hồ sơ.
+            </p>
+
+            <p style="margin: 20px 0;">
+              <a href="${manageUrl}" style="
+                padding:10px 14px;
+                background:#0ea5e9;
+                color:#fff;
+                text-decoration:none;
+                border-radius:6px;
+                font-weight:600;
+              ">
+                Xem danh sách ứng viên
+              </a>
+            </p>
+
+            <p>
+              Vui lòng truy cập hệ thống để xem chi tiết hồ sơ và phản hồi ứng viên.
+            </p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `,
+        );
+      }
+    } catch (e) {
+      console.error("[Application Email] send failed:", e?.message);
+      // không throw
     }
     return toApplicationDTO(app);
   },
@@ -169,13 +283,38 @@ module.exports = {
    * - Trả mảng DTO
    * - (Lưu ý quyền xem nên kiểm ở controller/middleware)
    */
-  async getApplicationsByJob(jobId) {
+
+  async getApplicantsByJob({ jobId, user, baseUrl }) {
+    // 1) Kiểm tra job tồn tại
+    const job = await prisma.job.findUnique({
+      where: { id: BigInt(jobId) },
+      select: { id: true, created_by: true },
+    });
+
+    if (!job) {
+      throw new AppError("Không tìm thấy công việc!", 404);
+    }
+
+    // 2) Kiểm quyền
+    const isOwner = job.created_by?.toString() === user.userId?.toString();
+    const isAdmin = user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      throw new AppError("Bạn không có quyền xem ứng viên công việc này!", 403);
+    }
+
+    // 3) Lấy danh sách ứng viên
     const rows = await prisma.application.findMany({
       where: { job_id: BigInt(jobId) },
       include: { applicant: true },
       orderBy: { created_at: "desc" },
     });
-    return mapDTO(rows);
+
+    // 4) Trả về DTO đã chuẩn hoá
+    return {
+      totalApplicants: rows.length,
+      applicants: mapListDTO(rows, baseUrl),
+    };
   },
 
   // Đánh giá (review) hồ sơ ứng viên
@@ -206,6 +345,11 @@ module.exports = {
       throw err;
     }
 
+    // ===== IDENTITY CHECK: tránh gửi email trùng =====
+    const previousStatus = app.status;
+    const nextStatus = reviewData?.status ?? "accepted";
+    const shouldSendEmail = previousStatus !== nextStatus;
+
     // Cập nhật trạng thái review
     const updated = await prisma.application.update({
       where: { id: BigInt(applicationId) },
@@ -220,6 +364,80 @@ module.exports = {
         applicant: { select: { id: true, name: true, email: true } },
       },
     });
+
+    // ===== GỬI EMAIL CHO ỨNG VIÊN =====
+    if (shouldSendEmail && updated.applicant?.email) {
+      try {
+        const subjectMap = {
+          accepted: "Hồ sơ ứng tuyển của bạn đã được chấp nhận",
+          rejected: "Kết quả hồ sơ ứng tuyển",
+        };
+
+        const subject =
+          subjectMap[nextStatus] || "Cập nhật trạng thái hồ sơ ứng tuyển";
+
+        const isAccepted = nextStatus === "accepted";
+
+        const html = `
+          <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+            <p>Chào <b>${updated.applicant.name || "bạn"}</b>,</p>
+
+            <p>
+              Hồ sơ ứng tuyển của bạn cho vị trí
+              <b>${updated.job.title}</b>
+              đã được nhà tuyển dụng xem xét.
+            </p>
+
+            ${
+              isAccepted
+                ? `
+                  <p style="color:#16a34a;">
+                    Chúc mừng bạn! Hồ sơ của bạn đã được <b>chấp nhận</b>.
+                  </p>
+                  <p>
+                    Nhà tuyển dụng sẽ liên hệ với bạn trong thời gian sớm nhất để trao đổi các bước tiếp theo.
+                  </p>
+                `
+                : `
+                  <p style="color:#dc2626;">
+                    Rất tiếc, hồ sơ của bạn <b>chưa phù hợp</b> ở thời điểm hiện tại.
+                  </p>
+                `
+            }
+
+            ${
+              updated.review_note
+                ? `
+                  <blockquote style="
+                    margin: 16px 0;
+                    padding: 12px 16px;
+                    background-color: #f9fafb;
+                    border-left: 4px solid #94a3b8;
+                  ">
+                    ${updated.review_note}
+                  </blockquote>
+                `
+                : ""
+            }
+
+            <p>
+              Cảm ơn bạn đã quan tâm và ứng tuyển.
+              Chúc bạn sớm tìm được cơ hội phù hợp.
+            </p>
+
+            <p style="margin-top: 32px;">
+              Trân trọng,<br />
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `;
+
+        await emailService.sendEmail(updated.applicant.email, subject, html);
+      } catch (e) {
+        console.error("[Email Application Review] send failed:", e?.message);
+        // không throw
+      }
+    }
 
     // Trả về theo chuẩn DTO của project
     return toApplicationDTO(updated);
@@ -330,4 +548,96 @@ module.exports = {
 
     return toApplicationDTO(updated);
   },
+  /**
+   * Lấy danh sách ứng viên của recruiter (all jobs)
+   * - Có phân trang
+   * - Có lọc theo status, jobId
+   * - Trả về DTO chuẩn
+   */
+  async getApplicationsForRecruiter(
+    recruiterId,
+    { page = 1, limit = 10, status, jobId },
+  ) {
+    const skip = (page - 1) * limit;
+
+    const where = {
+      job: {
+        created_by: BigInt(recruiterId),
+      },
+      ...(status ? { status } : {}),
+      ...(jobId ? { job_id: BigInt(jobId) } : {}),
+    };
+
+    const [rows, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        include: {
+          applicant: true,
+          job: true,
+        },
+        orderBy: { created_at: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.application.count({ where }),
+    ]);
+
+    return {
+      total,
+      totalPages: Math.ceil(total / limit),
+      page,
+      limit,
+      applicants: rows.map(toApplicationDTO),
+    };
+  },
 };
+
+function buildApplicationFitReason(expl, score) {
+  const lines = [];
+
+  // ===== OVERALL =====
+  const labelMap = {
+    high: "Phù hợp cao",
+    medium: "Phù hợp trung bình",
+    low: "Phù hợp thấp",
+  };
+
+  const label = labelMap[expl.overall] ?? "Phù hợp thấp";
+  lines.push(`Mức độ phù hợp: ${label} (${Math.round(score * 100)}%)`);
+
+  // ===== SKILL =====
+  if (expl.skills.mustCount > 0) {
+    if (expl.skills.matchedMustCount === expl.skills.mustCount) {
+      lines.push("• Đáp ứng đầy đủ kỹ năng bắt buộc");
+    } else if (expl.skills.matchedMustCount > 0) {
+      lines.push(
+        `• Đáp ứng ${expl.skills.matchedMustCount}/${expl.skills.mustCount} kỹ năng bắt buộc`,
+      );
+    } else {
+      lines.push("• Chưa đáp ứng kỹ năng bắt buộc");
+    }
+  }
+
+  // ===== TAG / FIELD =====
+  if (expl.tags.hasData && expl.tags.matched.length > 0) {
+    lines.push("• Trùng lĩnh vực tuyển dụng");
+  }
+
+  // ===== SALARY =====
+  if (expl.salary.comparable) {
+    if (expl.salary.level === "higher") {
+      lines.push("• Kỳ vọng lương thấp hơn mức đề xuất");
+    } else if (expl.salary.level === "near") {
+      lines.push("• Kỳ vọng lương phù hợp");
+    } else if (expl.salary.level === "lower") {
+      lines.push("• Kỳ vọng lương cao hơn mức đề xuất");
+    }
+  }
+
+  // ===== LOCATION =====
+  if (expl.location.level === "match") {
+    lines.push("• Phù hợp khu vực làm việc");
+  }
+
+  return lines.join("\n");
+}

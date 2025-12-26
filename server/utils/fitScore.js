@@ -1,58 +1,139 @@
+// server/utils/fitScore.js
+// =========================
+// SKILL MATCH
+// =========================
 function computeSkillMatch(userSkills = [], jobSkills = []) {
   if (!jobSkills.length) {
-    return 0;
+    return {
+      score: 0,
+      matched: [],
+      missingMust: [],
+      mustCount: 0,
+      matchedMustCount: 0,
+      matchedOptionalCount: 0,
+    };
   }
 
   let score = 0;
   let maxScore = 0;
 
+  const matched = [];
+  const missingMust = [];
+
+  let matchedMustCount = 0;
+  let matchedOptionalCount = 0;
+
+  const mustCount = jobSkills.filter((s) => s.must).length;
+
   for (const js of jobSkills) {
-    const { id, weight = 1, must } = js;
-    const userSkill = userSkills.find((s) => s.id === id);
-    const userW = userSkill?.w ?? 0;
+    const userSkill = userSkills.find((s) => s.id === js.id);
 
-    // ======== MUST-HAVE ========
-    if (must) {
-      const mustW = weight * 5; // trọng số rất lớn
-      maxScore += mustW;
+    if (js.must) {
+      const r = handleMustSkill(js, userSkill);
+      score += r.score;
+      maxScore += r.max;
 
-      if (userSkill) {
-        // user có skill must ⇒ điểm gần như đạt max
-        const base = Math.min(userW, 1); // userW 0–1
-        score += base * mustW;
-
-        // BONUS nếu user mạnh hơn yêu cầu
-        if (userW > weight) {
-          score += (userW - weight) * mustW * 0.2;
-        }
+      if (r.matched) {
+        matched.push(js.id);
+        matchedMustCount++;
       }
-      continue;
-    }
-
-    // ======== OPTIONAL ========
-    const optW = weight * 1;
-    maxScore += optW;
-
-    if (userSkill) {
-      // optional có ⇒ thưởng nhẹ
-      score += userW * optW * 0.8;
+      if (r.missing) {
+        missingMust.push(js.id);
+      }
     } else {
-      // optional thiếu ⇒ KHÔNG phạt mạnh: chỉ phạt 20% NhẸ
-      score += optW * 0.2;
+      const r = handleOptionalSkill(js, userSkill);
+      score += r.score;
+      maxScore += r.max;
+
+      if (r.matched) {
+        matched.push(js.id);
+        matchedOptionalCount++;
+      }
     }
   }
 
-  return Number((score / maxScore).toFixed(4));
+  const finalScore = maxScore ? score / maxScore : 0;
+
+  return {
+    score: Number(finalScore.toFixed(4)),
+    matched,
+    missingMust,
+    mustCount,
+    matchedMustCount,
+    matchedOptionalCount,
+  };
 }
 
+function handleMustSkill(js, userSkill) {
+  const { weight = 1 } = js;
+  const mustW = weight * 5;
+
+  if (!userSkill) {
+    return {
+      score: 0,
+      matched: false,
+      missing: true,
+      max: mustW,
+    };
+  }
+
+  const userW = userSkill.w ?? 0;
+  const base = Math.min(userW, 1);
+
+  let score = base * mustW;
+
+  if (userW > weight) {
+    score += (userW - weight) * mustW * 0.2;
+  }
+
+  return {
+    score,
+    matched: true,
+    missing: false,
+    max: mustW,
+  };
+}
+
+function handleOptionalSkill(js, userSkill) {
+  const { weight = 1 } = js;
+  const optW = weight * 1;
+
+  // CHỈNH: không có optional skill → 0 điểm
+  if (!userSkill) {
+    return {
+      score: 0,
+      matched: false,
+      max: optW,
+    };
+  }
+
+  const userW = userSkill.w ?? 0;
+
+  return {
+    score: userW * optW * 0.8,
+    matched: true,
+    max: optW,
+  };
+}
+
+// =========================
+// TAG MATCH
+// =========================
 function computeTagMatch(userTags = [], jobTags = []) {
+  // CHỈNH: thêm hasData
   if (!userTags.length || !jobTags.length) {
-    return 0.3; // điểm nền khi không có đủ tag
+    return {
+      score: 0.3,
+      matched: [],
+      hasData: false,
+    };
   }
 
   const userMap = new Map(userTags.map((t) => [t.id, t.weight]));
   let score = 0;
   let maxScore = 0;
+
+  const matched = [];
 
   for (const jt of jobTags) {
     const jobW = jt.weight || 1;
@@ -61,77 +142,129 @@ function computeTagMatch(userTags = [], jobTags = []) {
     const userW = userMap.get(jt.id);
     if (userW !== undefined) {
       score += Math.min(userW, jobW);
+      matched.push(jt.id);
     }
   }
 
   const raw = maxScore ? score / maxScore : 0;
-
-  // scale để điểm không quá thấp
   const visible = 0.3 + raw * 0.7;
 
-  return Number(visible.toFixed(4));
+  return {
+    score: Number(visible.toFixed(4)),
+    matched: matched.slice(0, 3),
+    hasData: true,
+  };
 }
 
-function countMatchingTags(userVector, jobVector) {
-  const uTags = userVector?.tag_profile;
-  const jTags = jobVector?.tag_profile;
-
-  if (!uTags?.length || !jTags?.length) {
-    return 0;
-  }
-
-  // Dùng Set để check nhanh
-  const userTagSet = new Set(uTags.map((t) => t.id));
-
-  let count = 0;
-
-  for (const jt of jTags) {
-    if (userTagSet.has(jt.id)) {
-      count++;
-    }
-  }
-
-  return count;
-}
-
+// =========================
+// LOCATION MATCH
+// =========================
 function computeLocationMatch(userLoc, jobLoc) {
   if (!userLoc || !jobLoc) {
-    return 0.5;
+    return {
+      score: 0.5,
+      matched: false,
+      level: "neutral",
+    };
   }
-  return userLoc === jobLoc ? 1 : 0.5;
+
+  const matched = userLoc.includes(jobLoc) || jobLoc.includes(userLoc);
+
+  return {
+    score: matched ? 1 : 0.5,
+    matched,
+    level: matched ? "match" : "neutral",
+  };
 }
 
+// =========================
+// SALARY MATCH
+// =========================
 function computeSalaryMatch(expected, jobSalary) {
+  // CHỈNH: thêm comparable
   if (!expected || !jobSalary) {
-    return 1;
+    return {
+      score: 1,
+      level: null,
+      comparable: false,
+    };
   }
 
   if (jobSalary === expected) {
-    return 1;
+    return { score: 1, level: "near", comparable: true };
   }
 
   if (jobSalary < expected) {
-    return Number((jobSalary / expected).toFixed(4));
+    return {
+      score: Number((jobSalary / expected).toFixed(4)),
+      level: "lower",
+      comparable: true,
+    };
   }
 
   const ratio = jobSalary / expected;
 
   if (ratio <= 1.25) {
-    return 1.1;
+    return { score: 1.1, level: "higher", comparable: true };
   }
   if (ratio <= 1.5) {
-    return 1.25;
+    return { score: 1.25, level: "higher", comparable: true };
   }
   if (ratio <= 1.75) {
-    return 1.3;
+    return { score: 1.3, level: "higher", comparable: true };
   }
   if (ratio <= 2) {
-    return 1.4;
+    return { score: 1.4, level: "higher", comparable: true };
   }
 
-  return 1.5;
+  return { score: 1.5, level: "higher", comparable: true };
 }
 
+// =========================
+// FIT SCORE (GENERIC)
+// =========================
+function buildExplanation(score, skill, tag, location, salary) {
+  return {
+    overall: getOverallLevel(score),
+
+    skills: {
+      matched: skill.matched,
+      missingMust: skill.missingMust,
+      mustCount: skill.mustCount,
+      matchedMustCount: skill.matchedMustCount,
+      matchedOptionalCount: skill.matchedOptionalCount,
+    },
+
+    tags: {
+      matched: tag.matched,
+      hasData: tag.hasData,
+    },
+
+    location: {
+      matched: location.matched,
+      level: location.level,
+    },
+
+    salary: {
+      level: salary.level,
+      comparable: salary.comparable,
+    },
+  };
+}
+
+function getOverallLevel(score) {
+  if (score >= 0.7) {
+    return "high";
+  }
+  if (score >= 0.4) {
+    return "medium";
+  }
+  return "low";
+}
+
+// =========================
+// USER → JOB
+// =========================
 function computeFitScore(userVector, jobVector) {
   const skill = computeSkillMatch(
     userVector.skill_profile ?? [],
@@ -153,46 +286,30 @@ function computeFitScore(userVector, jobVector) {
     jobVector.salary_avg,
   );
 
-  const finalScore =
-    0.4 * skill + // trọng số cao nhất: skill quan trọng nhất
-    0.25 * tag + // phù hợp ngành/lĩnh vực
-    0.25 * salary + // phù hợp lương
-    0.1 * location; // phù hợp địa điểm
+  const score =
+    0.4 * skill.score +
+    0.25 * tag.score +
+    0.25 * salary.score +
+    0.1 * location.score;
 
-  return Number(finalScore.toFixed(4));
+  const finalScore = Number(score.toFixed(4));
+
+  return {
+    score: finalScore,
+    explanation: buildExplanation(finalScore, skill, tag, location, salary),
+  };
 }
 
+// =========================
+// USER-CENTRIC
+// =========================
 function computeJobFitScore(userVector, jobVector) {
-  const skill = computeSkillMatch(
-    userVector.skill_profile ?? [],
-    jobVector.skill_profile ?? [],
-  );
-
-  const tag = computeTagMatch(
-    userVector.tag_profile ?? [],
-    jobVector.tag_profile ?? [],
-  );
-
-  const location = computeLocationMatch(
-    userVector.preferred_location,
-    jobVector.location,
-  );
-
-  const salary = computeSalaryMatch(
-    userVector.salary_expected,
-    jobVector.salary_avg,
-  );
-
-  // USER-CENTRIC WEIGHTS
-  const finalScore =
-    0.45 * skill + // user thiếu skill vẫn có thể apply job, nên giảm
-    0.3 * tag + // user thích ngành nào thì gợi ý ngành đó
-    0.15 * salary + // phù hợp lương
-    0.1 * location; // user muốn làm ở đâu
-
-  return Number(finalScore.toFixed(4));
+  return computeFitScore(userVector, jobVector);
 }
 
+// =========================
+// JOB-CENTRIC (CANDIDATE)
+// =========================
 function computeCandidateFitScore(userVector, jobVector) {
   const skill = computeSkillMatch(
     userVector.skill_profile ?? [],
@@ -214,23 +331,26 @@ function computeCandidateFitScore(userVector, jobVector) {
     jobVector.salary_avg,
   );
 
-  // JOB-CENTRIC WEIGHTS
-  const finalScore =
-    0.4 * skill + // trọng số cao nhất: job yêu cầu skill
-    0.25 * tag +
-    0.15 * salary +
-    0.1 * location;
+  const score =
+    0.4 * skill.score +
+    0.25 * tag.score +
+    0.15 * salary.score +
+    0.1 * location.score;
 
-  return Number(finalScore.toFixed(4));
+  const finalScore = Number(score.toFixed(4));
+
+  return {
+    score: finalScore,
+    explanation: buildExplanation(finalScore, skill, tag, location, salary),
+  };
 }
 
 module.exports = {
   computeFitScore,
-  computeSkillMatch,
-  computeTagMatch,
-  countMatchingTags,
-  computeLocationMatch,
-  computeSalaryMatch,
   computeJobFitScore,
   computeCandidateFitScore,
+  computeSkillMatch,
+  computeTagMatch,
+  computeLocationMatch,
+  computeSalaryMatch,
 };

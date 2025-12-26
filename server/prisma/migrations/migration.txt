@@ -1,0 +1,38 @@
+PHẦN A — CHUẨN BỊ
+A1. Backup database (bắt buộc) -> tôi ko backup
+mysqldump -u root -p recruit_web > backup_recruit_web.sql
+
+A2. Đồng bộ schema với DB
+npx prisma db pull
+có thể chạy thêm:
+npx prisma generate
+
+
+Đảm bảo schema.prisma phản ánh đúng DB hiện tại
+
+PHẦN B — RESET LỊCH SỬ MIGRATE (KHÔNG ĐỤNG DB)
+B1. Xoá migrations local (xóa folder migrate là được, dưới sẽ tạo lại)
+rm -r prisma/migrations
+mkdir prisma/migrations/000_init (nên tạo cả folder con nữa E:\HIEU\Project\website_recruit\server\prisma\migrations\000_init)
+
+B2. Xoá lịch sử migrate trong DB
+DROP TABLE IF EXISTS _prisma_migrations;
+Vào MySQL xóa bảng _prisma_migrations là được
+
+
+Chỉ xoá bảng này – không xoá bảng dữ liệu
+
+PHẦN C — TẠO BASELINE MIGRATION (CỐT LÕI)
+C1. Tạo thư mục migration baseline
+mkdir prisma/migrations/000_init (nãy trên tạo rồi thì ko cần tạo lại nữa)
+
+C2. Tạo migration
+npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script |  Out-File prisma/migrations/000_init/migration.sql -Encoding utf8
+(Nó sẽ tạo file migration.sql vưới định dạng utf-8 with BOM, giờ cần sửa lại thành utf-8 - dưới góc phải nhấn vào định dạng rồi chọn Save with Encoding utf-8 là được)
+
+C3. Tạo lịch sử migrate
+npx prisma migrate resolve --applied 000_init
+(Áp dụng hiện tại là khởi tạo migrate, rồi test lại bằng npx prisma migrate dev, vậy là xong)
+
+Cách này chỉ sửa migrate thôi, nếu làm xóa cột hay sửa tên cột đang dùng thì nên xóa data hét cho lẹ vì sửa tên cột tức là xóa trường cũ thêm trường mới rồi.
+Nên thêm cột or sửa  type data trên db mà pull về nhưng migrate bị lỗi mới dùng cách này.

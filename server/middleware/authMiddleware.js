@@ -1,4 +1,4 @@
-// middleware/authMiddleware.js
+// server/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 // Nếu muốn chặn user đã bị xoá/ban, bật prisma và check dưới (tuỳ chọn)
 // const prisma = require("../utils/prisma");

@@ -1,4 +1,4 @@
-// services/jobService.js
+// server/services/jobService.js
 const { emitEvent } = require("../events");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
@@ -368,11 +368,29 @@ exports.updateJob = async (id, data) => {
       where: { id: jobId },
       data: { ...dataToUpdate, ...tagMutation },
       include: {
-        company: { select: { id: true, legal_name: true } },
+        company: { select: { id: true, legal_name: true, logo: true } },
         approval: true,
         tags: { include: { tag: true } },
       },
     });
+
+    // ===== RESET APPROVAL IF JOB CHANGED =====
+    const shouldResetApproval =
+      Object.keys(dataToUpdate).length > 1 ||
+      tags !== undefined ||
+      requiredSkills !== undefined;
+
+    if (shouldResetApproval) {
+      await tx.jobApproval.updateMany({
+        where: { job_id: jobId },
+        data: {
+          status: "pending",
+          reason: null,
+          auditor_id: null,
+          audited_at: null,
+        },
+      });
+    }
 
     await updateRequiredSkills(tx);
 
@@ -400,12 +418,11 @@ exports.getJobById = async (id, user, opts = {}) => {
     where: { id: BigInt(id) },
     include: {
       creator: { select: { id: true, name: true, email: true } },
-      company: { select: { id: true, legal_name: true } },
+      company: { select: { id: true, legal_name: true, logo: true } },
       approval: true,
       tags: { include: { tag: true } },
-      favorites: user ? { where: { user_id: BigInt(user.id) } } : false, // tránh trả về list user
       requiredSkills: { include: { skill: true } },
-      vector: true, // nếu dùng vector
+      vector: true,
     },
   });
 
@@ -416,7 +433,6 @@ exports.getJobById = async (id, user, opts = {}) => {
   }
 
   const approved = job.approval?.status === "approved";
-
   const isOwner = user && String(job.created_by) === String(user.id);
 
   if (
@@ -437,8 +453,20 @@ exports.getJobById = async (id, user, opts = {}) => {
       eventType: "open_detail",
     });
   }
+  // ===== NEW: Tính isFavorite =====
+  let isFavorite = false;
 
-  return toJobDTO(job);
+  if (user) {
+    const fav = await prisma.userFavoriteJobs.findFirst({
+      where: { user_id: BigInt(user.id), job_id: BigInt(id) },
+    });
+    isFavorite = !!fav;
+  }
+
+  return {
+    ...toJobDTO(job),
+    isFavorite,
+  };
 };
 
 // Lấy danh sách Job với lọc + search + phân trang (chỉ trả job approved)
@@ -447,10 +475,11 @@ exports.getAllJobs = async ({
   search = "",
   page = 1,
   limit = 10,
+  currentUser = null,
 }) => {
   const skip = (page - 1) * limit;
 
-  // Filter tag: dùng tag_id
+  // TAG filter
   const tagFilter =
     Array.isArray(filter.tags) && filter.tags.length > 0
       ? {
@@ -462,13 +491,31 @@ exports.getAllJobs = async ({
         }
       : {};
 
-  // Search multi-field (insensitive)
+  // LOCATION filter linh hoạt
+  const locationFilter =
+    typeof filter.location === "string" && filter.location.trim().length > 0
+      ? {
+          location: {
+            contains: filter.location.trim(),
+          },
+        }
+      : {};
+
+  // SALARY filter
+  const salaryFilter =
+    filter.salaryWanted && !Number.isNaN(filter.salaryWanted)
+      ? {
+          salary_min: { lte: filter.salaryWanted },
+          salary_max: { gte: filter.salaryWanted },
+        }
+      : {};
+
+  // SEARCH fulltext
   const searchConditions = search
     ? [
         { title: { contains: search } },
         { description: { contains: search } },
         { requirements: { contains: search } },
-        { location: { contains: search } },
         { created_by_name: { contains: search } },
         {
           company: {
@@ -478,15 +525,19 @@ exports.getAllJobs = async ({
       ]
     : [];
 
-  // Chỉ lấy job đã approved
-  const approvalFilter = { approval: { is: { status: "approved" } } };
-
+  const isAdmin = currentUser?.role === "admin";
+  // WHERE final
   const where = {
     ...tagFilter,
-    ...approvalFilter,
+    ...locationFilter,
+    ...salaryFilter,
+    ...(!isAdmin && {
+      approval: { is: { status: "approved" } },
+    }),
     ...(searchConditions.length ? { OR: searchConditions } : {}),
   };
 
+  // Query jobs and count
   const [jobs, total] = await Promise.all([
     prisma.job.findMany({
       where,
@@ -494,18 +545,34 @@ exports.getAllJobs = async ({
       skip,
       take: limit,
       include: {
-        company: { select: { id: true, legal_name: true } },
+        company: { select: { id: true, legal_name: true, logo: true } },
         approval: true,
         tags: { include: { tag: true } },
         requiredSkills: { include: { skill: true } },
         vector: true,
       },
     }),
+
     prisma.job.count({ where }),
   ]);
 
+  // Favorite jobs
+  let favoriteIds = new Set();
+  if (currentUser) {
+    const favorites = await prisma.userFavoriteJobs.findMany({
+      where: { user_id: BigInt(currentUser.id) },
+      select: { job_id: true },
+    });
+    favoriteIds = new Set(favorites.map((f) => Number(f.job_id)));
+  }
+
+  const jobList = jobs.map((job) => ({
+    ...toJobDTO(job),
+    isFavorite: currentUser ? favoriteIds.has(Number(job.id)) : false,
+  }));
+
   return {
-    jobs: jobs.map(toJobDTO),
+    jobs: jobList,
     total,
     page,
     totalPages: Math.ceil(total / limit),
@@ -575,16 +642,18 @@ exports.getPopularTags = async () => {
   }));
 };
 
-//  Lấy tất cả tag có sử dụng bởi job
+//  Lấy tất cả tag
 exports.getAllTags = async () => {
   const tags = await prisma.tag.findMany({
-    where: { jobs: { some: {} } },
+    // where: { jobs: { some: {} } },
     select: {
       id: true,
       name: true,
       _count: { select: { jobs: true } },
     },
-    orderBy: { id: "asc" },
+    orderBy: {
+      name: "asc",
+    },
   });
 
   return tags.map((t) => ({
@@ -600,15 +669,20 @@ exports.approveJob = async (jobId, adminId) => {
     where: { id: BigInt(jobId) },
     include: {
       approval: true,
-      creator: { select: { id: true, name: true, email: true } }, // lấy chủ job để gửi mail
+      creator: { select: { id: true, name: true, email: true } },
       company: { select: { legal_name: true } },
     },
   });
+
   if (!job) {
     const e = new Error("Không tìm thấy job.");
     e.status = 404;
     throw e;
   }
+
+  // ===== 3.1 IDENTITY CHECK (chặn gửi trùng) =====
+  const previousStatus = job.approval?.status;
+  const shouldSendEmail = previousStatus !== "approved";
 
   const approval = await prisma.jobApproval.upsert({
     where: { job_id: job.id },
@@ -626,23 +700,63 @@ exports.approveJob = async (jobId, adminId) => {
     },
   });
 
-  // Gửi email thông báo cho recruiter
-  try {
-    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}`;
-    await emailService.sendEmail(
-      job.creator.email,
-      "Bài đăng tuyển dụng đã được DUYỆT",
-      `
-        <p>Chào ${job.creator.name},</p>
-        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã được <b>DUYỆT</b>.</p>
-        <p>Bạn có thể xem chi tiết tại: <a href="${manageUrl}">${manageUrl}</a></p>
-        <p>Trân trọng,</p>
-        <p>Recruitment System</p>
-      `,
-    );
-  } catch (error_) {
-    console.error("[Email Approve Job] send failed:", error_?.message);
-    // không throw để tránh làm fail API duyệt
+  // ===== GỬI EMAIL CHỈ KHI TRẠNG THÁI THỰC SỰ ĐỔI =====
+  if (shouldSendEmail) {
+    try {
+      const manageUrl = `${process.env.CLIENT_URL}/jobs/${job.id.toString()}`;
+
+      const subject = "Bài đăng tuyển dụng của bạn đã được duyệt";
+
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+          <p>Chào <b>${job.creator.name}</b>,</p>
+
+          <p>
+            Bài đăng tuyển dụng
+            <b>${job.title}</b>
+            ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+            đã được <b style="color:#0ea5e9;">DUYỆT</b>.
+          </p>
+
+          <p>
+            Bài đăng của bạn hiện đã được hiển thị và bắt đầu tiếp cận ứng viên phù hợp.
+          </p>
+
+          <p style="margin: 24px 0;">
+            <a
+              href="${manageUrl}"
+              style="
+                display: inline-block;
+                padding: 10px 16px;
+                background-color: #0ea5e9;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+              "
+            >
+              Xem bài đăng tuyển dụng
+            </a>
+          </p>
+
+          <p>
+            Nếu cần chỉnh sửa nội dung hoặc theo dõi ứng viên, bạn có thể thực hiện trực tiếp tại trang quản lý job.
+          </p>
+
+          <p>Chúc bạn sớm tìm được ứng viên phù hợp.</p>
+
+          <p style="margin-top: 32px;">
+            Trân trọng,<br />
+            <b>Recruitment System</b>
+          </p>
+        </div>
+      `;
+
+      await emailService.sendEmail(job.creator.email, subject, html);
+    } catch (error_) {
+      console.error("[Email Approve Job] send failed:", error_?.message);
+      // không throw để tránh làm fail API duyệt
+    }
   }
 
   return {
@@ -662,11 +776,16 @@ exports.rejectJob = async (jobId, adminId, reason) => {
       company: { select: { legal_name: true } },
     },
   });
+
   if (!job) {
     const e = new Error("Không tìm thấy job.");
     e.status = 404;
     throw e;
   }
+
+  // ===== 3.1 IDENTITY CHECK (chặn gửi email trùng) =====
+  const previousStatus = job.approval?.status;
+  const shouldSendEmail = previousStatus !== "rejected";
 
   const approval = await prisma.jobApproval.upsert({
     where: { job_id: job.id },
@@ -685,29 +804,122 @@ exports.rejectJob = async (jobId, adminId, reason) => {
     },
   });
 
-  // Gửi email thông báo từ chối cho recruiter
-  try {
-    const manageUrl = `${process.env.SERVER_URL}/dashboard/jobs/${job.id.toString()}/edit`;
-    await emailService.sendEmail(
-      job.creator.email,
-      "Bài đăng tuyển dụng bị TỪ CHỐI",
-      `
-        <p>Chào ${job.creator.name},</p>
-        <p>Job <b>${job.title}</b> (${job.company?.legal_name || "Company"}) đã bị <b>TỪ CHỐI</b>.</p>
-        <p><b>Lý do:</b> ${reason || "Không có lý do cụ thể."}</p>
-        <p>Vui lòng chỉnh sửa và nộp lại: <a href="${manageUrl}">${manageUrl}</a></p>
-        <p>Trân trọng,</p>
-        <p>Recruitment System</p>
-      `,
-    );
-  } catch (error_) {
-    console.error("[Email Reject Job] send failed:", error_?.message);
-    // không throw để tránh làm fail API
+  // ===== GỬI EMAIL CHỈ KHI TRẠNG THÁI THỰC SỰ ĐỔI =====
+  if (shouldSendEmail) {
+    try {
+      const editUrl = `${process.env.CLIENT_URL}/recruiter/jobs`;
+
+      const subject = "Bài đăng tuyển dụng cần chỉnh sửa trước khi hiển thị";
+
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111;">
+          <p>Chào <b>${job.creator.name}</b>,</p>
+
+          <p>
+            Bài đăng tuyển dụng
+            <b>${job.title}</b>
+            ${job.company?.legal_name ? `(${job.company.legal_name})` : ""}
+            <b style="color:#dc2626;">chưa được phê duyệt</b> tại thời điểm này.
+          </p>
+
+          <p>
+            Dưới đây là lý do để bạn có thể rà soát và điều chỉnh nội dung:
+          </p>
+
+          <blockquote
+            style="
+              margin: 16px 0;
+              padding: 12px 16px;
+              background-color: #fef2f2;
+              border-left: 4px solid #dc2626;
+            "
+          >
+            ${reason || "Không có lý do cụ thể."}
+          </blockquote>
+
+          <p>
+            Sau khi cập nhật, bạn có thể gửi lại bài đăng để được xem xét phê duyệt.
+          </p>
+
+          <p style="margin: 24px 0;">
+            <a
+              href="${editUrl}"
+              style="
+                display: inline-block;
+                padding: 10px 16px;
+                background-color: #dc2626;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+              "
+            >
+              Chỉnh sửa bài đăng
+            </a>
+          </p>
+
+          <p>
+            Nếu bạn cần hỗ trợ thêm trong quá trình chỉnh sửa, vui lòng phản hồi lại email này hoặc liên hệ đội ngũ hỗ trợ.
+          </p>
+
+          <p style="margin-top: 32px;">
+            Trân trọng,<br />
+            <b>Recruitment System</b>
+          </p>
+        </div>
+      `;
+
+      await emailService.sendEmail(job.creator.email, subject, html);
+    } catch (error_) {
+      console.error("[Email Reject Job] send failed:", error_?.message);
+      // không throw để tránh làm fail API
+    }
   }
 
   return {
     job_id: job.id.toString(),
     status: approval.status,
     reason: approval.reason,
+    audited_at: approval.audited_at,
+  };
+};
+
+// ===============================
+// GET JOBS CREATED BY CURRENT USER (Lấy job tạo bởi người dùng)
+// ===============================
+exports.getMyJobs = async ({ userId, role, page = 1, limit = 10 }) => {
+  const skip = (page - 1) * limit;
+
+  const isAdmin = role === "admin";
+
+  const where = {
+    ...(!isAdmin && {
+      created_by: BigInt(userId),
+    }),
+  };
+
+  const [jobs, total] = await Promise.all([
+    prisma.job.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      skip,
+      take: limit,
+      include: {
+        company: { select: { id: true, legal_name: true, logo: true } },
+        approval: true,
+        tags: { include: { tag: true } },
+        requiredSkills: { include: { skill: true } },
+        vector: true,
+      },
+    }),
+
+    prisma.job.count({ where }),
+  ]);
+
+  return {
+    jobs: jobs.map((job) => toJobDTO(job)),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
   };
 };

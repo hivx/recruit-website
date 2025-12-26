@@ -1,43 +1,28 @@
 // src/types/api.ts
-
-/** Lỗi trả về từ BE (backend) */
+/** Lỗi trả về từ BE */
 export interface ApiError {
   message: string;
   code?: string;
   details?: Record<string, string>;
 }
 
-/**
- * Chuẩn phân trang cho Jobs API
- * - Theo schema mới:
- *   + Job.id là string (do BE trả BigInt dưới dạng string)
- *   + Job.tags là JobTag[] (gồm tagId, jobId, tag{name})
- * - Mọi API trả về danh sách jobs nên tuân theo format này
- */
+/** Chuẩn phân trang cho Jobs API */
 export interface PaginatedJobs<T> {
-  jobs: T[];          // Danh sách job (đã được mapper chuẩn hóa)
-  total: number;      // Tổng số job
-  page: number;       // Trang hiện tại
-  totalPages: number; // Tổng số trang
+  jobs: T[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
-/**
- * Chuẩn phân trang cho Applications API
- * - Dành cho danh sách ứng viên / ứng tuyển
- * - Giữ linh hoạt với page và totalPages (optional)
- */
+/** Danh sách ứng viên theo job — BE không trả page/totalPages */
 export interface PaginatedApplicants<T> {
-  applicants: T[];         // Danh sách ứng viên
-  totalApplicants: number; // Tổng số ứng viên
-  page?: number;
-  totalPages?: number;
+  applicants: T[];
+  totalApplicants: number;
 }
 
-/**
- * Response chung (generic) cho mọi API
- * - BE có thể trả thêm message hoặc chỉ data
- */
+/** Response chung cho mọi API */
 export interface ApiResponse<T> {
   message?: string;
   data?: T;
+  [key: string]: unknown;
 }

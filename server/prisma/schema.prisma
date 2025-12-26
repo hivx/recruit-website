@@ -8,33 +8,34 @@ datasource db {
 }
 
 model User {
-  id                  BigInt                    @id @default(autoincrement())
-  name                String                    @db.VarChar(100)
-  avatar              String                    @default("uploads/pic.jpg") @db.VarChar(255)
-  email               String                    @unique @db.VarChar(100)
-  password            String                    @db.VarChar(100)
-  role                UserRole                  @default(applicant)
-  isVerified          Boolean                   @default(false)
-  created_at          DateTime                  @default(now())
-  updated_at          DateTime                  @default(now()) @updatedAt
-  reset_token         String?                   @db.VarChar(255)
-  reset_token_expiry  DateTime?
-  reset_password_hash String?                   @db.VarChar(255)
-  applications        Application[]
-  candidateRecommends CandidateRecommendation[] @relation("CandidateAsApplicant")
-  recruiterRecommends CandidateRecommendation[] @relation("CandidateAsRecruiter")
-  careerPreference    CareerPreference?
-  company             Company?
-  recommendations     JobRecommendation[]
-  jobs                Job[]                     @relation("UserJobs")
-  recruiterPreference RecruiterPreference?
-  recruiterVector     RecruiterVector?
-  behaviorProfile     UserBehaviorProfile?
-  favorites           UserFavoriteJobs[]
-  interestHistory     UserInterestHistory[]
-  userJobMatrix       UserJobMatrix[]
-  userSkills          UserSkill[]
-  vector              UserVector?
+  id                     BigInt                    @id @default(autoincrement())
+  name                   String                    @db.VarChar(100)
+  avatar                 String                    @default("uploads/pic.jpg") @db.VarChar(255)
+  email                  String                    @unique @db.VarChar(100)
+  password               String                    @db.VarChar(100)
+  role                   UserRole                  @default(applicant)
+  isVerified             Boolean                   @default(false)
+  created_at             DateTime                  @default(now())
+  updated_at             DateTime                  @default(now()) @updatedAt
+  reset_token            String?                   @db.VarChar(255)
+  reset_token_expiry     DateTime?
+  reset_password_hash    String?                   @db.VarChar(255)
+  receive_recommendation Boolean                   @default(true)
+  applications           Application[]
+  candidateRecommends    CandidateRecommendation[] @relation("CandidateAsApplicant")
+  recruiterRecommends    CandidateRecommendation[] @relation("CandidateAsRecruiter")
+  careerPreference       CareerPreference?
+  company                Company?
+  recommendations        JobRecommendation[]
+  jobs                   Job[]                     @relation("UserJobs")
+  recruiterPreference    RecruiterPreference?
+  recruiterVector        RecruiterVector?
+  behaviorProfile        UserBehaviorProfile?
+  favorites              UserFavoriteJobs[]
+  interestHistory        UserInterestHistory[]
+  userJobMatrix          UserJobMatrix[]
+  userSkills             UserSkill[]
+  vector                 UserVector?
 
   @@index([email], map: "idx_user_email")
   @@map("users")
@@ -51,6 +52,7 @@ model Company {
   owner_id            BigInt               @unique
   created_at          DateTime             @default(now())
   updated_at          DateTime             @default(now()) @updatedAt
+  logo                String?              @default("uploads/pic.jpg") @db.VarChar(255)
   owner               User                 @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   verification        CompanyVerification?
   jobs                Job[]
@@ -65,7 +67,7 @@ model CompanyVerification {
   reviewed_by      BigInt?
   company_id       BigInt                    @unique
   status           CompanyVerificationStatus @default(submitted)
-  rejection_reason String?                   @db.VarChar(255)
+  rejection_reason String?                   @db.Text
   submitted_at     DateTime                  @default(now())
   verified_at      DateTime?
   company          Company                   @relation(fields: [company_id], references: [id], onDelete: Cascade)
@@ -81,10 +83,10 @@ model Job {
   created_by        BigInt
   created_by_name   String                @db.VarChar(200)
   location          String?               @db.VarChar(100)
-  description       String?               @db.VarChar(500)
+  description       String?               @db.Text
   salary_min        Int?
   salary_max        Int?
-  requirements      String?               @db.VarChar(500)
+  requirements      String?               @db.Text
   quality_score     Float?                @default(0)
   application_count Int                   @default(0)
   created_at        DateTime              @default(now())
@@ -112,7 +114,7 @@ model JobApproval {
   id         BigInt            @id @default(autoincrement())
   job_id     BigInt            @unique
   status     JobApprovalStatus @default(pending)
-  reason     String?           @db.VarChar(255)
+  reason     String?           @db.Text
   auditor_id BigInt?
   audited_at DateTime?
   updated_at DateTime          @default(now()) @updatedAt
@@ -173,13 +175,14 @@ model Application {
   id           BigInt            @id @default(autoincrement())
   job_id       BigInt
   applicant_id BigInt
-  cover_letter String            @db.VarChar(1000)
+  cover_letter String            @db.Text
   cv           String?
   phone        String?
   status       ApplicationStatus @default(pending)
   fit_score    Float?            @default(0)
+  fit_reason   String?           @db.Text
   created_at   DateTime          @default(now())
-  review_note  String?           @db.VarChar(500)
+  review_note  String?           @db.Text
   reviewed_at  DateTime?
   reviewed_by  BigInt?
   updated_at   DateTime          @default(now()) @updatedAt
@@ -291,7 +294,7 @@ model JobRecommendation {
   user_id        BigInt
   job_id         BigInt
   fit_score      Float?    @default(0)
-  reason         String?   @db.VarChar(255)
+  reason         String?   @db.Text
   is_sent        Boolean   @default(false)
   sent_at        DateTime?
   status         String?   @db.VarChar(50)
@@ -307,16 +310,18 @@ model JobRecommendation {
 }
 
 model CandidateRecommendation {
-  id             BigInt   @id @default(autoincrement())
+  id             BigInt    @id @default(autoincrement())
   recruiter_id   BigInt
   applicant_id   BigInt
-  fit_score      Float?   @default(0)
-  reason         String?  @db.VarChar(255)
-  status         String?  @db.VarChar(50)
-  recommended_at DateTime @default(now())
-  updated_at     DateTime @default(now()) @updatedAt
-  applicant      User     @relation("CandidateAsApplicant", fields: [applicant_id], references: [id], onDelete: Cascade)
-  recruiter      User     @relation("CandidateAsRecruiter", fields: [recruiter_id], references: [id], onDelete: Cascade)
+  fit_score      Float?    @default(0)
+  reason         String?   @db.Text
+  status         String?   @db.VarChar(50)
+  recommended_at DateTime  @default(now())
+  updated_at     DateTime  @default(now()) @updatedAt
+  is_sent        Boolean   @default(false)
+  sent_at        DateTime?
+  applicant      User      @relation("CandidateAsApplicant", fields: [applicant_id], references: [id], onDelete: Cascade)
+  recruiter      User      @relation("CandidateAsRecruiter", fields: [recruiter_id], references: [id], onDelete: Cascade)
 
   @@unique([recruiter_id, applicant_id])
   @@index([fit_score], map: "idx_candreco_fit")
@@ -339,7 +344,7 @@ model UserSkill {
   skill_id Int
   level    Int?
   years    Int?
-  note     String? @db.VarChar(255)
+  note     String? @db.Text
   skill    Skill   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
   user     User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 

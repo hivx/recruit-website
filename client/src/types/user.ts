@@ -1,68 +1,146 @@
 // src/types/user.ts
-
 export type UserRole = "admin" | "recruiter" | "applicant";
 
-/** Dữ liệu raw trả từ BE */
+/** Raw từ BE (toUserDTO) */
 export interface UserRaw {
-  id: string;              // BigInt → string
-  name: string;
+  id: string;
+  name: string | null;
   email: string;
-  isVerified: boolean;
+  avatar: string | null;
   role: UserRole;
-  avatar: string;          // BE có avatar
-  created_at: string;      // ISO date string
-  updated_at?: string;     // ISO date string
+  isVerified: boolean;
+  created_at: string;
+  updated_at: string;
+  receive_recommendation: boolean;
+
+  company: {
+    id: string;
+    legal_name: string;
+    verificationStatus: "submitted" | "verified" | "rejected" | null;
+  } | null;
 }
 
-/** Kiểu chuẩn hóa để FE dùng */
+/** FE user (camelCase) */
 export interface User {
-  id: string;              // FE dùng string cho an toàn (BigInt → string)
-  name: string;
+  id: string;
+  name: string | null;
   email: string;
-  isVerified: boolean;
+  avatar: string | null;
   role: UserRole;
-  avatar: string;
-  createdAt: string;       // FE convert từ created_at
-  updatedAt?: string;      // FE convert từ updated_at
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  receiveRecommendation: boolean;
+
+  company: {
+    id: string;
+    legalName: string;
+    verificationStatus: "submitted" | "verified" | "rejected" | null;
+  } | null;
 }
 
-/** Job yêu thích (theo API /api/users/favorite) */
-export interface FavoriteJob {
-  id: string;              // BigInt → string
-  title: string;
-  company: string;
-  location: string;
-  created_at: string;      // ISO date string
+export interface GetMeResponse {
+  user: UserRaw | null;
 }
 
-/** Payload khi đăng ký */
-export interface UserRegisterPayload {
+export interface UserSkillRaw {
+  id: number;
   name: string;
-  email: string;           // phải là @gmail.com
-  password: string;
-  role: UserRole;          // bắt buộc chọn role (applicant, recruiter)
+  level: number;
+  years: number;
+  note: string | null;
 }
 
-/** Payload khi đăng nhập */
-export interface UserLoginPayload {
-  email: string;
-  password: string;
-}
-
-/** Payload khi cập nhật User */
-export type UserUpdatePayload = Partial<{
+export interface UserSkill {
+  id: string;
   name: string;
-  email: string;
-  avatar: File;            // BE nhận multipart/form-data
-}>;
+  level: number;
+  years: number;
+  note: string | null;
+}
 
-/** Payload đổi mật khẩu */
-export interface ChangePasswordInput {
+export interface MySkillListResponseRaw {
+  total: number;
+  skills: UserSkillRaw[];
+}
+
+export interface MySkillListResponse {
+  total: number;
+  skills: UserSkill[];
+}
+
+export interface SkillPayload {
+  name: string;
+  level: number;
+  years: number;
+  note?: string | null;
+}
+
+// 1) Raw từ BE
+export interface SkillOptionRaw {
+  id: number;
+  name: string;
+}
+
+// 2) Dùng trên FE
+export interface SkillOption {
+  id: string;
+  name: string;
+}
+
+// 3) Nếu muốn type cho response list (mặc dù BE trả array thẳng)
+export type AllSkillListResponseRaw = SkillOptionRaw[];
+export type AllSkillListResponse = SkillOption[];
+
+export interface UpdateProfilePayload {
+  name?: string;
+  email?: string;
+  avatar?: File;
+}
+
+export interface UpdateProfileResponse {
+  message: string;
+  user: User;
+}
+
+export interface ChangePasswordPayload {
   oldPassword: string;
   newPassword: string;
 }
 
-/** Response khi đổi mật khẩu */
-export interface ChangePasswordResponse {
-  message: string;         // "Đổi mật khẩu thành công"
+/** Raw payload gửi lên BE (admin create user) */
+export interface AdminCreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+  isVerified?: boolean; // dùng làm active/deactive
+}
+
+/** Raw payload gửi lên BE (admin update user) */
+export interface AdminUpdateUserPayload {
+  email?: string;
+  name?: string;
+  role?: UserRole;
+  isVerified?: boolean;
+}
+
+export interface AdminSetUserActivePayload {
+  isActive: boolean;
+}
+
+/** Raw response từ BE */
+export interface AdminUserListResponseRaw {
+  users: UserRaw[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+/** FE response */
+export interface AdminUserListResponse {
+  users: User[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

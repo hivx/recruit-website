@@ -1,4 +1,4 @@
-// services/userVectorService.js
+// server/services/userVectorService.js
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
 const { shouldRebuildVector } = require("../utils/shouldRebuildVector");
@@ -52,12 +52,16 @@ async function validateApplicant(uid) {
   });
 
   if (!user) {
-    throw new Error("User không tồn tại");
+    console.warn("[UserVector] User không tồn tại:", uid.toString());
+    return false;
   }
 
   if (user.role !== "applicant" && user.role !== "admin") {
-    throw new Error("Người dùng không phải ứng viên");
+    console.warn("[UserVector] Skip non-applicant:", user.role, uid.toString());
+    return false;
   }
+
+  return true;
 }
 
 /**
@@ -66,7 +70,10 @@ async function validateApplicant(uid) {
 async function buildUserVector(userId) {
   const uid = BigInt(userId);
 
-  await validateApplicant(uid);
+  const isValid = await validateApplicant(uid);
+  if (!isValid) {
+    return null; // không throw
+  }
 
   const canRebuild = await shouldRebuildVector(
     "userVector", // bảng user_vector

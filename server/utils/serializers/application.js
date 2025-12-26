@@ -16,7 +16,8 @@ const toApplicationDTO = (a) => {
     reviewed_by: toStr(a.reviewed_by),
     reviewed_at: a.reviewed_at,
     review_note: a.review_note,
-    fit_score: a.fit_score ?? 0, // <-- thêm theo schema (nullable, default 0)
+    fit_score: a.fit_score ?? 0,
+    fit_reason: a.fit_reason ?? null,
     created_at: a.created_at,
     // optional includes
     job: a.job ? { id: toStr(a.job.id), title: a.job.title } : undefined,

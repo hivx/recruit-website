@@ -1,4 +1,4 @@
-// middleware/requireJobApproved.js
+// server/middleware/requireJobApproved.js
 const fs = require("node:fs");
 const path = require("node:path");
 const prisma = require("../utils/prisma");

@@ -1,9 +1,11 @@
+// server/utils/cronSchedules.js
 const cron = require("node-cron");
 const cfg = require("../config/profile.config");
 
 const jobVectorService = require("../services/jobVectorService");
 const profileBuilderService = require("../services/profileBuilderService");
 const recommendationService = require("../services/recommendationService");
+const recommendSystemService = require("../services/recommendSystemService");
 const recruiterVectorService = require("../services/recruiterVectorService");
 const userVectorService = require("../services/userVectorService");
 
@@ -91,3 +93,37 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
 });
 
 console.log(`[CRON] Đã khởi chạy cron rebuild vector`);
+
+// ===============================
+// CRON: SEND JOB RECOMMENDATION EMAIL
+// ===============================
+cron.schedule(cfg.JOB_RECOMMEND_EMAIL_CRON, async () => {
+  try {
+    const result = await recommendSystemService.sendJobRecommendations({
+      minFitScore: cfg.JOB_RECOMMEND_MIN_SCORE || 0.6,
+      limitPerUser: cfg.JOB_RECOMMEND_LIMIT || 5,
+    });
+
+    console.log(`[CRON][JOB-EMAIL] users=${result.users}, sent=${result.sent}`);
+  } catch (err) {
+    console.error("[CRON][JOB-EMAIL] ERROR:", err.message);
+  }
+});
+
+// ===============================
+// CRON: SEND CANDIDATE RECOMMENDATION EMAIL
+// ===============================
+cron.schedule(cfg.CANDIDATE_RECOMMEND_EMAIL_CRON, async () => {
+  try {
+    const result = await recommendSystemService.sendCandidateRecommendations({
+      minFitScore: cfg.CANDIDATE_RECOMMEND_MIN_SCORE || 0.25,
+      limitPerRecruiter: cfg.CANDIDATE_RECOMMEND_LIMIT || 5,
+    });
+
+    console.log(
+      `[CRON][CANDIDATE-EMAIL] recruiters=${result.recruiters}, sent=${result.sent}`,
+    );
+  } catch (err) {
+    console.error("[CRON][CANDIDATE-EMAIL] ERROR:", err.message);
+  }
+});

@@ -1,6 +1,7 @@
-// services/companyService.js
+// server/services/companyService.js
 const prisma = require("../utils/prisma");
 const { toCompanyDTO } = require("../utils/serializers/company");
+const emailService = require("./emailService");
 
 /**
  * Recruiter tạo company (1-1). Sau khi tạo, tạo luôn CompanyVerification(status = submitted).
@@ -40,6 +41,7 @@ async function createCompany(ownerId, payload) {
       incorporation_date: payload.incorporation_date
         ? new Date(payload.incorporation_date)
         : null,
+      logo: payload.logo ?? null,
       verification: {
         create: {
           status: "submitted", // theo schema đơn giản: submitted | verified | rejected
@@ -84,15 +86,56 @@ async function updateMyCompany(ownerId, payload) {
     throw e;
   }
 
-  if (payload.registration_number || payload.country_code) {
+  // ======== SHOULD UPDATE LOGIC ========
+  const shouldUpdate = (v) =>
+    !(
+      v === undefined ||
+      v === null ||
+      (typeof v === "string" && v.trim() === "")
+    );
+
+  // ======== XÂY DATA UPDATE AN TOÀN ========
+  const dataToUpdate = {};
+
+  if (shouldUpdate(payload.legal_name)) {
+    dataToUpdate.legal_name = payload.legal_name;
+  }
+  if (shouldUpdate(payload.registration_number)) {
+    dataToUpdate.registration_number = payload.registration_number;
+  }
+  if (shouldUpdate(payload.tax_id)) {
+    dataToUpdate.tax_id = payload.tax_id;
+  }
+  if (shouldUpdate(payload.country_code)) {
+    dataToUpdate.country_code = payload.country_code;
+  }
+  if (shouldUpdate(payload.registered_address)) {
+    dataToUpdate.registered_address = payload.registered_address;
+  }
+  if (shouldUpdate(payload.incorporation_date)) {
+    dataToUpdate.incorporation_date = new Date(payload.incorporation_date);
+  }
+  if (shouldUpdate(payload.logo)) {
+    dataToUpdate.logo = payload.logo;
+  }
+
+  // ======== CHECK DUPLICATE COMPANY ID IF USER UPDATE registration_number COUNTRY_CODE ========
+  if (
+    (payload.registration_number !== undefined &&
+      payload.registration_number !== "") ||
+    (payload.country_code !== undefined && payload.country_code !== "")
+  ) {
+    const newReg = payload.registration_number || company.registration_number;
+    const newCountry = payload.country_code || company.country_code;
+
     const dup = await prisma.company.findFirst({
       where: {
-        registration_number:
-          payload.registration_number ?? company.registration_number,
-        country_code: payload.country_code ?? company.country_code,
+        registration_number: newReg,
+        country_code: newCountry,
         NOT: { id: company.id },
       },
     });
+
     if (dup) {
       const e = new Error("Registration_number đã tồn tại trong quốc gia này.");
       e.status = 409;
@@ -102,18 +145,7 @@ async function updateMyCompany(ownerId, payload) {
 
   const updated = await prisma.company.update({
     where: { id: company.id },
-    data: {
-      legal_name: payload.legal_name ?? company.legal_name,
-      registration_number:
-        payload.registration_number ?? company.registration_number,
-      tax_id: payload.tax_id ?? company.tax_id,
-      country_code: payload.country_code ?? company.country_code,
-      registered_address:
-        payload.registered_address ?? company.registered_address,
-      incorporation_date: payload.incorporation_date
-        ? new Date(payload.incorporation_date)
-        : company.incorporation_date,
-    },
+    data: dataToUpdate,
     include: { verification: true },
   });
 
@@ -131,14 +163,6 @@ async function submitForReview(ownerId) {
   if (!company) {
     const e = new Error("Bạn chưa có công ty.");
     e.status = 404;
-    throw e;
-  }
-  // chặn nộp lại nếu đã verified
-  if (company.verification?.status === "verified") {
-    const e = new Error(
-      "Công ty đã được xác thực, không thể nộp lại xét duyệt.",
-    );
-    e.status = 403;
     throw e;
   }
 
@@ -164,6 +188,101 @@ async function submitForReview(ownerId) {
   };
 }
 
+async function sendCompanyVerificationEmail({
+  company,
+  owner,
+  status,
+  reason,
+}) {
+  if (!owner?.email) {
+    return;
+  }
+
+  const manageUrl = `${process.env.CLIENT_URL}/recruiter/company`;
+
+  let subject;
+  let html;
+
+  if (status === "verified") {
+    subject = "Công ty của bạn đã được xác thực";
+
+    html = `
+      <div style="font-family: Arial; line-height:1.6;">
+        <p>Chào <b>${owner.name}</b>,</p>
+
+        <p>
+          Công ty <b>${company.legal_name}</b> đã được
+          <b style="color:#16a34a;">xác thực thành công</b>.
+        </p>
+
+        <p>Bạn có thể đăng tin tuyển dụng và sử dụng đầy đủ chức năng.</p>
+
+        <p style="margin:24px 0;">
+          <a href="${manageUrl}" style="
+            padding:10px 16px;
+            background:#16a34a;
+            color:#fff;
+            text-decoration:none;
+            border-radius:6px;
+            font-weight:600;
+          ">
+            Quản lý thông tin công ty
+          </a>
+        </p>
+
+        <p>Trân trọng,<br/><b>Recruitment System</b></p>
+      </div>
+    `;
+  } else {
+    subject = "Công ty chưa được xác thực – cần bổ sung thông tin";
+
+    html = `
+      <div style="font-family: Arial; line-height:1.6;">
+        <p>Chào <b>${owner.name}</b>,</p>
+
+        <p>
+          Hồ sơ công ty <b>${company.legal_name}</b> hiện
+          <b style="color:#dc2626;">chưa được xác thực</b>.
+        </p>
+
+        <p>Lý do:</p>
+
+        <blockquote style="
+          margin:16px 0;
+          padding:12px 16px;
+          background:#fef2f2;
+          border-left:4px solid #dc2626;
+        ">
+          ${reason}
+        </blockquote>
+
+        <p>Vui lòng cập nhật và gửi lại để được xem xét.</p>
+
+        <p style="margin:24px 0;">
+          <a href="${manageUrl}" style="
+            padding:10px 16px;
+            background:#dc2626;
+            color:#fff;
+            text-decoration:none;
+            border-radius:6px;
+            font-weight:600;
+          ">
+            Cập nhật hồ sơ công ty
+          </a>
+        </p>
+
+        <p>Trân trọng,<br/><b>Recruitment System</b></p>
+      </div>
+    `;
+  }
+
+  try {
+    await emailService.sendEmail(owner.email, subject, html);
+  } catch (e) {
+    console.error("[Email Company Verify] send failed:", e?.message);
+  }
+}
+
 /**
  * ADMIN: phê duyệt công ty (verified) hoặc từ chối (rejected + reason).
  */
@@ -180,15 +299,25 @@ async function verifyCompany(companyId, adminId, action) {
     throw e;
   }
 
-  // tồn tại company?
+  // ===== Lấy company + verification cũ + owner =====
   const company = await prisma.company.findUnique({
     where: { id: BigInt(companyId) },
+    include: {
+      verification: true,
+      owner: { select: { id: true, name: true, email: true } },
+    },
   });
+
   if (!company) {
     const e = new Error("Không tìm thấy công ty.");
     e.status = 404;
     throw e;
   }
+
+  // ===== IDENTITY CHECK (chặn gửi email trùng) =====
+  const previousStatus = company.verification?.status;
+  const nextStatus = action.status;
+  const shouldSendEmail = previousStatus !== nextStatus;
 
   const updated = await prisma.companyVerification.upsert({
     where: { company_id: company.id },
@@ -207,6 +336,16 @@ async function verifyCompany(companyId, adminId, action) {
     },
   });
 
+  // ===== GỬI EMAIL CHO CHỦ CÔNG TY =====
+  if (shouldSendEmail) {
+    sendCompanyVerificationEmail({
+      company,
+      owner: company.owner,
+      status: nextStatus,
+      reason: action.reason,
+    });
+  }
+
   return {
     company_id: company.id.toString(),
     status: updated.status,
@@ -216,10 +355,52 @@ async function verifyCompany(companyId, adminId, action) {
   };
 }
 
+/**
+ * ADMIN: Lấy danh sách tất cả công ty.
+ */
+async function listCompanies({ page, limit }) {
+  const skip = (page - 1) * limit;
+
+  const [rows, total] = await Promise.all([
+    prisma.company.findMany({
+      skip,
+      take: limit,
+      orderBy: { created_at: "desc" },
+      include: {
+        verification: true,
+      },
+    }),
+    prisma.company.count(),
+  ]);
+
+  return {
+    companies: rows.map(toCompanyDTO),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+/**
+ * Lấy thông tin chi tiết của 1 công ty.
+ */
+async function getCompanyDetail(companyId) {
+  const company = await prisma.company.findUnique({
+    where: { id: BigInt(companyId) },
+    include: {
+      verification: true,
+    },
+  });
+
+  return toCompanyDTO(company);
+}
+
 module.exports = {
   createCompany,
   getMyCompany,
   updateMyCompany,
   submitForReview,
   verifyCompany,
+  listCompanies,
+  getCompanyDetail,
 };

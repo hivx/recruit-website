@@ -1,9 +1,7 @@
-// controllers/jobController.js
-const moment = require("moment");
+// server/controllers/jobController.js
 const jobService = require("../services/jobService");
 const jobVectorService = require("../services/jobVectorService");
-
-const prisma = require("../utils/prisma");
+const { normalizeBigInt } = require("../utils/bigInt");
 
 /* ============================================================
    CREATE JOB
@@ -27,23 +25,51 @@ exports.createJob = async (req, res) => {
 // GET /api/jobs (chỉ trả job approved)
 exports.getAllJobs = async (req, res) => {
   try {
-    const { tag, search = "", page = 1, limit = 10 } = req.query;
+    const currentUser = req.user
+      ? { id: req.user.userId, role: req.user.role }
+      : null;
 
-    const filter = {
-      ...(tag ? { tags: Array.isArray(tag) ? tag : [tag] } : {}),
-    };
+    const {
+      tag,
+      location,
+      salaryWanted,
+      search = "",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Build filter correctly
+    const filter = {};
+
+    // Tags always array
+    if (tag) {
+      filter.tags = Array.isArray(tag) ? tag : [tag];
+    }
+
+    // Location: service expects a SINGLE STRING
+    if (location) {
+      filter.location = String(location).trim();
+    }
+
+    // Salary
+    if (salaryWanted && !Number.isNaN(Number(salaryWanted))) {
+      filter.salaryWanted = Number(salaryWanted);
+    }
 
     const result = await jobService.getAllJobs({
       filter,
       search,
       page: Number(page),
       limit: Number(limit),
+      currentUser,
     });
 
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    console.error("[Job List Error]", err.message);
-    res.status(500).json({ message: "Lỗi server khi lấy danh sách việc làm!" });
+    console.error("[Job List Error]", err);
+    return res
+      .status(500)
+      .json({ message: "Lỗi server khi lấy danh sách việc làm!" });
   }
 };
 
@@ -55,35 +81,16 @@ exports.getJobById = async (req, res) => {
     const currentUser = req.user
       ? { id: req.user.userId, role: req.user.role }
       : null;
-    const job = await jobService.getJobById(
-      String(req.params.id),
-      currentUser,
-      {
-        allowOwnerDraft: true,
-      },
-    );
+
+    const job = await jobService.getJobById(req.params.id, currentUser);
 
     if (!job) {
-      return res
-        .status(404)
-        .json({ message: "Không tìm thấy việc làm cho ID này!" });
+      return res.status(404).json({ message: "Không tìm thấy việc làm!" });
     }
 
-    const isFavorite = currentUser
-      ? !!(await prisma.userFavoriteJobs.findFirst({
-          where: { user_id: BigInt(currentUser.id), job_id: BigInt(job.id) },
-        }))
-      : false;
-
-    res.json({
-      ...job,
-      createdAtFormatted: moment(job.created_at).format("DD/MM/YYYY HH:mm"),
-      isFavorite,
-    });
+    res.json(job);
   } catch (err) {
-    const code = err.statusCode || err.status || 500;
-    console.error("[Get Job Detail Error]", err);
-    res.status(code).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -236,12 +243,33 @@ exports.buildJobVector = async (req, res) => {
 
     const vector = await jobVectorService.buildJobVector(jobId);
 
-    return res.json({
-      message: "Vector job đã được cập nhật",
-      vector,
-    });
+    return res.json(
+      normalizeBigInt({
+        message: "Vector job đã được cập nhật",
+        vector,
+      }),
+    );
   } catch (err) {
     console.error("[BuildJobVector]", err);
     return res.status(500).json({ message: err.message || "Lỗi server" });
+  }
+};
+
+// GET /api/jobs/my-jobs
+exports.getMyJobs = async (req, res, next) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const data = await jobService.getMyJobs({
+      userId: req.user.userId,
+      role: req.user.role,
+      page,
+      limit,
+    });
+
+    return res.json(data);
+  } catch (err) {
+    next(err);
   }
 };

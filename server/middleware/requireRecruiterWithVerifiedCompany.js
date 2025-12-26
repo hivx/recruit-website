@@ -1,4 +1,4 @@
-// middleware/requireRecruiterWithVerifiedCompany.js
+// server/middleware/requireRecruiterWithVerifiedCompany.js
 module.exports = function requireRecruiterWithVerifiedCompany(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ message: "Chưa đăng nhập" });

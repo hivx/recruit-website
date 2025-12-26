@@ -1,23 +1,27 @@
+// src/main.tsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/index.css";
-import App from "@/App";
-import { AppProviders } from "@/providers";
 import { ErrorBoundary } from "react-error-boundary";
+import App from "@/App";
 import { ErrorFallback } from "@/components";
+import { AppProviders } from "@/providers";
 
-createRoot(document.getElementById("root")!).render(
+const rootEl = document.getElementById("root");
+
+if (!rootEl) {
+  throw new Error("Root element #root not found");
+}
+
+createRoot(rootEl).render(
   <StrictMode>
     <AppProviders>
       <ErrorBoundary
         FallbackComponent={ErrorFallback}
-        onReset={() => {
-          // Có thể thêm logic reset state toàn cục nếu cần
-          globalThis.location.reload();
-        }}
+        onReset={() => globalThis.location.reload()}
       >
         <App />
       </ErrorBoundary>
     </AppProviders>
-  </StrictMode>
+  </StrictMode>,
 );

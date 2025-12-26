@@ -1,4 +1,4 @@
-// middleware/authOptional.js
+// server/middleware/authOptional.js
 const jwt = require("jsonwebtoken");
 const prisma = require("../utils/prisma");
 

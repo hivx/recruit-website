@@ -1,38 +1,44 @@
-// controllers/companyController.js
+// server/controllers/companyController.js
 const companyService = require("../services/companyService");
+const { cleanupUploadedFile } = require("../utils/cleanupUpload");
 
 // POST /api/companies  (recruiter tạo company)
 exports.createCompany = async (req, res) => {
   try {
-    // req.user.userId và req.user.role đã có từ authMiddleware
-    if (req.user.role !== "recruiter" && req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Chỉ recruiter mới được tạo công ty" });
+    const payload = { ...req.body };
+
+    // Nếu có file → thêm logo
+    if (req.file) {
+      payload.logo = "uploads/" + req.file.filename;
     }
 
+    // Validate required fields
     const required = [
       "legal_name",
       "registration_number",
       "country_code",
       "registered_address",
     ];
+
     for (const f of required) {
-      if (!req.body[f]) {
-        return res.status(400).json({ message: `Thiếu trường bắt buộc: ${f}` });
+      if (!payload[f]) {
+        cleanupUploadedFile(req);
+        return res.status(400).json({ message: `Thiếu trường: ${f}` });
       }
     }
 
     const company = await companyService.createCompany(
       req.user.userId,
-      req.body,
+      payload,
     );
+
     res.status(201).json(company);
   } catch (err) {
     console.error("[Create Company]", err);
-    res
-      .status(err.status || 500)
-      .json({ message: err.message || "Lỗi tạo công ty" });
+    cleanupUploadedFile(req); // xoá file nếu service fail
+    res.status(err.status || 500).json({
+      message: err.message || "Lỗi tạo công ty",
+    });
   }
 };
 
@@ -52,19 +58,29 @@ exports.getMyCompany = async (req, res) => {
   }
 };
 
-// PATCH /api/companies/me  (recruiter cập nhật công ty của mình)
+// PATCH /api/companies/me  (recruiter cập nhật company của mình)
 exports.updateMyCompany = async (req, res) => {
   try {
+    const payload = { ...req.body };
+
+    // Có upload file mới?
+    if (req.file) {
+      payload.logo = "uploads/" + req.file.filename;
+    }
+
     const company = await companyService.updateMyCompany(
       req.user.userId,
-      req.body,
+      payload,
     );
+
     res.json(company);
   } catch (err) {
     console.error("[Update My Company]", err);
-    res
-      .status(err.status || 500)
-      .json({ message: err.message || "Lỗi cập nhật công ty" });
+    cleanupUploadedFile(req); // xoá file nếu service fail
+
+    res.status(err.status || 500).json({
+      message: err.message || "Lỗi cập nhật công ty",
+    });
   }
 };
 
@@ -81,7 +97,7 @@ exports.submitForReview = async (req, res) => {
   }
 };
 
-// PATCH /api/admin/company/:id/verify  (admin duyệt hoặc từ chối)
+// PATCH /api/company/admin/:id/verify  (admin duyệt hoặc từ chối)
 exports.verifyCompany = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -100,5 +116,57 @@ exports.verifyCompany = async (req, res) => {
     res
       .status(err.status || 500)
       .json({ message: err.message || "Lỗi duyệt công ty" });
+  }
+};
+
+// GET /api/companies/admin
+exports.listCompanies = async (req, res) => {
+  try {
+    // An toàn: middleware đã chặn role, nhưng check lại không thừa
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        message: "Chỉ admin được phép truy cập",
+      });
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+
+    const result = await companyService.listCompanies({ page, limit });
+
+    res.json(result);
+  } catch (err) {
+    console.error("[Admin List Companies]", err);
+    res.status(500).json({
+      message: err.message || "Lỗi lấy danh sách công ty",
+    });
+  }
+};
+
+// GET /api/companies/:id
+exports.getCompanyDetail = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        message: "Chỉ admin được phép truy cập",
+      });
+    }
+
+    const companyId = req.params.id;
+
+    const company = await companyService.getCompanyDetail(companyId);
+
+    if (!company) {
+      return res.status(404).json({
+        message: "Không tìm thấy công ty",
+      });
+    }
+
+    res.json(company);
+  } catch (err) {
+    console.error("[Admin Get Company Detail]", err);
+    res.status(500).json({
+      message: err.message || "Lỗi lấy thông tin công ty",
+    });
   }
 };

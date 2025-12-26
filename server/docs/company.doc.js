@@ -44,8 +44,16 @@
  *         owner_id:
  *           type: string
  *           example: "4"
+ *
+ *         # thêm trường logo vào response
+ *         logo:
+ *           type: string
+ *           nullable: true
+ *           example: "uploads/company/logo.png"
+ *
  *         verification:
  *           $ref: '#/components/schemas/CompanyVerification'
+ *
  *
  *     CreateCompanyInput:
  *       type: object
@@ -75,6 +83,13 @@
  *           format: date
  *           example: "2018-07-01"
  *
+ *         # thêm logo vào input
+ *         logo:
+ *           type: string
+ *           nullable: true
+ *           example: "uploads/company/logo.png"
+ *
+ *
  *     UpdateCompanyInput:
  *       type: object
  *       properties:
@@ -91,6 +106,12 @@
  *           type: string
  *           format: date
  *           example: "2019-01-15"
+ *
+ *         # thêm logo vào update input
+ *         logo:
+ *           type: string
+ *           nullable: true
+ *           example: "uploads/company/new_logo.png"
  */
 
 /**
@@ -104,9 +125,33 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/CreateCompanyInput'
+ *             type: object
+ *             required:
+ *               - legal_name
+ *               - registration_number
+ *               - country_code
+ *               - registered_address
+ *             properties:
+ *               legal_name:
+ *                 type: string
+ *               registration_number:
+ *                 type: string
+ *               tax_id:
+ *                 type: string
+ *               country_code:
+ *                 type: string
+ *               registered_address:
+ *                 type: string
+ *               incorporation_date:
+ *                 type: string
+ *                 format: date
+ *               # logo dạng file
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *
  *     responses:
  *       201:
  *         description: Tạo công ty thành công
@@ -114,12 +159,6 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/CompanyResponse'
- *       400:
- *         description: Thiếu trường bắt buộc hoặc dữ liệu không hợp lệ
- *       403:
- *         description: Chỉ recruiter/admin mới được tạo công ty
- *       409:
- *         description: Đã tồn tại công ty cho recruiter này hoặc trùng registration_number
  */
 
 /**
@@ -145,16 +184,30 @@
  * @swagger
  * /api/companies/me:
  *   patch:
- *     summary: Cập nhật thông tin công ty (chỉ khi trạng thái chưa verified)
+ *     summary: Cập nhật thông tin công ty
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UpdateCompanyInput'
+ *             type: object
+ *             properties:
+ *               legal_name:
+ *                 type: string
+ *               registered_address:
+ *                 type: string
+ *               tax_id:
+ *                 type: string
+ *               incorporation_date:
+ *                 type: string
+ *                 format: date
+ *               # logo dạng file
+ *               logo:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Cập nhật thành công
@@ -195,8 +248,86 @@
  *                   type: string
  *                   format: date-time
  *                   example: "2025-10-19T08:40:00.000Z"
+ *       404:
+ *         description: Không tìm thấy công ty
+ */
+
+/**
+ * @swagger
+ * /api/companies/admin:
+ *   get:
+ *     summary: Admin lấy danh sách tất cả công ty
+ *     description: |
+ *       Chỉ admin được phép truy cập.
+ *       Hỗ trợ phân trang.
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số bản ghi mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách công ty
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 companies:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CompanyResponse'
+ *                 total:
+ *                   type: integer
+ *                   example: 120
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 6
  *       403:
- *         description: Công ty đã được xác thực, không thể nộp lại
+ *         description: Không có quyền (chỉ admin)
+ */
+
+/**
+ * @swagger
+ * /api/companies/{id}:
+ *   get:
+ *     summary: Admin lấy chi tiết thông tin một công ty
+ *     description: |
+ *       Chỉ admin được phép truy cập.
+ *       Trả về đầy đủ thông tin công ty và trạng thái xác thực.
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của công ty
+ *     responses:
+ *       200:
+ *         description: Thông tin chi tiết công ty
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CompanyResponse'
+ *       403:
+ *         description: Không có quyền (chỉ admin)
  *       404:
  *         description: Không tìm thấy công ty
  */

@@ -1,4 +1,4 @@
-// controllers/userController.js
+// server/controllers/userController.js
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -7,6 +7,7 @@ const recruiterVectorService = require("../services/recruiterVectorService");
 const userService = require("../services/userService");
 const userVectorService = require("../services/userVectorService");
 
+const { normalizeBigInt } = require("../utils/bigInt");
 const { toUserDTO } = require("../utils/serializers/user"); // DTO
 
 exports.toggleFavoriteJob = async (req, res) => {
@@ -125,10 +126,12 @@ exports.rebuildUserVector = async (req, res) => {
   try {
     const vector = await userVectorService.buildUserVector(req.user.userId);
 
-    res.json({
-      message: "Vector user đã được cập nhật",
-      vector,
-    });
+    res.json(
+      normalizeBigInt({
+        message: "Vector user đã được cập nhật",
+        vector,
+      }),
+    );
   } catch (err) {
     return res.status(400).json({ message: err.message });
   }
@@ -140,13 +143,175 @@ exports.rebuildRecruiterVector = async (req, res) => {
 
     const vector = await recruiterVectorService.buildRecruiterVector(userId);
 
-    return res.json({
-      message: "Vector recruiter đã được cập nhật",
-      vector: vector,
-    });
+    return res.json(
+      normalizeBigInt({
+        message: "Vector recruiter đã được cập nhật",
+        vector: vector,
+      }),
+    );
   } catch (err) {
     return res.status(400).json({
       error: err.message,
     });
+  }
+};
+
+// ================================
+// ADMIN: Create User
+// ================================
+exports.adminCreateUser = async (req, res) => {
+  try {
+    const { name, email, password, role, isVerified } = req.body;
+
+    const user = await userService.adminCreateUser({
+      name,
+      email,
+      password,
+      role,
+      isVerified,
+    });
+
+    return res.status(201).json({
+      message: "Tạo user thành công",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Create User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Update User
+// ================================
+exports.adminUpdateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, name, role, isVerified } = req.body;
+
+    const user = await userService.adminUpdateUser(id, {
+      email,
+      name,
+      role,
+      isVerified,
+    });
+
+    return res.json({
+      message: "Cập nhật user thành công",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Update User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Active / Deactive User
+// ================================
+exports.adminSetUserActive = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        message: "isActive phải là boolean",
+      });
+    }
+
+    const user = await userService.adminSetUserActive(id, isActive);
+
+    return res.json({
+      message: isActive ? "User đã được kích hoạt" : "User đã bị vô hiệu hóa",
+      user: toUserDTO(user),
+    });
+  } catch (err) {
+    console.error("[Admin Set User Active Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: Delete User
+// ================================
+exports.adminDeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await userService.adminDeleteUser(id);
+
+    return res.json({
+      message: "Xóa user thành công",
+      ...result,
+    });
+  } catch (err) {
+    console.error("[Admin Delete User Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// ADMIN: List Users
+// ================================
+exports.adminListUsers = async (req, res) => {
+  try {
+    const { role, isVerified, page = 1, limit = 20 } = req.query;
+
+    const data = await userService.adminListUsers({
+      role,
+      isVerified:
+        typeof isVerified === "string" ? isVerified === "true" : undefined,
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    return res.json({
+      ...data,
+      users: data.users.map(toUserDTO),
+    });
+  } catch (err) {
+    console.error("[Admin List Users Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
+  }
+};
+
+// ================================
+// Update Receive Recommendation
+// ================================
+exports.updateReceiveRecommendation = async (req, res) => {
+  try {
+    const { receiveRecommendation } = req.body;
+
+    if (typeof receiveRecommendation !== "boolean") {
+      return res.status(400).json({
+        message: "receiveRecommendation phải là boolean",
+      });
+    }
+
+    const updatedUser = await userService.updateReceiveRecommendation(
+      req.user.userId,
+      receiveRecommendation,
+    );
+
+    return res.status(200).json({
+      message: "Cập nhật tùy chọn nhận gợi ý thành công",
+      user: toUserDTO(updatedUser),
+    });
+  } catch (err) {
+    console.error("[Update Receive Recommendation Error]", err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Lỗi server!" });
   }
 };

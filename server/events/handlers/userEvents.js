@@ -1,3 +1,4 @@
+// server/events/handlers/userEvents
 const profileBuilder = require("../../services/profileBuilderService");
 const userVectorService = require("../../services/userVectorService");
 

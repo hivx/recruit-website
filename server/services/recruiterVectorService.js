@@ -1,3 +1,4 @@
+// server/services/recruiterVectorService.js
 const { normalizeLocation } = require("../utils/locationCodes");
 const prisma = require("../utils/prisma");
 const { shouldRebuildVector } = require("../utils/shouldRebuildVector");

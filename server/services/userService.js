@@ -1,4 +1,4 @@
-// services/userService.js
+// server/services/userService.js
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -7,16 +7,17 @@ const bcrypt = require("bcrypt");
 const { logUserInterest } = require("../middleware/logUserInterest");
 const prisma = require("../utils/prisma");
 const { toJobDTO } = require("../utils/serializers/job");
+const emailService = require("./emailService");
 
 module.exports = {
-  async getUserById(userId) {
-    return prisma.user.findUnique({
-      where: { id: BigInt(userId) },
-      include: {
-        favorites: { include: { job: true } },
-      },
-    });
-  },
+  // async getUserById(userId) {
+  //   return prisma.user.findUnique({
+  //     where: { id: BigInt(userId) },
+  //     include: {
+  //       favorites: { include: { job: true } },
+  //     },
+  //   });
+  // },
 
   async updateUser(userId, data) {
     return prisma.user.update({
@@ -232,5 +233,320 @@ module.exports = {
     });
 
     return { message: "Đổi mật khẩu thành công!" };
+  },
+
+  async adminCreateUser({ name, email, password, role, isVerified = true }) {
+    // 1. Validate cơ bản
+    if (!name || !email || !password) {
+      const err = new Error("Thiếu thông tin bắt buộc!");
+      err.status = 400;
+      throw err;
+    }
+
+    // 2. Check email trùng
+    const exists = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (exists) {
+      const err = new Error("Email đã tồn tại!");
+      err.status = 400;
+      throw err;
+    }
+
+    // 3. Hash password
+    const hashed = await bcrypt.hash(password, 10);
+
+    // 4. Create user
+    return prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: email.toLowerCase(),
+        password: hashed,
+        role: role || "applicant",
+        isVerified: Boolean(isVerified), // dùng làm active
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        created_at: true,
+      },
+    });
+  },
+
+  // Admin update user
+  async adminUpdateUser(userId, data) {
+    const uid = BigInt(userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+    });
+
+    if (!user) {
+      const err = new Error("Người dùng không tồn tại!");
+      err.status = 404;
+      throw err;
+    }
+
+    const update = {};
+    const changedFields = [];
+
+    if (data.email && data.email.trim() !== user.email) {
+      update.email = data.email.trim();
+      changedFields.push("email");
+    }
+
+    if (data.name && data.name.trim() !== user.name) {
+      update.name = data.name.trim();
+      changedFields.push("name");
+    }
+
+    if (data.role && data.role !== user.role) {
+      update.role = data.role;
+      changedFields.push("role");
+    }
+
+    if (typeof data.isVerified === "boolean") {
+      update.isVerified = data.isVerified;
+      changedFields.push("isVerified");
+    }
+
+    // Không có gì thay đổi → update vẫn chạy (hoặc có thể return sớm)
+    const updated = await prisma.user.update({
+      where: { id: uid },
+      data: update,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        updated_at: true,
+      },
+    });
+
+    // ===== GỬI EMAIL THÔNG BÁO THAY ĐỔI THÔNG TIN =====
+    if (changedFields.length > 0 && user.email) {
+      try {
+        const subject = "Thông tin tài khoản của bạn đã được cập nhật";
+
+        const fieldLabels = {
+          email: "Email",
+          name: "Tên hiển thị",
+          role: "Vai trò tài khoản",
+          isVerified: "Trạng thái tài khoản",
+        };
+
+        const html = `
+          <div style="font-family: Arial; line-height:1.6; color:#111;">
+            <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+            <p>
+              Quản trị viên đã cập nhật một số thông tin trong tài khoản của bạn.
+            </p>
+
+            <ul>
+              ${changedFields
+                .map(
+                  (f) => `<li><b>${fieldLabels[f]}</b> đã được thay đổi</li>`,
+                )
+                .join("")}
+            </ul>
+
+            <p>
+              Nếu bạn không nhận ra thay đổi này hoặc có thắc mắc,
+              vui lòng liên hệ với bộ phận quản trị để được hỗ trợ.
+            </p>
+
+            <p style="margin-top:24px;">
+              Trân trọng,<br/>
+              <b>Recruitment System</b>
+            </p>
+          </div>
+        `;
+
+        await emailService.sendEmail(user.email, subject, html);
+      } catch (e) {
+        console.error("[Email User Update] send failed:", e?.message);
+        // không throw
+      }
+    }
+
+    return updated;
+  },
+
+  // Admin active / deactive user
+  async adminSetUserActive(userId, isActive) {
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+      select: { id: true, name: true, email: true, isVerified: true },
+    });
+
+    if (!user) {
+      const e = new Error("Không tìm thấy người dùng.");
+      e.status = 404;
+      throw e;
+    }
+
+    const nextIsVerified = Boolean(isActive);
+    const shouldSendEmail = user.isVerified !== nextIsVerified;
+
+    const updated = await this.adminUpdateUser(userId, {
+      isVerified: nextIsVerified,
+    });
+
+    // ===== GỬI EMAIL (GỘP LUÔN) =====
+    if (shouldSendEmail && user.email) {
+      try {
+        const subject = nextIsVerified
+          ? "Tài khoản của bạn đã được kích hoạt"
+          : "Tài khoản của bạn đã bị vô hiệu hóa";
+
+        const html = nextIsVerified
+          ? `
+            <div style="font-family: Arial; line-height:1.6;">
+              <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+              <p>
+                Tài khoản của bạn đã được
+                <b style="color:#16a34a;">kích hoạt</b>.
+              </p>
+
+              <p>
+                Bạn hiện có thể đăng nhập và sử dụng các chức năng của hệ thống.
+              </p>
+
+              <p style="margin:24px 0;">
+                <a href="${process.env.CLIENT_URL}/login"
+                  style="
+                    padding:10px 16px;
+                    background:#16a34a;
+                    color:#fff;
+                    text-decoration:none;
+                    border-radius:6px;
+                    font-weight:600;
+                  ">
+                  Đăng nhập hệ thống
+                </a>
+              </p>
+
+              <p>Trân trọng,<br/><b>Recruitment System</b></p>
+            </div>
+          `
+          : `
+            <div style="font-family: Arial; line-height:1.6;">
+              <p>Chào <b>${user.name || "bạn"}</b>,</p>
+
+              <p>
+                Tài khoản của bạn hiện
+                <b style="color:#dc2626;">đã bị vô hiệu hóa</b>.
+              </p>
+
+              <p>
+                Nếu bạn muốn muốn khiếu nại hoặc cần hỗ trợ,
+                vui lòng liên hệ với quản trị viên của hệ thống.
+              </p>
+
+              <p>Trân trọng,<br/><b>Recruitment System</b></p>
+            </div>
+          `;
+
+        await emailService.sendEmail(user.email, subject, html);
+      } catch (e) {
+        console.error("[Email User Active] send failed:", e?.message);
+        // không throw
+      }
+    }
+
+    return updated;
+  },
+
+  // Admin list users
+  async adminListUsers({ role, isVerified, page = 1, limit = 20 }) {
+    const skip = (page - 1) * limit;
+
+    const where = {};
+
+    if (role) {
+      where.role = role;
+    }
+    if (typeof isVerified === "boolean") {
+      where.isVerified = isVerified;
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { created_at: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          created_at: true,
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  // Admin delete user
+  async adminDeleteUser(userId) {
+    const uid = BigInt(userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+      include: {
+        jobs: { take: 1 },
+        applications: { take: 1 },
+        company: true,
+        recommendations: { take: 1 },
+      },
+    });
+
+    if (!user) {
+      const err = new Error("Người dùng không tồn tại!");
+      err.status = 404;
+      throw err;
+    }
+
+    if (
+      user.jobs.length ||
+      user.applications.length ||
+      user.company ||
+      user.recommendations.length
+    ) {
+      const err = new Error(
+        "Không thể xoá user đã phát sinh dữ liệu. Hãy deactive thay vì xoá.",
+      );
+      err.status = 400;
+      throw err;
+    }
+
+    await prisma.user.delete({
+      where: { id: uid },
+    });
+
+    return { success: true };
+  },
+
+  // Update receive recommendation
+  async updateReceiveRecommendation(userId, receiveRecommendation) {
+    return prisma.user.update({
+      where: { id: BigInt(userId) },
+      data: { receive_recommendation: receiveRecommendation },
+    });
   },
 };

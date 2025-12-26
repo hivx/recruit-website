@@ -1,58 +1,120 @@
 // src/types/application.ts
-
-/** Trạng thái ứng tuyển (theo schema mới) */
+/** Trạng thái ứng tuyển (theo schema) */
 export type ApplicationStatus = "pending" | "accepted" | "rejected";
 
-/** Dữ liệu raw trả từ BE */
+/** Raw từ BE (toApplicationDTO) */
 export interface ApplicationRaw {
-  id: string;               // BigInt → string
-  job_id: string;           // BigInt → string
-  applicant_id: string;     // BigInt → string
+  id: string;
+  job_id: string;
+  applicant_id: string;
   cover_letter: string;
-  cv?: string;              // Đường dẫn file CV (/uploads/...)
-  phone?: string;
+  cv: string | null;
+  phone: string | null;
   status: ApplicationStatus;
-  created_at: string;       // ISO date string
+
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+
+  fit_score: number;
+  fit_reason: string | null;
+
+  created_at: string;
+  updated_at: string;
+
+  job?: {
+    id: string;
+    title: string;
+  };
+
+  applicant?: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar: string | null;
+  };
 }
 
-/** Kiểu chuẩn hóa cho FE */
+/** Application FE (camelCase) */
 export interface Application {
-  id: string;               // FE giữ string để an toàn
+  id: string;
   jobId: string;
   applicantId: string;
   coverLetter: string;
-  cv?: string;
-  phone?: string;
+  cv: string | null;
+  phone: string | null;
   status: ApplicationStatus;
-  createdAt: string;        // FE map từ created_at
+
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+
+  fitScore: number;
+  fitReason: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  job?: {
+    id: string;
+    title: string;
+  };
+
+  applicant?: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar: string | null;
+  };
 }
 
-/** Payload khi tạo Application (FE gửi lên BE) */
-export interface ApplicationCreatePayload {
-  jobId: string;            // FE truyền string (BigInt → string)
-  coverLetter: string;
-  phone: string;
-  cv?: File;                // FE gửi multipart/form-data
-  // applicantId: BE lấy từ token
+export interface RecruiterApplicationsResponseRaw {
+  total: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+  applicants: ApplicationRaw[];
 }
 
-/** Payload khi cập nhật Application */
-export type ApplicationUpdatePayload = Partial<ApplicationCreatePayload>;
-
-/** Thông tin ứng viên (trả về khi recruiter xem danh sách) */
-export interface ApplicantInfo {
-  applicantName: string;
-  applicantEmail: string;
-  applicantAvatar: string;
-  coverLetter: string;
-  cv: string;
-  phone: string;
-  status: ApplicationStatus;
-  appliedAt: string; // ISO date string
+export interface RecruiterApplicationsResponse {
+  total: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+  applicants: Application[];
 }
 
-/** Response khi tạo application thành công */
-export interface ApplicationResponse {
-  message: string;          // "Ứng tuyển thành công!"
+export interface ApplicantsByJobResponseRaw {
+  totalApplicants: number;
+  applicants: ApplicationRaw[];
+}
+
+export interface ApplicantsByJobResponse {
+  totalApplicants: number;
+  applicants: Application[];
+}
+
+export interface ReviewApplicantPayload {
+  status: "pending" | "accepted" | "rejected";
+  note?: string;
+}
+
+export interface ReviewApplicantResponseRaw {
+  message: string;
+  application: ApplicationRaw;
+}
+
+export interface ReviewApplicantResponse {
+  message: string;
   application: Application;
+}
+
+export interface MyApplicationsResponseRaw {
+  total: number;
+  applications: ApplicationRaw[];
+}
+
+export interface MyApplicationsResponse {
+  total: number;
+  applications: Application[];
 }

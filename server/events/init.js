@@ -1,3 +1,4 @@
+// server/events/init
 const jobEvents = require("./handlers/jobEvents");
 const recruiterEvents = require("./handlers/recruiterEvents");
 const userEvents = require("./handlers/userEvents");

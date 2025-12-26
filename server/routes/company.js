@@ -1,4 +1,4 @@
-// routes/company.js
+// server/routes/company.js
 const express = require("express");
 
 const router = express.Router();
@@ -6,12 +6,14 @@ const router = express.Router();
 const companyController = require("../controllers/companyController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
+const uploadAvatar = require("../utils/uploadAvatar");
 
 // recruiter
 router.post(
   "/",
   authMiddleware,
   authorizeRoles("recruiter", "admin"),
+  uploadAvatar.single("logo"), // nếu FE gửi avatar
   companyController.createCompany,
 );
 router.get(
@@ -24,6 +26,7 @@ router.patch(
   "/me",
   authMiddleware,
   authorizeRoles("recruiter", "admin"),
+  uploadAvatar.single("logo"), // nếu FE gửi avatar
   companyController.updateMyCompany,
 );
 router.post(
@@ -40,5 +43,15 @@ router.patch(
   authorizeRoles("admin"),
   companyController.verifyCompany,
 );
+
+// ADMIN – COMPANY MANAGEMENT
+router.get(
+  "/admin",
+  authMiddleware,
+  authorizeRoles("admin"),
+  companyController.listCompanies,
+);
+
+router.get("/:id", authMiddleware, companyController.getCompanyDetail);
 
 module.exports = router;

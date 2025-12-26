@@ -1,37 +1,127 @@
+// server/services/recommendationService.js
 const {
-  countMatchingTags,
   computeJobFitScore,
   computeCandidateFitScore,
 } = require("../utils/fitScore");
 const prisma = require("../utils/prisma");
 
-/**
- * Build lý do recommend JOB cho USER
- */
-function buildReason(userVector, jobVector, score) {
-  const reasons = [];
+function formatScorePercent(score) {
+  return `${Math.round(score * 100)}%`;
+}
 
-  if (score >= 0.7) {
-    reasons.push("Mức độ phù hợp cao");
-  } else if (score >= 0.5) {
-    reasons.push("Phù hợp tương đối");
+function mapNames(map, ids) {
+  if (!Array.isArray(ids)) {
+    return [];
+  }
+
+  return ids.map((id) => map.get(id)).filter(Boolean);
+}
+
+async function buildLookupMaps() {
+  const [skills, tags] = await Promise.all([
+    prisma.skill.findMany({ select: { id: true, name: true } }),
+    prisma.tag.findMany({ select: { id: true, name: true } }),
+  ]);
+
+  const skillMap = new Map(skills.map((s) => [s.id, s.name]));
+  const tagMap = new Map(tags.map((t) => [t.id, t.name]));
+
+  return { skillMap, tagMap };
+}
+
+function formatOverall(score, overall) {
+  const labelMap = {
+    high: "Cao",
+    medium: "Trung bình",
+    low: "Thấp",
+  };
+
+  const label = labelMap[overall] ?? "Thấp";
+
+  return `Mức độ phù hợp: ${label} (${formatScorePercent(score)})`;
+}
+
+function buildJobReasonFromExplanation(expl, score, skillMap, tagMap) {
+  const lines = [];
+
+  // ===== SKILL =====
+  lines.push(formatOverall(score, expl.overall), "", "Kỹ năng:");
+
+  const matchedSkills = mapNames(skillMap, expl.skills.matched);
+  const missingMustSkills = mapNames(skillMap, expl.skills.missingMust);
+
+  if (expl.skills.matchedMustCount > 0) {
+    lines.push(
+      `- Đã đáp ứng ${expl.skills.matchedMustCount}/${expl.skills.mustCount} kỹ năng bắt buộc: ${matchedSkills.join(", ")}`,
+    );
+  }
+
+  if (missingMustSkills.length > 0) {
+    lines.push(`- Chưa có kỹ năng bắt buộc: ${missingMustSkills.join(", ")}`);
+  }
+
+  if (expl.skills.matchedOptionalCount > 0) {
+    lines.push(
+      `- Có thêm kỹ năng bổ trợ: ${matchedSkills
+        .slice(expl.skills.matchedMustCount)
+        .join(", ")}`,
+    );
+  }
+
+  // ===== 3. TAGS / INDUSTRY =====
+  lines.push("", "Lĩnh vực:");
+
+  if (!expl.tags.hasData) {
+    lines.push("- Chưa đủ dữ liệu lĩnh vực để so khớp");
+  } else if (expl.tags.matched.length > 0) {
+    const tagNames = mapNames(tagMap, expl.tags.matched);
+    lines.push(`- Phù hợp với lĩnh vực: ${tagNames.join(", ")}`);
   } else {
-    reasons.push("Chưa phù hợp lắm");
+    lines.push("- Chưa trùng với các lĩnh vực bạn quan tâm");
   }
 
-  if (userVector.preferred_location === jobVector.location) {
-    reasons.push("Đúng khu vực mong muốn");
+  // ===== 4. SALARY =====
+  lines.push("", "Lương:");
+
+  if (!expl.salary.comparable) {
+    lines.push("- Chưa đủ dữ liệu để so sánh mức lương");
+  } else if (expl.salary.level === "higher") {
+    lines.push("- Mức lương cao hơn kỳ vọng của bạn (điểm cộng)");
+  } else if (expl.salary.level === "near") {
+    lines.push("- Mức lương tiệm cận kỳ vọng của bạn");
+  } else {
+    lines.push("- Mức lương thấp hơn kỳ vọng của bạn");
   }
 
-  const matchCount = countMatchingTags(userVector, jobVector);
+  // ===== 5. LOCATION =====
+  lines.push("", "Địa điểm:");
 
-  if (matchCount >= 2) {
-    reasons.push("Phù hợp nhiều nhóm ngành/lĩnh vực");
-  } else if (matchCount === 1) {
-    reasons.push("Phù hợp một số nhóm ngành/lĩnh vực");
+  if (expl.location.level === "match") {
+    lines.push("- Phù hợp với khu vực làm việc bạn ưu tiên");
+  } else {
+    lines.push("- Chưa trùng hoàn toàn khu vực ưu tiên");
   }
 
-  return reasons.join(", ");
+  // ===== 6. SUGGESTION =====
+  lines.push("", "Gợi ý:");
+
+  if (expl.overall === "high") {
+    lines.push(
+      "- Đây là vị trí phù hợp với hồ sơ hiện tại, bạn nên xem chi tiết và cân nhắc ứng tuyển.",
+    );
+  } else if (missingMustSkills.length > 0) {
+    lines.push(
+      `- Bổ sung kỹ năng ${missingMustSkills.join(
+        ", ",
+      )} sẽ giúp hồ sơ phù hợp hơn trong tương lai.`,
+    );
+  } else {
+    lines.push(
+      "- Bạn có thể điều chỉnh kỳ vọng hoặc bổ sung thêm kỹ năng để tăng mức độ phù hợp.",
+    );
+  }
+
+  return lines.join("\n");
 }
 
 /**
@@ -48,21 +138,31 @@ async function generateRecommendationsForUser(userId) {
     throw new Error("User vector không tồn tại");
   }
 
-  const jobVectors = await prisma.jobVector.findMany();
-  if (jobVectors.length === 0) {
+  const jobVectors = await prisma.jobVector.findMany({
+    where: { job: { approval: { status: "approved" } } },
+  });
+  if (!jobVectors.length) {
     throw new Error("Không có job vector nào để đề xuất");
   }
 
   const results = [];
 
+  const { skillMap, tagMap } = await buildLookupMaps();
+
   for (const jv of jobVectors) {
-    const fit = computeJobFitScore(userVector, jv);
-    const reason = buildReason(userVector, jv, fit);
+    const { score, explanation } = computeJobFitScore(userVector, jv);
+
+    const reason = buildJobReasonFromExplanation(
+      explanation,
+      score,
+      skillMap,
+      tagMap,
+    );
 
     results.push({
       user_id: uid,
       job_id: jv.job_id,
-      fit_score: fit,
+      fit_score: score,
       reason,
     });
   }
@@ -95,32 +195,52 @@ async function generateRecommendationsForUser(userId) {
   return stored;
 }
 
-/**
- * Build lý do recommend CANDIDATE cho RECRUITER
- */
-function buildCandidateReason(appVector, recruiterVector, score) {
-  const reasons = [];
+function buildCandidateReasonFromExplanation(expl, score, skillMap, tagMap) {
+  const lines = [];
 
-  if (score >= 0.7) {
-    reasons.push("Kỹ năng và lĩnh vực phù hợp cao");
-  } else if (score >= 0.5) {
-    reasons.push("Phù hợp tương đối");
+  lines.push(formatOverall(score, expl.overall), "", "Kỹ năng:");
+
+  const missingMustSkills = mapNames(skillMap, expl.skills.missingMust);
+
+  if (expl.skills.matchedMustCount > 0) {
+    lines.push(
+      `- Đáp ứng ${expl.skills.matchedMustCount}/${expl.skills.mustCount} kỹ năng bắt buộc`,
+    );
+  }
+
+  if (missingMustSkills.length > 0) {
+    lines.push(`- Thiếu kỹ năng bắt buộc: ${missingMustSkills.join(", ")}`);
+  }
+
+  lines.push("", "Lĩnh vực:");
+
+  if (!expl.tags.hasData) {
+    lines.push("- Chưa đủ dữ liệu lĩnh vực để đánh giá");
+  } else if (expl.tags.matched.length > 0) {
+    lines.push(
+      `- Phù hợp với lĩnh vực: ${mapNames(tagMap, expl.tags.matched).join(
+        ", ",
+      )}`,
+    );
   } else {
-    reasons.push("Có mức độ phù hợp ban đầu");
+    lines.push("- Chưa trùng lĩnh vực ưu tiên");
   }
 
-  const tagMatch = countMatchingTags(appVector, recruiterVector);
-  if (tagMatch >= 2) {
-    reasons.push("Trùng nhiều nhóm ngành");
-  } else if (tagMatch === 1) {
-    reasons.push("Trùng một phần nhóm ngành");
+  lines.push("", "Gợi ý:");
+
+  if (expl.overall === "high") {
+    lines.push("- Ứng viên phù hợp, nên ưu tiên xem xét phỏng vấn.");
+  } else if (missingMustSkills.length > 0) {
+    lines.push(
+      `- Ứng viên cần bổ sung kỹ năng ${missingMustSkills.join(
+        ", ",
+      )} trước khi phù hợp hơn.`,
+    );
+  } else {
+    lines.push("- Có thể cân nhắc đào tạo bổ sung hoặc phỏng vấn vòng lọc.");
   }
 
-  if (appVector.preferred_location === recruiterVector.preferred_location) {
-    reasons.push("Ưu tiên địa điểm trùng khớp");
-  }
-
-  return reasons.join(", ");
+  return lines.join("\n");
 }
 
 /**
@@ -171,14 +291,25 @@ async function generateCandidateRecommendations(recruiterId) {
 
   const results = [];
 
+  const { skillMap, tagMap } = await buildLookupMaps();
+
   for (const appVector of applicants) {
-    const fit = computeCandidateFitScore(appVector, recruiterVector);
-    const reason = buildCandidateReason(appVector, recruiterVector, fit);
+    const { score, explanation } = computeCandidateFitScore(
+      appVector,
+      recruiterVector,
+    );
+
+    const reason = buildCandidateReasonFromExplanation(
+      explanation,
+      score,
+      skillMap,
+      tagMap,
+    );
 
     results.push({
       recruiter_id: rid,
       applicant_id: appVector.user_id,
-      fit_score: fit,
+      fit_score: score,
       reason,
     });
   }
@@ -208,7 +339,165 @@ async function generateCandidateRecommendations(recruiterId) {
   return stored;
 }
 
+// Lấy danh sách job được recommend cho user
+async function getRecommendedJobsForUser(
+  userId,
+  { min_score = 0, location, tags = [], page = 1, limit = 10 },
+) {
+  const uid = BigInt(userId);
+  const skip = (page - 1) * limit;
+
+  // WHERE cho job_recommendation
+  const where = {
+    user_id: uid,
+    fit_score: { gte: Number(min_score) },
+  };
+
+  // Build filter bên trong job
+  const jobFilter = {};
+
+  if (location?.trim()) {
+    jobFilter.location = { contains: location.trim() };
+  }
+
+  if (Array.isArray(tags) && tags.length > 0) {
+    jobFilter.tags = {
+      some: {
+        tag: { name: { in: tags } },
+      },
+    };
+  }
+
+  if (Object.keys(jobFilter).length > 0) {
+    where.job = jobFilter;
+  }
+
+  // Query DB
+  const [rows, total] = await Promise.all([
+    prisma.jobRecommendation.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { fit_score: "desc" },
+      include: {
+        job: {
+          include: {
+            company: { select: { id: true, legal_name: true, logo: true } },
+            approval: true,
+            tags: { include: { tag: true } },
+            requiredSkills: { include: { skill: true } },
+            vector: true,
+          },
+        },
+      },
+    }),
+
+    prisma.jobRecommendation.count({ where }),
+  ]);
+
+  // FAVORITE của userId
+  let favoriteIds = new Set();
+  const favorites = await prisma.userFavoriteJobs.findMany({
+    where: { user_id: uid },
+    select: { job_id: true },
+  });
+
+  favoriteIds = new Set(favorites.map((f) => Number(f.job_id)));
+
+  // Gắn isFavorite
+  const items = rows.map((rec) => ({
+    ...rec,
+    job: {
+      ...rec.job,
+      isFavorite: favoriteIds.has(Number(rec.job.id)),
+    },
+  }));
+
+  return {
+    items,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+async function getRecommendedCandidatesForRecruiter(
+  recruiterId,
+  { min_score = 0, location, tags = [], page = 1, limit = 10 },
+) {
+  const rid = BigInt(recruiterId);
+  const skip = (page - 1) * limit;
+
+  const where = {
+    recruiter_id: rid,
+    fit_score: { gte: Number(min_score) },
+  };
+
+  // Filter theo location ứng viên
+  if (location && location.trim() !== "") {
+    where.applicant = {
+      is: {
+        preferred_location: { contains: location.trim() },
+      },
+    };
+  }
+
+  // Filter theo tag kỹ năng/lĩnh vực của ứng viên
+  if (Array.isArray(tags) && tags.length > 0) {
+    where.applicant = {
+      ...(where.applicant?.is ? { is: where.applicant.is } : {}),
+      tags: {
+        some: { tag: { name: { in: tags } } },
+      },
+    };
+  }
+
+  const [rows, total] = await Promise.all([
+    prisma.candidateRecommendation.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { fit_score: "desc" },
+      include: {
+        applicant: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            email: true,
+            role: true,
+            vector: {
+              select: {
+                preferred_location: true,
+              },
+            },
+          },
+        },
+        recruiter: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            role: true,
+          },
+        },
+      },
+    }),
+    prisma.candidateRecommendation.count({ where }),
+  ]);
+
+  return {
+    items: rows,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
 module.exports = {
   generateRecommendationsForUser,
   generateCandidateRecommendations,
+  getRecommendedJobsForUser,
+  getRecommendedCandidatesForRecruiter,
+  buildJobReasonFromExplanation,
 };

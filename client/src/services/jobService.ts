@@ -1,52 +1,230 @@
 // src/services/jobService.ts
 import { api } from "@/api";
-import { normalizeJob } from "@/types/mappers";
+import {
+  mapJobRaw,
+  mapJobDetailRaw,
+  mapJobCreatePayloadRaw,
+  mapApproveJobResponse,
+  mapRejectJobResponse,
+} from "@/types";
 import type {
   Job,
-  JobCreatePayload,
-  JobUpdatePayload,
   PaginatedJobs,
+  JobDetail,
+  JobSearchQuery,
+  JobListResponse,
+  JobDetailResponse,
+  JobCreatePayload,
+  JobCreatePayloadRaw,
+  ApproveJobResponse,
+  ApproveJobResponseRaw,
+  RejectJobResponse,
+  RejectJobResponseRaw,
+  RejectJobPayload,
 } from "@/types";
 
-/** Lấy danh sách job với phân trang */
 export async function getJobs(
   page = 1,
-  limit = 10
+  limit = 10,
+  filter: JobSearchQuery = {},
 ): Promise<PaginatedJobs<Job>> {
-  const res = await api.get("/api/jobs", { params: { page, limit } });
+  const params: Record<string, unknown> = {
+    page,
+    limit,
+  };
+
+  // TEXT SEARCH
+  if (filter.search && filter.search.trim().length > 0) {
+    params.search = filter.search.trim();
+  }
+
+  // TAG FILTER
+  if (Array.isArray(filter.tags) && filter.tags.length > 0) {
+    params.tag = filter.tags; // BE expects tag=A&tag=B
+  }
+
+  // LOCATION FILTER
+  if (filter.location && filter.location.trim().length > 0) {
+    params.location = filter.location.trim();
+  }
+
+  // SALARY FILTER
+  if (
+    typeof filter.salaryWanted === "number" &&
+    !Number.isNaN(filter.salaryWanted)
+  ) {
+    params.salaryWanted = filter.salaryWanted;
+  }
+
+  const res = await api.get<JobListResponse>("/api/jobs", {
+    params,
+    paramsSerializer: {
+      serialize(paramsObj: Record<string, unknown>): string {
+        const qs = new URLSearchParams();
+
+        for (const key of Object.keys(paramsObj)) {
+          const value = paramsObj[key];
+
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              qs.append(key, String(item));
+            }
+          } else if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          ) {
+            qs.append(key, String(value));
+          }
+        }
+
+        return qs.toString();
+      },
+    },
+  });
+
+  const rawJobs = res.data.jobs ?? [];
 
   return {
-    jobs: Array.isArray(res.data.jobs)
-      ? res.data.jobs.map(normalizeJob)
-      : [],
+    jobs: rawJobs.map(mapJobRaw),
     total: res.data.total ?? 0,
     page: res.data.page ?? 1,
     totalPages: res.data.totalPages ?? 1,
   };
 }
 
-/** Lấy chi tiết job theo ID (BigInt → string) */
-export async function getJobById(id: string): Promise<Job> {
-  const res = await api.get(`/api/jobs/${id}`);
-  return normalizeJob(res.data);
+export async function getJobById(id: string): Promise<JobDetail> {
+  const res = await api.get<JobDetailResponse>(`/api/jobs/${id}`);
+  return mapJobDetailRaw(res.data);
 }
 
-/** Tạo job mới */
-export async function createJob(jobData: JobCreatePayload): Promise<Job> {
-  const res = await api.post("/api/jobs", jobData);
-  return normalizeJob(res.data);
+export async function getMyJobs(
+  page = 1,
+  limit = 10,
+): Promise<PaginatedJobs<Job>> {
+  try {
+    const res = await api.get<JobListResponse>("/api/jobs/my-jobs", {
+      params: { page, limit },
+    });
+
+    const data = res.data;
+
+    const rawJobs = Array.isArray(data.jobs) ? data.jobs : [];
+
+    return {
+      jobs: rawJobs.map(mapJobRaw),
+      total: typeof data.total === "number" ? data.total : 0,
+      page: typeof data.page === "number" ? data.page : page,
+      totalPages: typeof data.totalPages === "number" ? data.totalPages : 1,
+    };
+  } catch (error) {
+    // Đảm bảo không bị lỗi unsafe khi error là unknown
+    if (error instanceof Error) {
+      console.error("getMyJobs error:", error.message);
+    } else {
+      console.error("getMyJobs unknown error");
+    }
+
+    // Trả về object rỗng để UI không crash
+    return {
+      jobs: [],
+      total: 0,
+      page: 1,
+      totalPages: 1,
+    };
+  }
 }
 
-/** Cập nhật job */
+// Tạo job
+export async function createJob(
+  data: JobCreatePayload,
+): Promise<JobDetail | null> {
+  try {
+    const payload: JobCreatePayloadRaw = mapJobCreatePayloadRaw(data);
+
+    const res = await api.post<JobDetailResponse>("/api/jobs", payload);
+
+    return mapJobDetailRaw(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("createJob error:", error.message);
+    }
+    return null;
+  }
+}
+
+// Sửa job
 export async function updateJob(
-  id: string,
-  jobData: JobUpdatePayload
-): Promise<Job> {
-  const res = await api.put(`/api/jobs/${id}`, jobData);
-  return normalizeJob(res.data);
+  jobId: string,
+  data: JobCreatePayload,
+): Promise<JobDetail | null> {
+  try {
+    const payload: JobCreatePayloadRaw = mapJobCreatePayloadRaw(data);
+
+    const res = await api.put<JobDetailResponse>(`/api/jobs/${jobId}`, payload);
+
+    return mapJobDetailRaw(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("updateJob error:", error.message);
+    }
+    return null;
+  }
 }
 
-/** Xóa job */
-export async function deleteJob(id: string): Promise<void> {
-  await api.delete(`/api/jobs/${id}`);
+// Xóa job
+export async function deleteJob(jobId: string): Promise<boolean> {
+  try {
+    await api.delete(`/api/jobs/${jobId}`);
+    return true;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("deleteJob error:", error.message);
+    } else {
+      console.error("deleteJob unknown error");
+    }
+    return false;
+  }
+}
+
+// ADMIN duyệt job
+export async function approveJob(
+  jobId: string,
+): Promise<ApproveJobResponse | null> {
+  try {
+    const res = await api.patch<ApproveJobResponseRaw>(
+      `/api/jobs/admin/${jobId}/approve`,
+    );
+
+    return mapApproveJobResponse(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("approveJob error:", error.message);
+    } else {
+      console.error("approveJob unknown error");
+    }
+    return null;
+  }
+}
+
+// ADMIN từ chối job
+export async function rejectJob(
+  jobId: string,
+  payload: RejectJobPayload,
+): Promise<RejectJobResponse | null> {
+  try {
+    const res = await api.patch<RejectJobResponseRaw>(
+      `/api/jobs/admin/${jobId}/reject`,
+      payload,
+    );
+
+    return mapRejectJobResponse(res.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("rejectJob error:", error.message);
+    } else {
+      console.error("rejectJob unknown error");
+    }
+    return null;
+  }
 }

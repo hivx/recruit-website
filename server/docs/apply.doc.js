@@ -487,3 +487,69 @@
  *                   type: string
  *                   example: "Không tìm thấy hồ sơ ứng tuyển!"
  */
+
+/**
+ * @swagger
+ * /api/applications/recruiter:
+ *   get:
+ *     summary: Lấy danh sách ứng viên của tất cả job do recruiter tạo
+ *     description: |
+ *       Lấy toàn bộ hồ sơ ứng tuyển thuộc về các công việc do recruiter hiện tại tạo ra.
+ *       Hỗ trợ phân trang và lọc theo trạng thái hoặc theo jobId.
+ *     tags:
+ *       - Applications
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Số ứng viên mỗi trang
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, accepted, rejected]
+ *         description: Lọc theo trạng thái đơn ứng tuyển
+ *       - in: query
+ *         name: jobId
+ *         schema:
+ *           type: string
+ *           example: "15"
+ *         description: Lọc theo ID công việc
+ *     responses:
+ *       200:
+ *         description: Danh sách ứng viên của recruiter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   example: 42
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 5
+ *                 applicants:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Application'
+ *       401:
+ *         description: Không có token hoặc token không hợp lệ
+ *       403:
+ *         description: Chỉ recruiter hoặc admin mới được truy cập
+ *       500:
+ *         description: Lỗi server khi lấy danh sách ứng viên
+ */

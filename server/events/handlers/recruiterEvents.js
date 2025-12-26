@@ -1,3 +1,4 @@
+// server/events/handlers/recruiterEvents
 const recruiterVector = require("../../services/recruiterVectorService");
 
 module.exports = {

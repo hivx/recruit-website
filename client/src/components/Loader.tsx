@@ -1,7 +1,13 @@
-export function Loader() {
+// src/components/Loader.tsx
+type LoaderProps = Readonly<{
+  size?: number;
+}>;
+
+export function Loader({ size = 24 }: LoaderProps) {
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="animate-spin size-8 border-2 border-gray-300 border-t-transparent rounded-full" />
-    </div>
+    <div
+      className="animate-spin rounded-full border-2 border-gray-400 border-t-transparent"
+      style={{ width: size, height: size }}
+    />
   );
 }
