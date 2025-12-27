@@ -229,13 +229,11 @@ export function AdminUserList() {
                     </span>
                   </td>
 
-                  <td
-                    className="px-6 py-4 text-center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <td className="px-6 py-4 text-center">
                     <Switch
                       checked={u.isVerified}
                       disabled={setActiveMutation.isPending}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(checked) =>
                         setActiveMutation.mutate({
                           userId: u.id,

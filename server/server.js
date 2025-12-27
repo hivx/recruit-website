@@ -14,6 +14,9 @@ const prisma = require("./utils/prisma");
 // Khởi tạo app
 const app = express();
 
+// Tắt header X-Powered-By để tăng cường bảo mật
+app.set("x-powered-by", false);
+
 // Middleware
 const clientUrl = new Set(
   (process.env.CLIENT_URL || "")

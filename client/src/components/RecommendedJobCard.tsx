@@ -2,11 +2,9 @@
 import { Heart, AlertTriangle } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppNavigate } from "@/hooks";
-import { toggleFavorite } from "@/services";
-import { useUserStore, useFavoriteStore } from "@/stores";
+import { useAppNavigate, useFavoriteJob } from "@/hooks";
 import type { Job } from "@/types";
-import { resolveImage, formatDateDMY } from "@/utils";
+import { resolveImage, getJobDates, formatSalary } from "@/utils";
 
 type RecommendedJobCardProps = Readonly<{
   job: Job;
@@ -19,7 +17,7 @@ export function RecommendedJobCard({
   score,
   reason,
 }: RecommendedJobCardProps) {
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLButtonElement | null>(null);
   const [popupSide, setPopupSide] = useState<"left" | "right">("right");
   const logoUrl = resolveImage(job.company?.logo);
   const jobId = Number(job.id);
@@ -27,52 +25,20 @@ export function RecommendedJobCard({
   const navigate = useAppNavigate();
 
   // Auth + favorite state
-  const token = useUserStore((s) => s.token);
-  const favorites = useFavoriteStore((s) => s.favorites);
-  const toggleFav = useFavoriteStore((s) => s.toggle);
-
-  const isFavorite = favorites.has(jobId);
-
-  async function handleToggle(e: React.MouseEvent) {
-    e.stopPropagation();
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    toggleFav(jobId);
-
-    try {
-      await toggleFavorite(job.id);
-    } catch {
-      toggleFav(jobId);
-    }
-  }
+  const { isFavorite, toggle } = useFavoriteJob(jobId);
 
   /* =============================
      SALARY DISPLAY
   ============================= */
-  let salaryText: string | null = null;
-  if (job.salaryMin && job.salaryMax) {
-    salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
-  } else if (job.salaryMin) {
-    salaryText = `${job.salaryMin.toLocaleString()} VND`;
-  } else if (job.salaryMax) {
-    salaryText = `${job.salaryMax.toLocaleString()} VND`;
-  }
+  const salaryText = formatSalary(job.salaryMin, job.salaryMax);
 
   /* =============================
      DATE LOGIC
   ============================= */
-  const postedDate = formatDateDMY(job.createdAt);
-  const updatedDate = formatDateDMY(job.updatedAt);
-
-  const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
-
-  const isOutdated =
-    job.updatedAt &&
-    Date.now() - new Date(job.updatedAt).getTime() > SIX_MONTHS_MS;
+  const { postedDate, updatedDate, isOutdated } = getJobDates(
+    job.createdAt,
+    job.updatedAt,
+  );
 
   function handleDetectSide() {
     if (!cardRef.current) {
@@ -86,19 +52,19 @@ export function RecommendedJobCard({
   }
 
   return (
-    <div
+    <button
       ref={cardRef}
-      role="button"
-      tabIndex={0}
+      type="button"
       onMouseEnter={handleDetectSide}
       onFocus={handleDetectSide}
+      onClick={() => navigate(`/jobs/${job.id}`)}
       className="
-    group relative
-    bg-white rounded-xl border shadow-sm
-    hover:shadow-xl hover:border-blue-300
-    transition-all duration-300 ease-out
-    p-5 flex gap-4
-  "
+        group relative w-full text-left
+        bg-white rounded-xl border shadow-sm
+        hover:shadow-xl hover:border-blue-300
+        transition-all duration-300 ease-out
+        p-5 flex gap-4
+      "
     >
       {/* ================= LOGO ================= */}
       <Link
@@ -194,7 +160,10 @@ export function RecommendedJobCard({
 
       {/* ================= FAVORITE ================= */}
       <button
-        onClick={(e) => void handleToggle(e)}
+        onClick={(e) => {
+          e.stopPropagation();
+          void toggle();
+        }}
         className="
           self-start p-2 rounded-full 
           transition-all duration-300
@@ -236,6 +205,6 @@ export function RecommendedJobCard({
           {reason}
         </div>
       )}
-    </div>
+    </button>
   );
 }

@@ -10,10 +10,9 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ApplyJobModal } from "@/components";
-import { useJobById, useAppNavigate } from "@/hooks";
-import { toggleFavorite } from "@/services";
-import { useUserStore, useFavoriteStore } from "@/stores";
-import { resolveImage, formatDateDMY } from "@/utils";
+import { useJobById, useAppNavigate, useFavoriteJob } from "@/hooks";
+import { useUserStore } from "@/stores";
+import { resolveImage, formatDateDMY, formatSalary } from "@/utils";
 
 interface Props {
   readonly jobId: string;
@@ -24,11 +23,8 @@ export function JobDetailView({ jobId }: Props) {
   const token = useUserStore((s) => s.token); // Lấy token từ store
   const navigate = useAppNavigate();
 
-  const favorites = useFavoriteStore((s) => s.favorites);
-  const toggleFav = useFavoriteStore((s) => s.toggle);
   const jobDetailId = Number(jobId);
-
-  const isFavorite = favorites.has(jobDetailId);
+  const { isFavorite, toggle } = useFavoriteJob(jobDetailId);
 
   const { data: job, isLoading, error } = useJobById(jobId);
   if (!job) {
@@ -58,14 +54,7 @@ export function JobDetailView({ jobId }: Props) {
   }
 
   // ===== Salary display =====
-  let salaryText: string | null = null;
-  if (job.salaryMin && job.salaryMax) {
-    salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
-  } else if (job.salaryMin) {
-    salaryText = `${job.salaryMin.toLocaleString()} VND`;
-  } else if (job.salaryMax) {
-    salaryText = `${job.salaryMax.toLocaleString()} VND`;
-  }
+  const salaryText = formatSalary(job.salaryMin, job.salaryMax);
 
   // ===== Created date =====
   const createdDateText = formatDateDMY(job.createdAt);
@@ -77,25 +66,6 @@ export function JobDetailView({ jobId }: Props) {
     }
 
     setOpenApply(true);
-  }
-
-  async function handleToggle(e: React.MouseEvent) {
-    e.stopPropagation();
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    // Optimistic UI: toggle local ngay
-    toggleFav(jobDetailId);
-
-    try {
-      await toggleFavorite(jobId); // gọi BE
-    } catch {
-      // rollback nếu fail
-      toggleFav(jobDetailId);
-    }
   }
 
   return (
@@ -134,7 +104,8 @@ export function JobDetailView({ jobId }: Props) {
               {/* Favorite */}
               <button
                 onClick={(e) => {
-                  void handleToggle(e);
+                  e.stopPropagation();
+                  void toggle();
                 }}
                 className="
                   self-start p-2 rounded-full 

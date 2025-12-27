@@ -179,6 +179,23 @@ export function CareerPreferencesModal({ open, onClose }: Props) {
               />
             </div>
 
+            {/* TAGS */}
+            <div>
+              <label
+                htmlFor="desTag"
+                className="block font-medium text-gray-700"
+              >
+                Ngành nghề / Lĩnh vực
+              </label>
+
+              <TagsInput
+                id="desTag"
+                values={form.tags}
+                onChange={(tags) => updateField("tags", tags)}
+                placeholder="VD: React, Node.js, AWS"
+              />
+            </div>
+
             {/* COMPANY */}
             <div>
               <label
@@ -248,23 +265,6 @@ export function CareerPreferencesModal({ open, onClose }: Props) {
                   focus:ring-2 focus:ring-blue-500/40
                   focus:border-blue-500
                 "
-              />
-            </div>
-
-            {/* TAGS */}
-            <div>
-              <label
-                htmlFor="desTag"
-                className="block font-medium text-gray-700"
-              >
-                Ngành nghề / Lĩnh vực
-              </label>
-
-              <TagsInput
-                id="desTag"
-                values={form.tags}
-                onChange={(tags) => updateField("tags", tags)}
-                placeholder="VD: React, Node.js, AWS"
               />
             </div>
           </div>

@@ -189,3 +189,5 @@ Dự án xây dựng một nền tảng tuyển dụng với các chức năng c
 4. **types/mappers** (`client/src/types`) map raw response thành UI model.
 5. **stores** (`client/src/stores`) giữ state toàn cục (auth/filter).
 
+### Sonarqube
+sonar-scanner "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_dd904df89adf382bb831.......e1368830710727dc39bc" "-Dsonar.projectKey=recruit-website"
