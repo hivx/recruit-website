@@ -44,7 +44,7 @@ export function Footer() {
 
         {/* ===== ỨNG VIÊN ===== */}
         <div>
-          <h4 className="font-semibold mb-4 tracking-wide">Ứng viên</h4>
+          <h1 className="font-semibold mb-4 tracking-wide">Ứng viên</h1>
           <ul className="space-y-2 text-sm text-black/80">
             {[
               { to: "/jobs", label: "Tìm việc làm" },
@@ -69,7 +69,7 @@ export function Footer() {
 
         {/* ===== NHÀ TUYỂN DỤNG ===== */}
         <div>
-          <h4 className="font-semibold mb-4 tracking-wide">Nhà tuyển dụng</h4>
+          <h1 className="font-semibold mb-4 tracking-wide">Nhà tuyển dụng</h1>
           <ul className="space-y-2 text-sm text-black/80">
             {[
               { to: "/recruiter", label: "Trang quản lý" },
@@ -99,7 +99,7 @@ export function Footer() {
 
         {/* ===== HỆ THỐNG ===== */}
         <div>
-          <h4 className="font-semibold mb-4 tracking-wide">Hệ thống</h4>
+          <h1 className="font-semibold mb-4 tracking-wide">Hệ thống</h1>
           <ul className="space-y-2 text-sm text-black/80">
             {[
               { to: "/admin", label: "Quản trị" },

@@ -59,7 +59,7 @@ function AvatarInput({ label, file, avatarUrl, onChange }: AvatarInputProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+            <div className="w-full h-full flex items-center justify-center text-xs text-gray-700">
               No avatar
             </div>
           )}

@@ -76,17 +76,17 @@ export function JobCard({ job, score }: JobCardProps) {
 
         {/* ===== DATES ===== */}
         <div className="pt-1 space-y-0.5">
-          <p className="text-xs text-gray-400">Đăng ngày {postedDate}</p>
+          <p className="text-sm text-gray-700">Ngày đăng {postedDate}</p>
 
-          <p className="flex items-center gap-1 text-xs text-gray-400">
+          <p className="flex items-center gap-1 text-sm text-gray-700">
             Cập nhật {updatedDate}
-            {isOutdated && (
-              <span className="ml-2 inline-flex items-center gap-1 text-yellow-600 font-medium">
-                <AlertTriangle className="w-4 h-4" />
-                Quá 6 tháng chưa được cập nhật!
-              </span>
-            )}
           </p>
+          {isOutdated && (
+            <span className="ml-2 inline-flex items-center gap-1 text-yellow-700 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              Quá 6 tháng chưa được cập nhật!
+            </span>
+          )}
         </div>
 
         {/* ===== SCORE ===== */}

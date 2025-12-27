@@ -96,7 +96,7 @@ export function RecommendedCandidateCard({
 
         {/* META */}
         <div className="flex items-center justify-between pt-2">
-          <p className="text-xs text-gray-400">Gợi ý ngày {recommendedDate}</p>
+          <p className="text-xs text-gray-700">Gợi ý ngày {recommendedDate}</p>
         </div>
       </div>
 

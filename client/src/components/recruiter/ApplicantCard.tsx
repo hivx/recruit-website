@@ -83,7 +83,7 @@ export function ApplicantCard({ app, onClick }: ApplicantCardProps) {
                 <span className="font-medium text-gray-800">{jobTitle}</span>
               </p>
 
-              <p className="text-xs text-gray-400">Nộp lúc {appliedDate}</p>
+              <p className="text-xs text-gray-700">Nộp lúc {appliedDate}</p>
             </div>
 
             <span

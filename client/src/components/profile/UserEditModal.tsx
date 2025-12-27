@@ -17,7 +17,7 @@ interface UserEditModalProps {
   readonly onClose: () => void;
 }
 
-export function UserEditModal({ open, onClose }: UserEditModalProps) {
+export default function UserEditModal({ open, onClose }: UserEditModalProps) {
   const user = useUserStore((s) => s.user);
   const updateUser = useUserStore((s) => s.updateUser);
   const updateMutation = useUpdateProfile();

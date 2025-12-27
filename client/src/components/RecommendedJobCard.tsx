@@ -17,7 +17,7 @@ export function RecommendedJobCard({
   score,
   reason,
 }: RecommendedJobCardProps) {
-  const cardRef = useRef<HTMLButtonElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [popupSide, setPopupSide] = useState<"left" | "right">("right");
   const logoUrl = resolveImage(job.company?.logo);
   const jobId = Number(job.id);
@@ -52,14 +52,20 @@ export function RecommendedJobCard({
   }
 
   return (
-    <button
+    <div
       ref={cardRef}
-      type="button"
+      role="button"
+      tabIndex={0}
       onMouseEnter={handleDetectSide}
       onFocus={handleDetectSide}
       onClick={() => navigate(`/jobs/${job.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          navigate(`/jobs/${job.id}`);
+        }
+      }}
       className="
-        group relative w-full text-left
+        group relative w-full cursor-pointer text-left
         bg-white rounded-xl border shadow-sm
         hover:shadow-xl hover:border-blue-300
         transition-all duration-300 ease-out
@@ -104,17 +110,17 @@ export function RecommendedJobCard({
 
         {/* ===== DATES ===== */}
         <div className="pt-1 space-y-0.5">
-          <p className="text-xs text-gray-400">Đăng ngày {postedDate}</p>
+          <p className="text-sm text-gray-700">Ngày đăng {postedDate}</p>
 
-          <p className="flex items-center gap-1 text-xs text-gray-400">
+          <p className="flex items-center gap-1 text-sm text-gray-700">
             Cập nhật {updatedDate}
-            {isOutdated && (
-              <span className="ml-2 inline-flex items-center gap-1 text-yellow-600 font-medium">
-                <AlertTriangle className="w-4 h-4" />
-                Quá 6 tháng chưa cập nhật
-              </span>
-            )}
           </p>
+          {isOutdated && (
+            <span className="ml-2 inline-flex items-center gap-1 text-yellow-700 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              Quá 6 tháng chưa được cập nhật!
+            </span>
+          )}
         </div>
 
         {/* ===== SCORE ===== */}
@@ -205,6 +211,6 @@ export function RecommendedJobCard({
           {reason}
         </div>
       )}
-    </button>
+    </div>
   );
 }
