@@ -110,7 +110,7 @@ function handleOptionalSkill(js, userSkill) {
   const userW = userSkill.w ?? 0;
 
   return {
-    score: userW * optW * 0.8,
+    score: userW * optW * 0.9,
     matched: true,
     max: optW,
   };
@@ -123,7 +123,7 @@ function computeTagMatch(userTags = [], jobTags = []) {
   // CHỈNH: thêm hasData
   if (!userTags.length || !jobTags.length) {
     return {
-      score: 0.3,
+      score: 0.2,
       matched: [],
       hasData: false,
     };
@@ -147,7 +147,7 @@ function computeTagMatch(userTags = [], jobTags = []) {
   }
 
   const raw = maxScore ? score / maxScore : 0;
-  const visible = 0.3 + raw * 0.7;
+  const visible = 0.2 + raw * 0.8;
 
   return {
     score: Number(visible.toFixed(4)),
@@ -162,7 +162,7 @@ function computeTagMatch(userTags = [], jobTags = []) {
 function computeLocationMatch(userLoc, jobLoc) {
   if (!userLoc || !jobLoc) {
     return {
-      score: 0.5,
+      score: 0.3,
       matched: false,
       level: "neutral",
     };
@@ -171,7 +171,7 @@ function computeLocationMatch(userLoc, jobLoc) {
   const matched = userLoc.includes(jobLoc) || jobLoc.includes(userLoc);
 
   return {
-    score: matched ? 1 : 0.5,
+    score: matched ? 1 : 0.3,
     matched,
     level: matched ? "match" : "neutral",
   };
@@ -263,7 +263,7 @@ function getOverallLevel(score) {
 }
 
 // =========================
-// USER → JOB
+// JOB-CENTRIC (USER -> JOB)
 // =========================
 function computeFitScore(userVector, jobVector) {
   const skill = computeSkillMatch(
@@ -301,14 +301,45 @@ function computeFitScore(userVector, jobVector) {
 }
 
 // =========================
-// USER-CENTRIC
+// USER-CENTRIC (JOB -> USER)
 // =========================
 function computeJobFitScore(userVector, jobVector) {
-  return computeFitScore(userVector, jobVector);
+  const skill = computeSkillMatch(
+    userVector.skill_profile ?? [],
+    jobVector.skill_profile ?? [],
+  );
+
+  const tag = computeTagMatch(
+    userVector.tag_profile ?? [],
+    jobVector.tag_profile ?? [],
+  );
+
+  const location = computeLocationMatch(
+    userVector.preferred_location,
+    jobVector.location,
+  );
+
+  const salary = computeSalaryMatch(
+    userVector.salary_expected,
+    jobVector.salary_avg,
+  );
+
+  const score =
+    0.15 * skill.score +
+    0.4 * tag.score +
+    0.3 * salary.score +
+    0.15 * location.score;
+
+  const finalScore = Number(score.toFixed(4));
+
+  return {
+    score: finalScore,
+    explanation: buildExplanation(finalScore, skill, tag, location, salary),
+  };
 }
 
 // =========================
-// JOB-CENTRIC (CANDIDATE)
+// RECRUITER-CENTRIC (USER -> RECUITER)
 // =========================
 function computeCandidateFitScore(userVector, jobVector) {
   const skill = computeSkillMatch(
@@ -332,10 +363,10 @@ function computeCandidateFitScore(userVector, jobVector) {
   );
 
   const score =
-    0.4 * skill.score +
-    0.25 * tag.score +
+    0.5 * skill.score +
+    0.2 * tag.score +
     0.15 * salary.score +
-    0.1 * location.score;
+    0.15 * location.score;
 
   const finalScore = Number(score.toFixed(4));
 

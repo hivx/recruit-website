@@ -62,7 +62,7 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
           await recommendationService.generateRecommendationsForUser(u.id);
         }
       } catch (e) {
-        console.error("[CRON] User Vector Error:", u.id, e.message);
+        console.error("[CRON] User Vector Error (BigInt):", u.id, e.message);
       }
     }
 
@@ -82,7 +82,11 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
           await recommendationService.generateCandidateRecommendations(r.id);
         }
       } catch (e) {
-        console.error("[CRON] Recruiter Vector Error:", r.id, e.message);
+        console.error(
+          "[CRON] Recruiter Vector Error (BigInt):",
+          r.id,
+          e.message,
+        );
       }
     }
   } catch (err) {
