@@ -261,13 +261,13 @@ export function JobSearchBar({
         {/* POPULAR TAGS */}
         <div className="mt-4 flex flex-col items-start gap-2">
           <p className="text-white font-medium text-sm mb-1">
-            Lĩnh vực đang hot
+            Lĩnh vực nổi bật
           </p>
 
           <div className="grid grid-cols-2 gap-2">
             {popular.length === 0 && (
               <p className="col-span-2 text-white/70 text-sm italic">
-                Đang tải ngành hot…
+                Đang tải…
               </p>
             )}
 
@@ -279,7 +279,7 @@ export function JobSearchBar({
                   key={`${ptag.tagId}-${ptag.tagName}`}
                   onClick={() => ptag.tagName && toggleTag(ptag.tagName)}
                   className={`
-                    px-3 py-1.5 rounded-full text-xs font-semibold transition border text-left
+                    px-3 py-1.5 rounded-full text-xs font-semibold transition border text-left cursor-pointer
                     ${
                       active
                         ? "bg-blue-600 text-white border-blue-600"

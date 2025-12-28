@@ -2,7 +2,7 @@
 import { RecommendedCandidateList } from "@/components/recruiter";
 import { useUserStore } from "@/stores";
 
-export function RecruiterCandidatesPage() {
+export default function RecruiterCandidatesPage() {
   const user = useUserStore((s) => s.user);
 
   // recruiterId lấy từ user login

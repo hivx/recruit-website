@@ -4,7 +4,7 @@ import { JobStatsDashboard } from "@/components";
 import { MyJobList } from "@/components/recruiter";
 import { useUserStore } from "@/stores";
 
-export function RecruiterHomePage() {
+export default function RecruiterHomePage() {
   const [page, setPage] = useState(1);
   const user = useUserStore((s) => s.user);
 

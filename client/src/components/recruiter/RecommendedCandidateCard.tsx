@@ -11,7 +11,7 @@ type RecommendedCandidateCardProps = Readonly<{
 export function RecommendedCandidateCard({
   candidate,
 }: RecommendedCandidateCardProps) {
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLButtonElement | null>(null);
   const [popupSide, setPopupSide] = useState<"left" | "right">("right");
 
   const avatarUrl = resolveImage(candidate.applicant.avatar);
@@ -29,10 +29,9 @@ export function RecommendedCandidateCard({
   const fitPercent = Math.round(candidate.fitScore * 100);
 
   return (
-    <div
+    <button
       ref={cardRef}
-      role="button"
-      tabIndex={0}
+      type="button"
       onMouseEnter={handleDetectSide}
       onFocus={handleDetectSide}
       className="
@@ -41,6 +40,7 @@ export function RecommendedCandidateCard({
         hover:shadow-xl hover:border-blue-300
         transition-all duration-300 ease-out
         p-5 flex gap-4
+        text-left
       "
     >
       {/* ===== AVATAR ===== */}
@@ -96,7 +96,7 @@ export function RecommendedCandidateCard({
 
         {/* META */}
         <div className="flex items-center justify-between pt-2">
-          <p className="text-xs text-gray-400">Gợi ý ngày {recommendedDate}</p>
+          <p className="text-xs text-gray-700">Gợi ý ngày {recommendedDate}</p>
         </div>
       </div>
 
@@ -125,6 +125,6 @@ export function RecommendedCandidateCard({
           {candidate.reason}
         </div>
       )}
-    </div>
+    </button>
   );
 }

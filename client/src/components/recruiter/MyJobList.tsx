@@ -167,18 +167,11 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
             const isViewMode = mode === "view";
 
             return (
-              <div
+              <button
                 key={job.id}
-                role="button"
-                tabIndex={0}
+                type="button"
                 aria-label={getAriaLabel(mode, job.title)}
                 onClick={() => handleJobClick(job)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleJobClick(job);
-                  }
-                }}
                 className={`
                   w-full text-left transition cursor-pointer rounded-xl
                   focus:outline-none focus:ring-2 focus:ring-blue-400
@@ -189,7 +182,7 @@ export function MyJobList({ page, limit, onPageChange }: MyJobListProps) {
                 <div className={isViewMode ? "" : "pointer-events-none"}>
                   <RecruiterJobCard job={job} />
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

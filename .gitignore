@@ -1,3 +1,6 @@
+/client/coverage/
+/client/src/__tests__/
+
 /server/.env
 /server/node_modules/
 /server/package-lock.json
@@ -6,3 +9,4 @@
 /server/prisma/migrations/
 .vscode/
 .vs/
+.scannerwork/

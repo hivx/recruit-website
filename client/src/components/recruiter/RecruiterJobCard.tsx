@@ -2,7 +2,7 @@
 import { AlertTriangle, CheckCircle2, Clock3, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Job } from "@/types";
-import { resolveImage, formatDateDMY } from "@/utils";
+import { resolveImage, getJobDates, formatSalary } from "@/utils";
 
 type RecruiterJobCardProps = Readonly<{
   job: Job;
@@ -14,25 +14,15 @@ export function RecruiterJobCard({ job }: RecruiterJobCardProps) {
   /* =============================
      SALARY DISPLAY
   ============================= */
-  let salaryText: string | null = null;
-  if (job.salaryMin && job.salaryMax) {
-    salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
-  } else if (job.salaryMin) {
-    salaryText = `${job.salaryMin.toLocaleString()} VND`;
-  } else if (job.salaryMax) {
-    salaryText = `${job.salaryMax.toLocaleString()} VND`;
-  }
+  const salaryText = formatSalary(job.salaryMin, job.salaryMax);
 
   /* =============================
      DATE LOGIC
   ============================= */
-  const postedDate = formatDateDMY(job.createdAt);
-  const updatedDate = formatDateDMY(job.updatedAt);
-
-  const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
-  const isOutdated =
-    job.updatedAt &&
-    Date.now() - new Date(job.updatedAt).getTime() > SIX_MONTHS_MS;
+  const { postedDate, updatedDate, isOutdated } = getJobDates(
+    job.createdAt,
+    job.updatedAt,
+  );
 
   return (
     <div
@@ -52,7 +42,7 @@ export function RecruiterJobCard({ job }: RecruiterJobCardProps) {
         <Link
           to={`/recruiter/jobs/${job.id}`}
           className="
-            w-16 h-16 shrink-0
+            w-16 h-16 shrink-0 
             flex items-center justify-center
             rounded-lg border bg-gray-50
             hover:border-blue-300 transition
@@ -70,7 +60,9 @@ export function RecruiterJobCard({ job }: RecruiterJobCardProps) {
 
         {/* TITLE + COMPANY */}
         <div className="flex-1">
-          <h2 className="text-base font-semibold text-gray-900">{job.title}</h2>
+          <h2 className="text-base font-semibold text-gray-900 hover:text-blue-600">
+            {job.title}
+          </h2>
           <p className="text-sm text-gray-600 font-medium">
             {job.company?.legalName}
           </p>
@@ -80,18 +72,18 @@ export function RecruiterJobCard({ job }: RecruiterJobCardProps) {
       {/* ================= BODY ================= */}
       <div className="flex-1 mt-3 space-y-2">
         {/* DATES */}
-        <div className="space-y-0.5">
-          <p className="text-xs text-gray-400">Đăng ngày {postedDate}</p>
+        <div className="pt-1 space-y-0.5">
+          <p className="text-sm text-gray-700">Ngày đăng {postedDate}</p>
 
-          <p className="flex items-center gap-1 text-xs text-gray-400">
+          <p className="flex items-center gap-1 text-sm text-gray-700">
             Cập nhật {updatedDate}
-            {isOutdated && (
-              <span className="ml-2 inline-flex items-center gap-1 text-yellow-600 font-medium">
-                <AlertTriangle className="w-4 h-4" />
-                Quá 6 tháng chưa cập nhật!
-              </span>
-            )}
           </p>
+          {isOutdated && (
+            <span className="ml-2 inline-flex items-center gap-1 text-yellow-700 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              Quá 6 tháng chưa được cập nhật!
+            </span>
+          )}
         </div>
 
         {/* BADGE */}

@@ -1,6 +1,7 @@
 // server/services/preferenceService.js
 const { emitEvent } = require("../events");
 const prisma = require("../utils/prisma");
+const { shouldUpdate } = require("../utils/shouldUpdate");
 
 exports.getCareerPreference = async (userId) => {
   const pref = await prisma.careerPreference.findUnique({
@@ -127,13 +128,6 @@ exports.getRecruiterPreference = async (userId) => {
 
 exports.upsertRecruiterPreference = async (userId, payload = {}) => {
   const uid = BigInt(userId);
-
-  const shouldUpdate = (v) =>
-    !(
-      v === undefined ||
-      v === null ||
-      (typeof v === "string" && v.trim() === "")
-    );
 
   const {
     desired_location,

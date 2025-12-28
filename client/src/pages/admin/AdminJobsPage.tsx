@@ -4,7 +4,7 @@ import { useJobs } from "@/hooks/useJobs";
 import { useUserStore } from "@/stores";
 import type { JobSearchQuery } from "@/types";
 
-export function AdminJobsPage() {
+export default function AdminJobsPage() {
   const user = useUserStore((s) => s.user);
 
   const limit = 10;

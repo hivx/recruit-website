@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { getJobs, getJobById } from "@/services";
 
-export function TestJobService() {
+export default function TestJobService() {
   useEffect(() => {
     async function fetchData() {
       try {

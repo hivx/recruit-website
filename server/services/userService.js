@@ -49,7 +49,7 @@ module.exports = {
 
     if (email) {
       // Kiểm tra định dạng
-      if (!/\S+@gmail\.com$/.test(email)) {
+      if (!email.endsWith("@gmail.com")) {
         const error = new Error("Email phải có định dạng @gmail.com!");
         error.status = 400;
         throw error;

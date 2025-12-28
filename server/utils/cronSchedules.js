@@ -62,7 +62,7 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
           await recommendationService.generateRecommendationsForUser(u.id);
         }
       } catch (e) {
-        console.error("[CRON] User Vector Error:", u.id, e.message);
+        console.error("[CRON] User Vector Error (BigInt):", u.id, e.message);
       }
     }
 
@@ -82,29 +82,27 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
           await recommendationService.generateCandidateRecommendations(r.id);
         }
       } catch (e) {
-        console.error("[CRON] Recruiter Vector Error:", r.id, e.message);
+        console.error(
+          "[CRON] Recruiter Vector Error (BigInt):",
+          r.id,
+          e.message,
+        );
       }
     }
-
-    console.log("[CRON] Đã Recommend");
   } catch (err) {
     console.error("[CRON] ERROR:", err);
   }
 });
-
-console.log(`[CRON] Đã khởi chạy cron rebuild vector`);
 
 // ===============================
 // CRON: SEND JOB RECOMMENDATION EMAIL
 // ===============================
 cron.schedule(cfg.JOB_RECOMMEND_EMAIL_CRON, async () => {
   try {
-    const result = await recommendSystemService.sendJobRecommendations({
+    await recommendSystemService.sendJobRecommendations({
       minFitScore: cfg.JOB_RECOMMEND_MIN_SCORE || 0.6,
       limitPerUser: cfg.JOB_RECOMMEND_LIMIT || 5,
     });
-
-    console.log(`[CRON][JOB-EMAIL] users=${result.users}, sent=${result.sent}`);
   } catch (err) {
     console.error("[CRON][JOB-EMAIL] ERROR:", err.message);
   }
@@ -115,14 +113,10 @@ cron.schedule(cfg.JOB_RECOMMEND_EMAIL_CRON, async () => {
 // ===============================
 cron.schedule(cfg.CANDIDATE_RECOMMEND_EMAIL_CRON, async () => {
   try {
-    const result = await recommendSystemService.sendCandidateRecommendations({
+    await recommendSystemService.sendCandidateRecommendations({
       minFitScore: cfg.CANDIDATE_RECOMMEND_MIN_SCORE || 0.25,
       limitPerRecruiter: cfg.CANDIDATE_RECOMMEND_LIMIT || 5,
     });
-
-    console.log(
-      `[CRON][CANDIDATE-EMAIL] recruiters=${result.recruiters}, sent=${result.sent}`,
-    );
   } catch (err) {
     console.error("[CRON][CANDIDATE-EMAIL] ERROR:", err.message);
   }

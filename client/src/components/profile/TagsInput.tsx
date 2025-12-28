@@ -88,6 +88,9 @@ export function TagsInput({
       e.preventDefault();
       addTag(input);
     }
+    if (e.key === "Escape") {
+      setOpen(false);
+    }
   };
 
   // =============================
@@ -95,66 +98,53 @@ export function TagsInput({
   // =============================
   return (
     <div ref={wrapperRef} className="relative">
-      {/* INPUT WRAPPER */}
+      {/* INPUT WRAPPER – CHỈ LÀ WRAPPER, KHÔNG INTERACTIVE */}
       <div
-        ref={wrapperRef}
-        role="combobox"
-        tabIndex={0}
-        aria-expanded={open}
-        onClick={() => !disabled && setOpen(true)}
         className="
-          w-full min-h-[46px] px-3 py-2 border rounded-xl bg-white
-          flex flex-wrap gap-2 items-center text-left
-          focus:outline-none focus:ring-2 focus:ring-blue-500
-          transition-all
-          disabled:opacity-60 disabled:cursor-not-allowed
-        "
+      w-full min-h-[46px] px-3 py-2 border rounded-xl bg-white
+      flex flex-wrap gap-2 items-center text-left
+      focus-within:ring-2 focus-within:ring-blue-500
+      transition-all
+      disabled:opacity-60 disabled:cursor-not-allowed
+    "
       >
         {/* TAG CHIPS */}
         {values.map((tag) => (
           <span
             key={tag}
             className="
-        flex items-center gap-2 px-3 py-1 rounded-full
-        bg-blue-100 text-blue-700 text-sm
-      "
+          flex items-center gap-2 px-3 py-1 rounded-full
+          bg-blue-100 text-blue-700 text-sm
+        "
           >
             {tag}
 
             <button
               type="button"
               aria-label={`Xóa tag ${tag}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                removeTag(tag);
-              }}
-              className="
-          text-blue-600 hover:text-red-600
-          transition-colors text-base leading-none
-        "
+              onClick={() => removeTag(tag)}
+              className="text-blue-600 hover:text-red-600"
             >
               ×
             </button>
           </span>
         ))}
 
-        {/* INPUT */}
+        {/* INPUT – ELEMENT TƯƠNG TÁC DUY NHẤT */}
         <input
           id={id}
           name={name}
           type="text"
           disabled={disabled}
           className="
-      flex-1 min-w-[120px]
-      border-none outline-none py-1 text-sm
-      disabled:bg-transparent disabled:cursor-not-allowed
-    "
+        flex-1 min-w-[120px]
+        border-none outline-none py-1 text-sm
+      "
           placeholder={placeholder ?? "Nhập tag và nhấn Enter"}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onFocus={() => setOpen(true)}
+          onFocus={() => setOpen(true)} // 👈 MỞ DROPDOWN Ở ĐÂY
           onKeyDown={handleKeyDown}
-          onClick={(e) => e.stopPropagation()}
         />
       </div>
 

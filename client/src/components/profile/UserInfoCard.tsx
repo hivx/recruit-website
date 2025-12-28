@@ -1,11 +1,12 @@
 // src/components/profile/UserInfoCard.tsx
 import { motion } from "framer-motion";
 import { Pencil, Mail, Calendar, Building2, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, lazy } from "react";
 import { Loader, StatusBadge } from "@/components";
-import { UserEditModal } from "@/components/profile";
 import { useUserStore } from "@/stores";
 import { resolveImage, formatDateDMY } from "@/utils";
+
+const UserEditModal = lazy(() => import("@/components/profile/UserEditModal"));
 
 function VerifiedBadge({ isVerified }: { isVerified: boolean }) {
   return isVerified ? (

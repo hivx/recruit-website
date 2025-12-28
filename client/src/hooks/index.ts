@@ -10,3 +10,4 @@ export * from "./useAuth";
 export * from "./useUser";
 export * from "./useSkill";
 export * from "./usePreferences";
+export * from "./useFavoriteJob";

@@ -2,11 +2,9 @@
 import { Heart, AlertTriangle } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppNavigate } from "@/hooks";
-import { toggleFavorite } from "@/services";
-import { useUserStore, useFavoriteStore } from "@/stores";
+import { useAppNavigate, useFavoriteJob } from "@/hooks";
 import type { Job } from "@/types";
-import { resolveImage, formatDateDMY } from "@/utils";
+import { resolveImage, getJobDates, formatSalary } from "@/utils";
 
 type RecommendedJobCardProps = Readonly<{
   job: Job;
@@ -27,52 +25,20 @@ export function RecommendedJobCard({
   const navigate = useAppNavigate();
 
   // Auth + favorite state
-  const token = useUserStore((s) => s.token);
-  const favorites = useFavoriteStore((s) => s.favorites);
-  const toggleFav = useFavoriteStore((s) => s.toggle);
-
-  const isFavorite = favorites.has(jobId);
-
-  async function handleToggle(e: React.MouseEvent) {
-    e.stopPropagation();
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    toggleFav(jobId);
-
-    try {
-      await toggleFavorite(job.id);
-    } catch {
-      toggleFav(jobId);
-    }
-  }
+  const { isFavorite, toggle } = useFavoriteJob(jobId);
 
   /* =============================
      SALARY DISPLAY
   ============================= */
-  let salaryText: string | null = null;
-  if (job.salaryMin && job.salaryMax) {
-    salaryText = `${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()} VND`;
-  } else if (job.salaryMin) {
-    salaryText = `${job.salaryMin.toLocaleString()} VND`;
-  } else if (job.salaryMax) {
-    salaryText = `${job.salaryMax.toLocaleString()} VND`;
-  }
+  const salaryText = formatSalary(job.salaryMin, job.salaryMax);
 
   /* =============================
      DATE LOGIC
   ============================= */
-  const postedDate = formatDateDMY(job.createdAt);
-  const updatedDate = formatDateDMY(job.updatedAt);
-
-  const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
-
-  const isOutdated =
-    job.updatedAt &&
-    Date.now() - new Date(job.updatedAt).getTime() > SIX_MONTHS_MS;
+  const { postedDate, updatedDate, isOutdated } = getJobDates(
+    job.createdAt,
+    job.updatedAt,
+  );
 
   function handleDetectSide() {
     if (!cardRef.current) {
@@ -92,13 +58,19 @@ export function RecommendedJobCard({
       tabIndex={0}
       onMouseEnter={handleDetectSide}
       onFocus={handleDetectSide}
+      onClick={() => navigate(`/jobs/${job.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          navigate(`/jobs/${job.id}`);
+        }
+      }}
       className="
-    group relative
-    bg-white rounded-xl border shadow-sm
-    hover:shadow-xl hover:border-blue-300
-    transition-all duration-300 ease-out
-    p-5 flex gap-4
-  "
+        group relative w-full cursor-pointer text-left
+        bg-white rounded-xl border shadow-sm
+        hover:shadow-xl hover:border-blue-300
+        transition-all duration-300 ease-out
+        p-5 flex gap-4
+      "
     >
       {/* ================= LOGO ================= */}
       <Link
@@ -138,17 +110,17 @@ export function RecommendedJobCard({
 
         {/* ===== DATES ===== */}
         <div className="pt-1 space-y-0.5">
-          <p className="text-xs text-gray-400">Đăng ngày {postedDate}</p>
+          <p className="text-sm text-gray-700">Ngày đăng {postedDate}</p>
 
-          <p className="flex items-center gap-1 text-xs text-gray-400">
+          <p className="flex items-center gap-1 text-sm text-gray-700">
             Cập nhật {updatedDate}
-            {isOutdated && (
-              <span className="ml-2 inline-flex items-center gap-1 text-yellow-600 font-medium">
-                <AlertTriangle className="w-4 h-4" />
-                Quá 6 tháng chưa cập nhật
-              </span>
-            )}
           </p>
+          {isOutdated && (
+            <span className="ml-2 inline-flex items-center gap-1 text-yellow-700 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              Quá 6 tháng chưa được cập nhật!
+            </span>
+          )}
         </div>
 
         {/* ===== SCORE ===== */}
@@ -194,7 +166,10 @@ export function RecommendedJobCard({
 
       {/* ================= FAVORITE ================= */}
       <button
-        onClick={(e) => void handleToggle(e)}
+        onClick={(e) => {
+          e.stopPropagation();
+          void toggle();
+        }}
         className="
           self-start p-2 rounded-full 
           transition-all duration-300

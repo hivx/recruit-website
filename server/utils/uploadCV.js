@@ -16,6 +16,10 @@ const storage = multer.diskStorage({
 
 const uploadCV = multer({
   storage: storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB
+    files: 1, // chỉ 1 file
+  },
   fileFilter: (req, file, cb) => {
     // Chỉ cho phép tải lên các file PDF và DOCX
     const filetypes = /pdf|docx|doc/;

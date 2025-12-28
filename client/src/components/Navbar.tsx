@@ -142,7 +142,7 @@ export function Navbar() {
                           ? "Tài khoản đã xác thực"
                           : "Chưa xác thực"}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-700">
                         ID {user.id} — {user.email}
                       </p>
                     </div>
