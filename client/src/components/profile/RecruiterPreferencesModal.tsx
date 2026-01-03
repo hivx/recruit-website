@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Loader } from "@/components";
@@ -13,6 +14,7 @@ import type {
   RecruiterPreference,
   RecruiterPreferenceUpsertRequest,
 } from "@/types";
+import { getAxiosErrorMessage } from "@/utils";
 
 /* =============================
    ZOD SCHEMA
@@ -111,17 +113,25 @@ export function RecruiterPreferencesModal({ open, onClose, pref }: Props) {
 
   /* Submit */
   const onSubmit = async (values: PrefFormValues) => {
-    const payload: RecruiterPreferenceUpsertRequest = {
-      ...values,
-      required_skills: values.required_skills?.map((s) => ({
-        name: s.name,
-        years_required: s.years_required,
-        must_have: s.must_have ?? false,
-      })),
-    };
+    try {
+      const payload: RecruiterPreferenceUpsertRequest = {
+        ...values,
+        required_skills: values.required_skills?.map((s) => ({
+          name: s.name,
+          years_required: s.years_required,
+          must_have: s.must_have ?? false,
+        })),
+      };
 
-    await updatePref.mutateAsync(payload);
-    onClose();
+      await updatePref.mutateAsync(payload);
+
+      toast.success("Đã cập nhật nhu cầu tuyển dụng");
+      onClose();
+    } catch (err: unknown) {
+      toast.error("Không thể cập nhật nhu cầu tuyển dụng", {
+        description: getAxiosErrorMessage(err),
+      });
+    }
   };
 
   return (

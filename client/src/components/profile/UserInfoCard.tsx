@@ -25,7 +25,7 @@ function RoleBadge({ role }: { readonly role: string }) {
   const map: Record<string, string> = {
     admin: "bg-purple-50 text-purple-700 border border-purple-200",
     recruiter: "bg-blue-50 text-blue-700 border border-blue-200",
-    candidate: "bg-gray-100 text-gray-700 border border-gray-200",
+    applicant: "bg-gray-100 text-gray-700 border border-gray-200",
   };
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-medium ${map[role]}`}>
@@ -71,6 +71,9 @@ export function UserInfoCard() {
             <div className="absolute inset-0 rounded-full bg-blue-300 blur-2xl opacity-40"></div>
             <img
               src={avatarUrl}
+              onError={(e) => {
+                e.currentTarget.src = resolveImage(null); // fallback ảnh mặc định
+              }}
               alt={user.name ?? "Người dùng"}
               className="h-28 w-28 md:h-32 md:w-32 rounded-full border-2 border-white shadow-xl object-cover relative z-10"
             />

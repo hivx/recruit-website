@@ -8,3 +8,4 @@ export * from "./typeGuards";
 export * from "./scrollToTop";
 export * from "./formatSalary";
 export * from "./jobDate";
+export * from "./PasswordInput";
