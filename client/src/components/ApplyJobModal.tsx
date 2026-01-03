@@ -146,7 +146,7 @@ export function ApplyJobModal({
               placeholder="Giới thiệu ngắn gọn về bản thân và lý do bạn chọn vị trí này..."
               className="
                 w-full rounded-xl border border-gray-300
-                px-3 py-2 text-sm
+                px-3 py-2 text-sm h-[250px]
                 focus:outline-none focus:ring-2 focus:ring-blue-500
               "
             />

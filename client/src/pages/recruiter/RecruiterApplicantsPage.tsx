@@ -65,7 +65,7 @@ export default function RecruiterApplicantsPage() {
           <ApplicationStatusChart applications={applicants} />
         </ChartCard>
 
-        <ChartCard title="Đơn ứng tuyển theo tháng">
+        <ChartCard title="Thống kê đơn ứng tuyển">
           <ApplicantsMonthlyChart applications={applicants} />
         </ChartCard>
       </div>

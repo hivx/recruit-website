@@ -7,7 +7,7 @@ import type { JobSearchQuery } from "@/types";
 export default function AdminJobsPage() {
   const user = useUserStore((s) => s.user);
 
-  const limit = 10;
+  const limit = 999;
 
   // admin lấy tất cả job (dùng cho chart)
   const filter: JobSearchQuery = {};

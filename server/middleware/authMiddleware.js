@@ -30,19 +30,6 @@ module.exports = async function authMiddleware(req, res, next) {
         .json({ message: "Token thiếu thông tin cần thiết!" });
     }
 
-    // (Tuỳ chọn) xác minh user còn tồn tại để tránh token “mồ côi”
-    // try {
-    //   const exists = await prisma.user.findUnique({
-    //     where: { id: BigInt(decoded.userId) },
-    //     select: { id: true, role: true },
-    //   });
-    //   if (!exists) {
-    //     return res.status(404).json({ message: "Người dùng không tồn tại!" });
-    //   }
-    // } catch {
-    //   return res.status(500).json({ message: "Lỗi xác minh người dùng!" });
-    // }
-
     // Gắn claim tối thiểu — KHÔNG phẳng hoá company/user ở đây
     req.user = {
       userId: decoded.userId.toString

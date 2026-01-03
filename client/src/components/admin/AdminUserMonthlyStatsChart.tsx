@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -16,6 +17,8 @@ import { useAdminUsers } from "@/hooks";
 export function AdminUserMonthlyStatsChart() {
   // Lấy nhiều user để thống kê (admin dashboard)
   const { data } = useAdminUsers({ page: 1, limit: 999 });
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
 
   const users = data?.users ?? [];
 
@@ -23,6 +26,13 @@ export function AdminUserMonthlyStatsChart() {
   // Thống kê số user theo tháng
   // ===============================
   const monthlyCounts = new Array(12).fill(0);
+  const years = Array.from(
+    new Set(
+      users
+        .map((u) => (u.createdAt ? new Date(u.createdAt).getFullYear() : null))
+        .filter((y): y is number => typeof y === "number"),
+    ),
+  ).sort((a, b) => b - a);
 
   for (const user of users) {
     if (!user.createdAt) {
@@ -34,9 +44,23 @@ export function AdminUserMonthlyStatsChart() {
       continue;
     }
 
-    const month = date.getMonth(); // 0–11
+    if (date.getFullYear() !== year) {
+      continue;
+    }
+
+    const month = date.getMonth();
     monthlyCounts[month] += 1;
   }
+  useEffect(() => {
+    if (years.length === 0) {
+      return;
+    }
+
+    // Nếu year hiện tại không có trong data → set về năm mới nhất có dữ liệu
+    if (!years.includes(year)) {
+      setYear(years[0]); // years đã sort DESC
+    }
+  }, [years, year]);
 
   const barData = {
     labels: [
@@ -70,9 +94,27 @@ export function AdminUserMonthlyStatsChart() {
         flex flex-col
       "
     >
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        Thống kê người dùng được tạo theo tháng
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Thống kê người dùng được tạo năm {year}
+        </h3>
+
+        <select
+          value={year}
+          onChange={(e) => setYear(Number(e.target.value))}
+          className="
+      rounded-lg border border-gray-300
+      px-3 py-1.5 text-sm
+      focus:outline-none focus:ring-2 focus:ring-blue-400
+    "
+        >
+          {years.map((y) => (
+            <option key={y} value={y}>
+              Năm {y}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="h-[260px]">
         <Bar

@@ -253,10 +253,10 @@ function buildExplanation(score, skill, tag, location, salary) {
 }
 
 function getOverallLevel(score) {
-  if (score >= 0.7) {
+  if (score > 0.59) {
     return "high";
   }
-  if (score >= 0.4) {
+  if (score > 0.39) {
     return "medium";
   }
   return "low";
