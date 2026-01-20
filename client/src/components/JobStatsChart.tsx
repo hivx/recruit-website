@@ -130,6 +130,7 @@ export function JobStatsDashboard() {
 
         <div className="relative">
           <select
+            id="yearJob"
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
             className="

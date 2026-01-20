@@ -100,6 +100,7 @@ export function AdminUserMonthlyStatsChart() {
         </h3>
 
         <select
+          id="yearUser"
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
           className="

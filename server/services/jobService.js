@@ -192,7 +192,7 @@ exports.createJob = async (jobData) => {
     return created;
   });
 
-  // 👇 thêm xử lý requiredSkills sau transaction
+  // thêm xử lý requiredSkills sau transaction
   await JobRequiredSkillService.upsert(job.id, jobData.requiredSkills || []);
 
   // Lấy lại job đầy đủ

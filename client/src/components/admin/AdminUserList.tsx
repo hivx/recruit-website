@@ -22,7 +22,7 @@ export function AdminUserList() {
 
   const { data, isLoading, refetch } = useAdminUsers({
     page,
-    limit: 10,
+    limit: 7,
   });
 
   const setActiveMutation = useAdminSetUserActive();
