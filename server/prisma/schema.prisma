@@ -21,6 +21,8 @@ model User {
   reset_token_expiry     DateTime?
   reset_password_hash    String?                   @db.VarChar(255)
   receive_recommendation Boolean                   @default(true)
+  email_sent_count       Int                       @default(0)
+  first_email_sent_at    DateTime?
   applications           Application[]
   candidateRecommends    CandidateRecommendation[] @relation("CandidateAsApplicant")
   recruiterRecommends    CandidateRecommendation[] @relation("CandidateAsRecruiter")
@@ -89,6 +91,8 @@ model Job {
   requirements      String?               @db.Text
   quality_score     Float?                @default(0)
   application_count Int                   @default(0)
+  apply_start_at    DateTime              @default(now())
+  apply_end_at      DateTime?
   created_at        DateTime              @default(now())
   updated_at        DateTime              @default(now()) @updatedAt
   applications      Application[]
