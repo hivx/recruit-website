@@ -107,9 +107,9 @@ export default function RegisterPage() {
           {/* CONFIRM PASSWORD */}
           <PasswordInput
             label="Xác nhận mật khẩu"
-            value={form.password}
+            value={form.confirmPassword}
             required
-            onChange={(v) => setForm({ ...form, password: v })}
+            onChange={(v) => setForm({ ...form, confirmPassword: v })}
           />
 
           {/* ROLE */}
