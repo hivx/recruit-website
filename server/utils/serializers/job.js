@@ -63,7 +63,6 @@ const toJobDTO = (job) => {
       ? {
           skill_profile: job.vector.skill_profile,
           tag_profile: job.vector.tag_profile,
-          title_keywords: job.vector.title_keywords,
           location: job.vector.location,
           salary_avg: job.vector.salary_avg,
         }
