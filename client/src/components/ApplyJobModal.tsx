@@ -1,7 +1,8 @@
 // src/components/ApplyJobModal.tsx
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useApplyToJob } from "@/hooks";
 import { getAxiosErrorMessage } from "@/utils";
@@ -44,9 +45,19 @@ export function ApplyJobModal({
     }
   }, [open]);
 
-  if (!open || !jobId) {
-    return null;
-  }
+  /* Lock scroll body khi modal mở */
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   const updateField = <K extends keyof ApplyFormState>(
     key: K,
@@ -56,6 +67,10 @@ export function ApplyJobModal({
   };
 
   const handleSubmit = async () => {
+    if (!jobId) {
+      return;
+    }
+
     if (!form.coverLetter.trim()) {
       toast.warning("Vui lòng nhập thư ứng tuyển");
       return;
@@ -83,149 +98,171 @@ export function ApplyJobModal({
     }
   };
 
-  return (
-    <>
-      {/* OVERLAY */}
-      <motion.div
-        className="
-          fixed inset-0 z-50
-          bg-gradient-to-br from-blue-900/40 via-black/40 to-blue-800/40
-          backdrop-blur-sm
-        "
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      />
+  // Không render gì nếu chưa open hoặc thiếu jobId
+  if (!open || !jobId) {
+    return null;
+  }
 
-      {/* MODAL */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div
-          className="
-            relative w-full max-w-lg
-            bg-white rounded-2xl p-6
-            shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)]
-            border border-blue-100
-          "
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-semibold text-blue-700">
-                Ứng tuyển công việc
-              </h3>
-              {jobTitle && <p className="text-sm text-gray-500">{jobTitle}</p>}
-            </div>
+  // Portal lên body để overlay/modal luôn nằm trên toàn page
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[9999]">
+          {/* OVERLAY */}
+          <motion.button
+            type="button"
+            className="
+              absolute inset-0
+              bg-gradient-to-br from-blue-900/40 via-black/40 to-blue-800/40
+              backdrop-blur-sm
+            "
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            aria-label="Close modal"
+          />
 
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-800"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          {/* Cover letter */}
-          <div className="mb-4">
-            <label
-              htmlFor="coverLetter"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Thư ứng tuyển <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="coverLetter"
-              rows={4}
-              value={form.coverLetter}
-              onChange={(e) => updateField("coverLetter", e.target.value)}
-              placeholder="Giới thiệu ngắn gọn về bản thân và lý do bạn chọn vị trí này..."
+          {/* MODAL WRAPPER */}
+          <div className="relative z-[10000] flex min-h-full items-center justify-center p-4">
+            <motion.div
               className="
-                w-full rounded-xl border border-gray-300
-                px-3 py-2 text-sm h-[250px]
-                focus:outline-none focus:ring-2 focus:ring-blue-500
+                relative w-full max-w-lg
+                bg-white rounded-2xl p-6
+                shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)]
+                border border-blue-100
               "
-            />
-          </div>
-
-          {/* Phone */}
-          <div className="mb-4">
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
             >
-              Số điện thoại
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(e) => updateField("phone", e.target.value)}
-              placeholder="VD: 090xxxxxxx"
-              autoComplete="off"
-              className="
-                w-full rounded-xl border border-gray-300
-                px-3 py-2 text-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              "
-            />
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-blue-700">
+                    Ứng tuyển công việc
+                  </h3>
+                  {jobTitle && (
+                    <p className="text-sm text-gray-500">{jobTitle}</p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-gray-800"
+                  aria-label="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Cover letter */}
+              <div className="mb-4">
+                <label
+                  htmlFor="coverLetter"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Thư ứng tuyển <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="coverLetter"
+                  rows={4}
+                  value={form.coverLetter}
+                  onChange={(e) => updateField("coverLetter", e.target.value)}
+                  placeholder="Giới thiệu ngắn gọn về bản thân và lý do bạn chọn vị trí này..."
+                  className="
+                    w-full rounded-xl border border-gray-300
+                    px-3 py-2 text-sm h-[250px]
+                    focus:outline-none focus:ring-2 focus:ring-blue-500
+                  "
+                />
+              </div>
+
+              {/* Phone */}
+              <div className="mb-4">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Số điện thoại
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => updateField("phone", e.target.value)}
+                  placeholder="VD: 090xxxxxxx"
+                  autoComplete="off"
+                  className="
+                    w-full rounded-xl border border-gray-300
+                    px-3 py-2 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-blue-500
+                  "
+                />
+              </div>
+
+              {/* CV upload */}
+              <div className="mb-6">
+                <label
+                  htmlFor="cv"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  CV <span className="text-red-500">*</span>
+                </label>
+
+                <label
+                  className="
+                    flex items-center justify-center gap-2
+                    w-full rounded-xl border-2 border-dashed border-gray-300
+                    px-4 py-3 text-sm text-gray-600
+                    cursor-pointer hover:border-blue-400 hover:text-blue-600
+                    transition
+                  "
+                >
+                  <Upload size={18} />
+                  {form.cvFile
+                    ? form.cvFile.name
+                    : "Chọn file CV (PDF, DOCX...)"}
+                  <input
+                    id="cv"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) =>
+                      updateField("cvFile", e.target.files?.[0] ?? null)
+                    }
+                  />
+                </label>
+              </div>
+
+              {/* Actions */}
+              <button
+                type="button"
+                disabled={applyMutation.isPending}
+                onClick={() => void handleSubmit()}
+                className={`
+                  w-full rounded-xl py-2 text-white font-semibold cursor-pointer
+                  ${
+                    applyMutation.isPending
+                      ? "bg-blue-300 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }
+                `}
+              >
+                {applyMutation.isPending
+                  ? "Đang gửi hồ sơ..."
+                  : "Ứng tuyển ngay"}
+              </button>
+            </motion.div>
           </div>
-
-          {/* CV upload */}
-          <div className="mb-6">
-            <label
-              htmlFor="cv"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              CV <span className="text-red-500">*</span>
-            </label>
-
-            <label
-              className="
-                flex items-center justify-center gap-2
-                w-full rounded-xl border-2 border-dashed border-gray-300
-                px-4 py-3 text-sm text-gray-600
-                cursor-pointer hover:border-blue-400 hover:text-blue-600
-                transition
-              "
-            >
-              <Upload size={18} />
-              {form.cvFile ? form.cvFile.name : "Chọn file CV (PDF, DOCX...)"}
-              <input
-                id="cv"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                className="hidden"
-                onChange={(e) =>
-                  updateField("cvFile", e.target.files?.[0] ?? null)
-                }
-              />
-            </label>
-          </div>
-
-          {/* Actions */}
-          <button
-            disabled={applyMutation.isPending}
-            onClick={() => {
-              void handleSubmit();
-            }}
-            className={`
-              w-full rounded-xl py-2 text-white font-semibold cursor-pointer
-              ${
-                applyMutation.isPending
-                  ? "bg-blue-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }
-            `}
-          >
-            {applyMutation.isPending ? "Đang gửi hồ sơ..." : "Ứng tuyển ngay"}
-          </button>
-        </motion.div>
-      </div>
-    </>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }
