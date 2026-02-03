@@ -33,6 +33,11 @@ export function JobApprovalDetailModal({
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
   const [rejectReason, setRejectReason] = useState("");
+  useEffect(() => {
+    // Khi đổi job → reset toàn bộ state liên quan confirm
+    setConfirmAction(null);
+    setRejectReason("");
+  }, [job?.id]);
 
   const approveJob = useApproveJob();
   const rejectJob = useRejectJob();

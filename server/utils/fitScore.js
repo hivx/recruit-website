@@ -66,53 +66,48 @@ function computeSkillMatch(userSkills = [], jobSkills = []) {
 
 function handleMustSkill(js, userSkill) {
   const { weight = 1 } = js;
-  const mustW = weight * 5;
+  const max = weight * 5;
 
   if (!userSkill) {
-    return {
-      score: 0,
-      matched: false,
-      missing: true,
-      max: mustW,
-    };
+    return { score: 0, matched: false, missing: true, max };
   }
 
   const userW = userSkill.w ?? 0;
-  const base = Math.min(userW, 1);
 
-  let score = base * mustW;
+  const base = Math.min(userW / weight, 1);
 
-  if (userW > weight) {
-    score += (userW - weight) * mustW * 0.2;
-  }
+  const bonus = userW > weight ? Math.min((userW - weight) * 0.2, 0.2) : 0;
+
+  const score = (base + bonus) * max;
 
   return {
     score,
     matched: true,
     missing: false,
-    max: mustW,
+    max,
   };
 }
 
 function handleOptionalSkill(js, userSkill) {
   const { weight = 1 } = js;
-  const optW = weight * 1;
+  const max = weight * 1;
 
-  // CHỈNH: không có optional skill → 0 điểm
   if (!userSkill) {
-    return {
-      score: 0,
-      matched: false,
-      max: optW,
-    };
+    return { score: 0, matched: false, max };
   }
 
   const userW = userSkill.w ?? 0;
 
+  const base = Math.min(userW / weight, 1);
+
+  const bonus = userW > weight ? Math.min((userW - weight) * 0.1, 0.1) : 0;
+
+  const score = (base + bonus) * max;
+
   return {
-    score: userW * optW * 0.9,
+    score,
     matched: true,
-    max: optW,
+    max,
   };
 }
 
@@ -253,10 +248,10 @@ function buildExplanation(score, skill, tag, location, salary) {
 }
 
 function getOverallLevel(score) {
-  if (score >= 0.7) {
+  if (score > 0.59) {
     return "high";
   }
-  if (score >= 0.4) {
+  if (score > 0.39) {
     return "medium";
   }
   return "low";

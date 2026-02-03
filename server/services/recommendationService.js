@@ -17,6 +17,7 @@ function mapNames(map, ids) {
   return ids.map((id) => map.get(id)).filter(Boolean);
 }
 
+// Xây dựng map id → name cho skills và tags
 async function buildLookupMaps() {
   const [skills, tags] = await Promise.all([
     prisma.skill.findMany({ select: { id: true, name: true } }),

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAuth } from "@/hooks";
+import { PasswordInput } from "@/utils/PasswordInput";
 
 export default function ForgotPasswordPage() {
   const [form, setForm] = useState({
@@ -68,44 +69,20 @@ export default function ForgotPasswordPage() {
           </div>
 
           {/* NEW PASSWORD */}
-          <div>
-            <label
-              htmlFor="newPass"
-              className="text-sm font-medium text-gray-600"
-            >
-              Mật khẩu mới
-            </label>
-            <input
-              id="newPass"
-              type="password"
-              required
-              className="input"
-              value={form.newPassword}
-              onChange={(e) =>
-                setForm({ ...form, newPassword: e.target.value })
-              }
-            />
-          </div>
+          <PasswordInput
+            label="Mật khẩu mới"
+            value={form.newPassword}
+            required
+            onChange={(v) => setForm({ ...form, newPassword: v })}
+          />
 
           {/* CONFIRM PASSWORD */}
-          <div>
-            <label
-              htmlFor="verifyPass"
-              className="text-sm font-medium text-gray-600"
-            >
-              Xác nhận mật khẩu
-            </label>
-            <input
-              id="verifyPass"
-              type="password"
-              required
-              className="input"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-            />
-          </div>
+          <PasswordInput
+            label="Xác nhận mật khẩu"
+            value={form.confirmPassword}
+            required
+            onChange={(v) => setForm({ ...form, confirmPassword: v })}
+          />
 
           <button
             type="submit"

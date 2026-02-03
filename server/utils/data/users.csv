@@ -1,0 +1,14 @@
+name,email,password,role,isVerified
+Chu Văn Hiếu,chuvanhieu357@gmail.com,123456,admnin,true
+Nguyễn Minh Hữu,chuhiu01vx@gmail.com,123456,applicant,true
+Trần Quốc Huy,chuhiu02vx@gmail.com,123456,applicant,true
+Phạm Đức Anh,chuhiu03vx@gmail.com,123456,applicant,true
+Lê Thị Mai,snonamevx@gmail.com,123456,recruiter,true
+Vũ Hoàng Long,chuhiu04vx@gmail.com,123456,applicant,true
+Nguyễn Thị Hồng,chuhiu04@gmail.com,123456,applicant,true
+Đặng Văn Nam,nicknamenr01@gmail.com,123456,recruiter,true
+Bùi Thị Thu,nicknamenr02@gmail.com,123456,recruiter,true
+Hoàng Anh Tuấn,nicknamenr03@gmail.com,123456,applicant,true
+Phan Minh Quân,niknamenr01@gmail.com,123456,applicant,true
+Đỗ Thị Lan,ssvxss.01@gmail.com,123456,applicant,true
+Nguyễn Văn Sơn,sohaidiuuu@gmail.com,123456,applicant,true

@@ -5,7 +5,7 @@ import { Loader } from "@/components";
 import { useAppNavigate, useAuth } from "@/hooks";
 import { useUserStore } from "@/stores";
 import type { LoginPayload } from "@/types";
-import { getAxiosErrorMessage } from "@/utils";
+import { getAxiosErrorMessage, PasswordInput } from "@/utils";
 
 function getRedirectPathByRole(role?: string) {
   switch (role) {
@@ -93,22 +93,12 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-600"
-            >
-              Mật khẩu
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="input"
-            />
-          </div>
+          <PasswordInput
+            label="Mật khẩu"
+            value={form.password}
+            required
+            onChange={(v) => setForm({ ...form, password: v })}
+          />
 
           <button
             type="submit"

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Loader } from "@/components";
 import { useAppNavigate, useAuth } from "@/hooks";
+import { PasswordInput } from "@/utils";
 
 export default function RegisterPage() {
   const navigate = useAppNavigate();
@@ -96,42 +97,20 @@ export default function RegisterPage() {
           </div>
 
           {/* PASSWORD */}
-          <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-600"
-            >
-              Mật khẩu
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              className="input"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </div>
+          <PasswordInput
+            label="Mật khẩu"
+            value={form.password}
+            required
+            onChange={(v) => setForm({ ...form, password: v })}
+          />
 
           {/* CONFIRM PASSWORD */}
-          <div>
-            <label
-              htmlFor="verify"
-              className="text-sm font-medium text-gray-600"
-            >
-              Xác nhận mật khẩu
-            </label>
-            <input
-              id="verify"
-              type="password"
-              required
-              className="input"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-            />
-          </div>
+          <PasswordInput
+            label="Xác nhận mật khẩu"
+            value={form.confirmPassword}
+            required
+            onChange={(v) => setForm({ ...form, confirmPassword: v })}
+          />
 
           {/* ROLE */}
           <div>

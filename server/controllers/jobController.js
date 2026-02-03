@@ -82,7 +82,9 @@ exports.getJobById = async (req, res) => {
       ? { id: req.user.userId, role: req.user.role }
       : null;
 
-    const job = await jobService.getJobById(req.params.id, currentUser);
+    const job = await jobService.getJobById(req.params.id, currentUser, {
+      allowOwnerDraft: true,
+    });
 
     if (!job) {
       return res.status(404).json({ message: "Không tìm thấy việc làm!" });

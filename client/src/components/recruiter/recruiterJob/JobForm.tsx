@@ -10,7 +10,7 @@ import {
   X,
   Save,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { SkillNameInput } from "@/components/profile";
 import type { JobCreatePayload, JobDetail, JobRequiredSkill } from "@/types";
 import { isNonEmptyString } from "@/utils";
@@ -43,7 +43,6 @@ export function JobForm({
   const [requirements, setRequirements] = useState(
     initialData?.requirements ?? "",
   );
-
   const [salaryMin, setSalaryMin] = useState<number | null>(
     typeof initialData?.salaryMin === "number" ? initialData.salaryMin : null,
   );
@@ -54,12 +53,15 @@ export function JobForm({
   /* ======================================================
      2. TAGS
      ====================================================== */
-  const [tags, setTags] = useState<string[]>(() => {
+  // 1. Text state cho input
+  const [tagsText, setTagsText] = useState(() => {
     return (
-      initialData?.tags?.map((t) => t.tag?.name).filter(isNonEmptyString) ?? []
+      initialData?.tags
+        ?.map((t) => t.tag?.name)
+        .filter(isNonEmptyString)
+        .join(", ") ?? ""
     );
   });
-  const tagsText = useMemo(() => tags.join(", "), [tags]);
 
   /* ======================================================
      3. REQUIRED SKILLS
@@ -126,6 +128,10 @@ export function JobForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const parsedTags = tagsText
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
     const payload: JobCreatePayload = {
       title: title.trim(),
       location: location.trim() || null,
@@ -133,7 +139,7 @@ export function JobForm({
       requirements: requirements.trim() || null,
       salaryMin,
       salaryMax,
-      tags: tags.filter((t) => t.length > 0),
+      tags: parsedTags,
 
       requiredSkills: requiredSkills.map((s) => ({
         name: s.name,
@@ -307,7 +313,7 @@ export function JobForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="
-              w-full pl-10 pr-4 py-2.5 min-h-[110px]
+              w-full pl-10 pr-4 py-2.5 min-h-[250px]
               border rounded-xl
               focus:ring-2 focus:ring-blue-400
               transition outline-none
@@ -325,15 +331,21 @@ export function JobForm({
         >
           Yêu cầu
         </label>
-        <textarea
-          id="requirements"
-          value={requirements}
-          onChange={(e) => setRequirements(e.target.value)}
-          className="
-          w-full border rounded-xl px-4 py-2.5 min-h-[80px]
-          focus:ring-2 focus:ring-blue-400 outline-none
-        "
-        />
+        <div className="relative">
+          <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+          <textarea
+            id="requirements"
+            value={requirements}
+            onChange={(e) => setRequirements(e.target.value)}
+            className="
+              w-full pl-10 pr-4 py-2.5 min-h-[250px]
+              border rounded-xl
+              focus:ring-2 focus:ring-blue-400
+              transition outline-none
+            "
+            placeholder="Yêu cầu công việc và quyền lợi"
+          />
+        </div>
       </div>
 
       {/* ================= TAGS ================= */}
@@ -347,14 +359,7 @@ export function JobForm({
           <input
             id="tags"
             value={tagsText}
-            onChange={(e) =>
-              setTags(
-                e.target.value
-                  .split(",")
-                  .map((x) => x.trim())
-                  .filter(Boolean),
-              )
-            }
+            onChange={(e) => setTagsText(e.target.value)}
             className="
               w-full pl-10 pr-4 py-2.5
               border rounded-xl
@@ -398,6 +403,7 @@ export function JobForm({
           <input
             id="reqSkillLevel"
             type="number"
+            min={0}
             value={skillDraft.levelRequired ?? ""}
             onChange={(e) =>
               setSkillDraft((s) => ({
@@ -412,6 +418,7 @@ export function JobForm({
           <input
             id="reqSkillYears"
             type="number"
+            min={0}
             value={skillDraft.yearsRequired ?? ""}
             onChange={(e) =>
               setSkillDraft((s) => ({

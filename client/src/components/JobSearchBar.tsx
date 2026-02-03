@@ -102,7 +102,7 @@ export function JobSearchBar({
         transition={{ duration: 0.5 }}
       >
         <h2 className="text-lg md:text-2xl lg:text-3xl font-extrabold drop-shadow">
-          Tìm kiếm việc làm - tuyển dụng hiệu quả
+          Tìm kiếm thông minh - tuyển dụng hiệu quả
         </h2>
       </motion.div>
 

@@ -25,8 +25,8 @@ export default function RecruiterCandidatesPage() {
             Ứng viên tiềm năng
           </h1>
           <p className="text-gray-600 mt-2 max-w-3xl">
-            Danh sách ứng viên được hệ thống đề xuất dựa trên độ phù hợp với các
-            bài tuyển dụng của bạn.
+            Danh sách ứng viên được hệ thống đề xuất dựa trên nhu cầu tuyển dụng
+            của bạn
           </p>
         </div>
       </div>
