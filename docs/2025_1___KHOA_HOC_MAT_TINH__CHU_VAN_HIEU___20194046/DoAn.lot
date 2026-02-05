@@ -1,0 +1,48 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Bảng đặc tả use case ``Đăng nhập''}}{18}{table.2.1}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces Bảng đặc tả use case ``Mong muốn công việc''}}{19}{table.2.2}%
+\contentsline {table}{\numberline {2.3}{\ignorespaces Bảng đặc tả use case ``Mong muốn tuyển dụng''}}{20}{table.2.3}%
+\contentsline {table}{\numberline {2.4}{\ignorespaces Bảng đặc tả use case ``Tạo công ty''}}{21}{table.2.4}%
+\contentsline {table}{\numberline {2.5}{\ignorespaces Bảng đặc tả use case ``Tạo tin tuyển dụng''}}{22}{table.2.5}%
+\contentsline {table}{\numberline {2.6}{\ignorespaces Bảng đặc tả use case ``Phê duyệt tin tuyển dụng''}}{24}{table.2.6}%
+\contentsline {table}{\numberline {2.7}{\ignorespaces Bảng đặc tả use case ``Tạo đề xuất tin tuyển dụng''}}{25}{table.2.7}%
+\contentsline {table}{\numberline {2.8}{\ignorespaces Bảng đặc tả use case ``Tạo đề xuất ứng viên''}}{26}{table.2.8}%
+\contentsline {table}{\numberline {2.9}{\ignorespaces Bảng đặc tả use case ``Ứng tuyển''}}{27}{table.2.9}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Bảng Users}}{54}{table.4.1}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Bảng Companies}}{55}{table.4.2}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Bảng CompanyVerifications}}{55}{table.4.3}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Bảng Jobs}}{55}{table.4.4}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Bảng JobApprovals}}{56}{table.4.5}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces Bảng JobRequiredSkills}}{56}{table.4.6}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces Bảng Tags}}{56}{table.4.7}%
+\contentsline {table}{\numberline {4.8}{\ignorespaces Bảng JobTags}}{57}{table.4.8}%
+\contentsline {table}{\numberline {4.9}{\ignorespaces Bảng UserFavoriteJobs}}{57}{table.4.9}%
+\contentsline {table}{\numberline {4.10}{\ignorespaces Bảng Applications}}{57}{table.4.10}%
+\contentsline {table}{\numberline {4.11}{\ignorespaces Bảng UserInterestHistory}}{57}{table.4.11}%
+\contentsline {table}{\numberline {4.12}{\ignorespaces Bảng CareerPreferences}}{58}{table.4.12}%
+\contentsline {table}{\numberline {4.13}{\ignorespaces Bảng CareerPreferenceTags}}{58}{table.4.13}%
+\contentsline {table}{\numberline {4.14}{\ignorespaces Bảng RecruiterPreferences}}{58}{table.4.14}%
+\contentsline {table}{\numberline {4.15}{\ignorespaces Bảng RecruiterRequiredSkills}}{59}{table.4.15}%
+\contentsline {table}{\numberline {4.16}{\ignorespaces Bảng RecruiterPreferenceTags}}{59}{table.4.16}%
+\contentsline {table}{\numberline {4.17}{\ignorespaces Bảng UserBehaviorProfile}}{59}{table.4.17}%
+\contentsline {table}{\numberline {4.18}{\ignorespaces Bảng JobRecommendations}}{59}{table.4.18}%
+\contentsline {table}{\numberline {4.19}{\ignorespaces Bảng CandidateRecommendations}}{60}{table.4.19}%
+\contentsline {table}{\numberline {4.20}{\ignorespaces Bảng Skills}}{60}{table.4.20}%
+\contentsline {table}{\numberline {4.21}{\ignorespaces Bảng UserSkills}}{60}{table.4.21}%
+\contentsline {table}{\numberline {4.22}{\ignorespaces Bảng UserVector}}{60}{table.4.22}%
+\contentsline {table}{\numberline {4.23}{\ignorespaces Bảng RecruiterVector}}{61}{table.4.23}%
+\contentsline {table}{\numberline {4.24}{\ignorespaces Bảng JobVector}}{61}{table.4.24}%
+\contentsline {table}{\numberline {4.25}{\ignorespaces Bảng UserJobMatrix}}{61}{table.4.25}%
+\contentsline {table}{\numberline {4.26}{\ignorespaces Danh sách thư viện và công cụ sử dụng}}{62}{table.caption.49}%
+\contentsline {table}{\numberline {4.27}{\ignorespaces Thống kê thông tin ứng dụng}}{63}{table.caption.50}%
+\contentsline {table}{\numberline {4.28}{\ignorespaces Test case kiểm thử chức năng tạo tin tuyển dụng}}{69}{table.4.28}%
+\contentsline {table}{\numberline {4.29}{\ignorespaces Test case kiểm thử chức năng đề xuất công việc}}{69}{table.4.29}%
+\contentsline {table}{\numberline {4.30}{\ignorespaces Bảng kiểm thử chức năng đề xuất ứng viên}}{70}{table.4.30}%
+\contentsline {table}{\numberline {4.31}{\ignorespaces Cấu hình môi trường thực nghiệm}}{71}{table.4.31}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsfinish 
+\contentsfinish 

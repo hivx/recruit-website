@@ -1,0 +1,968 @@
+\documentclass[../DoAn.tex]{subfiles}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage{longtable}
+\usepackage{multirow} % Cần thiết cho \multirow
+\usepackage{amsmath}
+\usepackage{needspace}
+
+\begin{document}
+\section{Khảo sát hiện trạng}
+\label{section:2.1}
+Việc khảo sát hiện trạng cho đề tài được thực hiện thông qua việc quan sát và trải nghiệm các nền tảng tuyển dụng trực tuyến hiện có, đồng thời xem xét nhu cầu sử dụng thực tế của người dùng. Quá trình khảo sát tập trung vào cách thức các hệ thống hiện nay hỗ trợ kết nối giữa nhà tuyển dụng và ứng viên, cũng như những chức năng được cung cấp trong quá trình tuyển dụng.
+
+Qua khảo sát các nền tảng tuyển dụng phổ biến như ITviec[1] và TopCV [2], có thể nhận thấy các hệ thống này cung cấp những chức năng cơ bản như đăng tin tuyển dụng, tìm kiếm việc làm theo nhiều tiêu chí và cho phép ứng viên nộp hồ sơ trực tuyến. Một số tính năng hỗ trợ gợi ý việc làm cũng đã được tích hợp, góp phần cải thiện trải nghiệm người dùng so với hình thức tuyển dụng truyền thống. Tuy nhiên, việc đánh giá mức độ phù hợp giữa ứng viên và vị trí tuyển dụng vẫn chủ yếu dựa trên thông tin hồ sơ và tìm kiếm thủ công, trong khi khả năng cá nhân hóa và hỗ trợ ra quyết định còn hạn chế.
+
+Từ thực tế khảo sát trên, có thể thấy rằng các hệ thống tuyển dụng hiện nay đã đáp ứng được nhu cầu cơ bản nhưng vẫn còn tồn tại những hạn chế nhất định trong việc hỗ trợ kết nối hiệu quả và khai thác dữ liệu người dùng. Trên cơ sở đó, đề tài xác định cần tập trung phát triển các tính năng hỗ trợ tuyển dụng ở mức hiệu quả hơn, làm nền tảng cho việc nâng cao trải nghiệm và hiệu quả sử dụng của hệ thống trong thực tế.
+
+\section{Tổng quan chức năng}
+\label{section:2.2}
+Phần này sẽ tập trung vào trình bày các chức năng cốt lõi của hệ thống như sau:
+
+(i) Tạo hồ sơ nhu cầu của ứng viên và nhà tuyển dụng.
+
+(ii) Tạo công ty, tạo tin tuyển dụng.
+
+(iii) Quản trị viên phê duyệt thông tin.
+
+(iv) Hệ thống sinh đề xuất cho ứng viên và nhà tuyển dụng.
+
+(v) Ứng tuyển.
+
+\subsection{Biểu đồ use case tổng quát}
+\label{subsection:2.2.1}
+\label{subsec:usecase-overview}
+
+\begin{figure}[H]
+\begin{adjustwidth}{-1.5cm}{-1.5cm}
+    \centering
+    \includegraphics[width=1.2\textwidth]{Hinhve/UseCase_TongQuatv3.png}
+    \caption{Biểu đồ use case tổng quát}
+    \label{fig:uc-overview}
+\end{adjustwidth}
+\end{figure}
+
+Use case tổng quát trong (Hình~\ref{fig:uc-overview}) mô tả các chức năng mức cao của hệ thống tuyển dụng và vai trò của các tác nhân đối với hệ thống. Hệ thống bao gồm bốn tác nhân chính là Ứng viên, Nhà tuyển dụng, Quản trị viên và Hệ thống.
+
+Ứng viên là tác nhân thực hiện các nghiệp vụ liên quan đến tìm kiếm và ứng tuyển công việc, bao gồm tạo hồ sơ cá nhân, tìm kiếm tin tuyển dụng, yêu thích tin tuyển dụng và gửi đơn ứng tuyển. Các chức năng này đều yêu cầu người dùng phải thực hiện đăng nhập trước khi tương tác với hệ thống. Trong tạo hồ sơ cá nhân, ứng viên sẽ cung cấp các thông tin về mong muốn nghề nghiệp cho chức năng đề xuất của hệ thống.
+
+Nhà tuyển dụng thực hiện các nghiệp vụ quản lý hoạt động tuyển dụng, bao gồm tạo hồ sơ công ty, tạo và quản lý tin tuyển dụng, quản lý hồ sơ ứng tuyển của ứng viên. Hệ thống bắt buộc xác thực công ty trước khi có thể đăng tin tuyển dụng. Nhà tuyển dụng phải đăng nhập vào tài khoản có vai trò tuyển dụng và cũng cung cấp nhu càu tuyển dụng cho hệ thống đề xuất.
+
+Quản trị viên chịu trách nhiệm quản lý toàn bộ hệ thống, bao gồm quản lý người dùng, phê duyệt công ty, phê duyệt tin tuyển dụng và theo dõi các báo cáo tổng hợp. Quản trị viên cũng phải đăng nhập vào hệ thống bằng tài khoản có vai trò quản trị.
+
+Hệ thống là tác nhân bên trong thực hiện các chức năng đề xuất bao gồm lưu nhật ký hành vi người dùng, tính toán điểm phù hợp hai chiều giữa ứng viên và nhà tuyển dụng, tạo các đề xuất phù hợp và gửi thông báo đến các tác nhân liên quan. Các chức năng tạo đề xuất, tính điểm phù hợp cần có dữ liệu từ ứng viên và nhà tuyển dụng.
+
+\subsection{Biểu đồ use case phân rã đăng nhập}
+\label{subsection:2.2.2}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Hinhve/UseCase_DangNhap.png}
+    \caption{Biểu đồ use case phân rã đăng nhập}
+    \label{fig:uc-login}
+\end{figure}
+Đăng nhập là chức năng bắt buộc khi người dùng muốn sử dụng toàn bộ chức năng của hệ thống.
+
+\subsection{Biểu đồ use case phân rã tìm kiếm}
+\label{subsection:2.2.3}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/UseCase_TimKiem.png}
+    \caption{Biểu đồ use case phân rã tìm kiếm}
+    \label{fig:uc-search}
+\end{figure}
+Chức năng tìm kiếm với các bộ lọc kèm theo khi tìm kiếm và có thể truy cập không cần đăng nhập.
+
+\subsection{Biểu đồ use case phân rã yêu thích}
+\label{subsection:2.2.4}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{Hinhve/UseCase_YeuThich.png}
+    \caption{Biểu đồ use case phân rã yêu thích}
+    \label{fig:uc-favorite}
+\end{figure}
+Người dùng yêu thích, quản lý yêu thích và hệ thống ghi nhận hành vi của người dùng.
+
+\subsection{Biểu đồ use case phân rã tạo hồ sơ cá nhân}
+\label{subsection:2.2.5}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Hinhve/UseCase_TaoHoSoCaNhan.png}
+    \caption{Biểu đồ use case phân rã tạo hồ sơ cá nhân}
+    \label{fig:uc-profile}
+\end{figure}
+Hồ sơ cá nhân bao gồm các thông tin cơ bản và các mong muốn của người dùng tương ứng.
+
+\subsection{Biểu đồ use case phân rã ứng tuyển}
+\label{subsection:2.2.6}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Hinhve/UseCase_UngTuyen.png}
+    \caption{Biểu đồ use case phân rã ứng tuyển}
+    \label{fig:uc-apply}
+\end{figure}
+Ứng viên ứng tuyển và quản lý các đơn ứng tuyển của mình.
+
+\subsection{Biểu đồ use case phân rã tạo công ty}
+\label{subsection:2.2.7}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Hinhve/UseCase_TaoCongTy.png}
+    \caption{Biểu đồ use case phân rã tạo công ty}
+    \label{fig:uc-company}
+\end{figure}
+Nhà tuyển dụng tạo công ty trước khi được đăng tin tuyển dụng.
+
+\subsection{Biểu đồ use case phân rã quản lý tin tuyển dụng}
+\label{subsection:2.2.8}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Hinhve/UseCase_QLTinTuyenDung.png}
+    \caption{Biểu đồ use case phân rã quản lý tin tuyển dụng}
+    \label{fig:uc-job}
+\end{figure}
+Nhà tuyển dụng tạo và quản lý tin tuyển dụng.
+
+\subsection{Biểu đồ use case phân rã quản lý hồ sơ ứng tuyển}
+\label{subsection:2.2.9}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/UseCase_QLHoSoUngTuyen.png}
+    \caption{Biểu đồ use case phân rã quản lý hồ sơ ứng tuyển}
+    \label{fig:uc-application}
+\end{figure}
+Nhà tuyển dụng xem xét và quản lý đơn ứng tuyển của ứng viên.
+
+\subsection{Biểu đồ use case phân rã phê duyệt}
+\label{subsection:2.2.10}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/UseCase_PheDuyet.png}
+    \caption{Biểu đồ use case phân rã phê duyệt}
+    \label{fig:uc-approved}
+\end{figure}
+Quản trị viên xét duyệt công ty và các tin tuyển dụng.
+
+\subsection{Biểu đồ use case phân rã quản lý người dùng}
+\label{subsection:2.2.11}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Hinhve/UseCase_QLNguoiDung.png}
+    \caption{Biểu đồ use case phân rã quản lý người dùng}
+    \label{fig:uc-user}
+\end{figure}
+Quản trị viên quản lý tất cả người dùng của hệ thống.
+
+\subsection{Biểu đồ use case phân rã tính điểm phù hợp}
+\label{subsection:2.2.12}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/UseCase_TinhDiemPhuHop.png}
+    \caption{Biểu đồ use case phân rã tính điểm phù hợp}
+    \label{fig:uc-fitScore}
+\end{figure}
+Hệ thống lấy dữ liệu nhu cầu, mong muốn để tính điểm phù hợp cho 3 nhóm chính: Điểm phù hợp của ứng viên cho 1 công việc đẫ ứng tuyển, điểm phù hợp của ứng viên với nhu cầu của nhà tuyển dụng, điểm phù hợp của công việc cho ứng viên.
+
+\subsection{Biểu đồ use case phân rã tạo đề xuất}
+\label{subsection:2.2.13}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Hinhve/UseCase_TaoDeXuat.png}
+    \caption{Biểu đồ use case phân rã tạo đề xuất}
+    \label{fig:uc-recommend}
+\end{figure}
+Hệ thống tạo đề xuất tin tuyển dụng cho ứng viên và đề xuất ứng viên cho nhà tuyển dụng.
+
+\subsection{Biểu đồ use case phân rã nhật ký hành vi}
+\label{subsection:2.2.14}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/UseCase_NhatKyHanhVi.png}
+    \caption{Biểu đồ use case phân rã nhật ký hành vi}
+    \label{fig:uc-behavior}
+\end{figure}
+Hệ thống ghi nhận 3 hành vi chính của ứng viên: ứng viên xem một tin tuyển dụng, yêu thích một tin tuyển dụng và hành vi nộp đơn ứng tuyển.
+
+\subsection{Biểu đồ use case phân rã gửi thông báo}
+\label{subsection:2.2.15}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{Hinhve/UseCase_GuiThongBao.png}
+    \caption{Biểu đồ use case phân rã gửi thông báo}
+    \label{fig:uc-notification}
+\end{figure}
+Hệ thống gửi lấy dữ liệu đề xuất và gửi thông báo định kỳ cho người dùng tương ứng. Hệ thống gửi thông báo khi có sự kiện xảy ra.
+
+\subsection{Quy trình nghiệp vụ}
+\label{subsection:2.2.16}
+Hệ thống tuyển dụng thông minh có các quy trình nghiệp vụ quan trọng liên quan đến tin tuyển dụng, người dùng và hệ thống đề xuất. Dưới đây là các biểu đồ hoạt động chính của các quy trình nghiệp vụ đó.
+\subsubsection{Quy trình đăng tin tuyển dụng}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/QT_DangTinTuyenDung.png}
+    \caption{Biểu đồ hoạt động quy trình đăng tin tuyển dụng}
+    \label{fig:act-post-job}
+\end{figure}
+
+Biểu đồ hoạt động (Hình~\ref{fig:act-post-job}) mô tả quy trình đăng tin tuyển dụng, nhà tuyển dụng đăng nhập, tạo công ty và đăng tin tuyển dụng. Các bước đều cần xét duyệt từ phía quản trị viên và hệ thống sẽ gửi thông báo tăng trải nghiệm người dùng.
+
+\subsubsection{Quy trình đề xuất tin tuyển dụng}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/QT_DeXuatTinTuyenDung.png}
+    \caption{Biểu đồ hoạt động quy trình đề xuất tin tuyển dụng}
+    \label{fig:act-job-recommendation}
+\end{figure}
+
+Biểu đồ hoạt động (Hình~\ref{fig:act-job-recommendation}) thể hiện quy trình hệ thống tự động đề xuất tin tuyển dụng cho ứng viên dựa trên việc so khớp vectơ đặc trưng, tính toán điểm phù hợp và gửi thông báo đến ứng viên.
+
+\subsubsection{Quy trình đề xuất ứng viên}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/QT_DeXuatUngVien.png}
+    \caption{Biểu đồ hoạt động quy trình đề xuất ứng viên}
+    \label{fig:act-candidate-recommendation}
+\end{figure}
+
+Biểu đồ hoạt động (Hình~\ref{fig:act-candidate-recommendation}) mô tả quy trình hệ thống đề xuất ứng viên phù hợp cho nhà tuyển dụng thông qua việc so khớp vectơ đặc trưng (giống quy trình đề xuất tin tuyển dụng), tính toán điểm phù hợp và gửi thông báo đến nhà tuyển dụng.
+
+\subsubsection{Quy trình ứng tuyển}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/QT_UngTuyen.png}
+    \caption{Biểu đồ hoạt động quy trình ứng tuyển}
+    \label{fig:act-apply-job}
+\end{figure}
+
+Biểu đồ hoạt động (Hình~\ref{fig:act-apply-job}) mô tả quy trình ứng tuyển từ phía ứng viên, bao gồm các bước đăng nhập, xem tin tuyển dụng, nộp đơn ứng tuyển, tính điểm phù hợp và xét duyệt đơn ứng tuyển từ phía nhà tuyển dụng.
+
+\section{Đặc tả chức năng}
+\label{section:2.3}
+
+\subsection{Đặc tả use case đăng nhập}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Đăng nhập''}
+\label{tab:uc-login} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC01 & \textbf{Tên use case} & Đăng nhập \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Người dùng} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Người dùng (Ứng viên/Nhà tuyển dụng/Quản trị viên) đăng nhập vào hệ thống} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Người dùng đã đăng ký tài khoản trên hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 1 & Người dùng & Người dùng xác thực tài khoản qua email \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện xác thực thành công \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Người dùng & Vào trang đăng nhập \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Người dùng & Nhập thông tin tài khoản và mật khẩu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Xác thực thông tin và kiểm tra vai trò người dùng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Hệ thống & Truy cập giao diện theo vai trò người dùng \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 1a & Người dùng & Không tìm thấy mail và chọn chức năng quên mật khẩu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 2a & Hệ thống & Thông báo lỗi: Token đã hết hạn! \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5a & Hệ thống & Lỗi: Email hoặc mật khẩu không đúng! \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5b & Hệ thống & Thông báo lỗi: Tài khoản chưa được xác thực qua email! \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Người dùng đăng nhập thành công và sử dụng các chức năng cá nhân hóa} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case mong muốn công việc}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Mong muốn công việc''}
+\label{tab:uc-career-preference} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC02 & \textbf{Tên use case} & Mong muốn công việc \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Ứng viên} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Ứng viên tạo và cập nhật hồ sơ mong muốn công việc nhằm phục vụ cho hệ thống đề xuất việc làm} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Ứng viên đã đăng nhập vào hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 1 & Ứng viên & Đăng nhập tài khoản có vai trò ứng viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện chính \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Ứng viên & Truy cập giao diện hồ sơ cá nhân (Profile) \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Ứng viên & Nhấn vào chức năng cập nhật mong muốn nghề nghiệp \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) nhập thông tin mong muốn nghề nghiệp \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Ứng viên & Nhập các thông tin cần thiết và thực hiện lưu dữ liệu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Hiển thị thông báo: Đã lưu mong muốn nghề nghiệp \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 4a & Hệ thống & Tài khoản không có vai trò ứng viên, hệ thống không hiển thị chức năng nhập mong muốn nghề nghiệp \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7a & Hệ thống & Hiển thị thông báo lỗi: Không thể lưu mong muốn nghề nghiệp \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Hệ thống lưu lại thông tin mong muốn nghề nghiệp của ứng viên để phục vụ chức năng đề xuất} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case mong muốn tuyển dụng}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Mong muốn tuyển dụng''}
+\label{tab:uc-recruiter-preference} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC03 & \textbf{Tên use case} & Mong muốn tuyển dụng \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Nhà tuyển dụng} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Nhà tuyển dụng tạo và cập nhật hồ sơ nhu cầu tuyển dụng nhằm phục vụ cho hệ thống đề xuất ứng viên} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Nhà tuyển dụng đã đăng nhập vào hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 1 & Nhà tuyển dụng & Đăng nhập tài khoản có vai trò nhà tuyển dụng \\
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Nhà tuyển dụng & Truy cập giao diện hồ sơ cá nhân (Profile) \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Nhà tuyển dụng & Nhấn vào chức năng cập nhật nhu cầu tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) cập nhật nhu cầu tuyển dụng \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 6 & Nhà tuyển dụng & Nhập các thông tin cần thiết và thực hiện lưu dữ liệu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Hiển thị thông báo: Đã cập nhật nhu cầu tuyển dụng \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 4a & Hệ thống & Tài khoản không có vai trò nhà tuyển dụng, hệ thống không hiển thị chức năng nhập nhu cầu tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7a & Hệ thống & Hiển thị thông báo lỗi: Không thể cập nhật nhu cầu tuyển dụng \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Hệ thống lưu lại thông tin nhu cầu tuyển dụng của nhà tuyển dụng để phục vụ chức năng đề xuất ứng viên} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case tạo công ty}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Tạo công ty''}
+\label{tab:uc-create-company} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC04 & \textbf{Tên use case} & Tạo công ty \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Nhà tuyển dụng} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Nhà tuyển dụng tạo công ty và gửi cho quản trị viên duyệt trước khi có thể đăng tin tuyển dụng} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Nhà tuyển dụng đã đăng nhập vào hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 1 & Nhà tuyển dụng & Đăng nhập tài khoản có vai trò nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 2 & Hệ thống & Hiển thị giao diện nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Nhà tuyển dụng & Truy cập tab \textit{Thông tin công ty} \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 4 & Nhà tuyển dụng & Nhấn vào chức năng tạo công ty \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) tạo công ty \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Nhà tuyển dụng & Nhập các thông tin cần thiết và thực hiện lưu dữ liệu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Hiển thị thông báo: Tạo công ty thành công! \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2a & Hệ thống & Tài khoản không có vai trò nhà tuyển dụng, hệ thống không hiển thị giao diện nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 4a & Hệ thống & Trường hợp công ty đã tồn tại, hệ thống hiển thị giao diện cập nhật thông tin công ty \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7a & Hệ thống & Hiển thị thông báo lỗi: Không thể tạo công ty! \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Hệ thống lưu lại thông tin công ty và thiết lập trạng thái công ty là \textit{submitted}} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case tạo tin tuyển dụng}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Tạo tin tuyển dụng''}
+\label{tab:uc-create-job} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC05 & \textbf{Tên use case} & Tạo tin tuyển dụng \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Nhà tuyển dụng} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Nhà tuyển dụng tạo và đăng tin tuyển dụng để tìm kiếm ứng viên trên hệ thống} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{p{10.2cm}|}{Nhà tuyển dụng đã đăng nhập và công ty đã được xác thực} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 1 & Nhà tuyển dụng & Đăng nhập tài khoản có vai trò nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 3 & Nhà tuyển dụng & Truy cập tab \textit{Bài đăng của tôi} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Nhà tuyển dụng & Tìm và chọn chức năng tạo mới tại mục bài đăng tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) \textit{Thêm tin tuyển dụng} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Nhà tuyển dụng & Nhập các thông tin cần thiết và thực hiện lưu dữ liệu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Kiểm tra tính đầy đủ của các trường thông tin bắt buộc \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 8 & Hệ thống & Hiển thị thông báo: Tạo tin tuyển dụng thành công! \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2a & Hệ thống & Tài khoản không có vai trò nhà tuyển dụng, hệ thống không hiển thị giao diện nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 4a & Hệ thống & Trường hợp công ty chưa được xác thực, hệ thống hiển thị giao diện cập nhật thông tin công ty \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7a & Hệ thống & Hiển thị thông báo lỗi: \textit{Please fill out this field.} \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Hệ thống lưu lại tin tuyển dụng và thiết lập trạng thái tin tuyển dụng là \textit{pending}} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case phê duyệt tin tuyển dụng}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Phê duyệt tin tuyển dụng''}
+\label{tab:uc-approve-job} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC06 & \textbf{Tên use case} & Phê duyệt tin tuyển dụng \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Quản trị viên} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Quản trị viên xem xét và phê duyệt tin tuyển dụng trước khi hiển thị công khai trên hệ thống} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Quản trị viên đã đăng nhập vào hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 1 & Quản trị viên & Đăng nhập tài khoản có vai trò quản trị viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện quản trị viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Quản trị viên & Truy cập tab \textit{Danh sách bài đăng} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Quản trị viên & Chọn một tin tuyển dụng cần phê duyệt \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) phê duyệt tin tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Quản trị viên & Chọn chức năng phê duyệt \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Hiển thị cửa sổ xác nhận phê duyệt \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 8 & Quản trị viên & Xác nhận phê duyệt tin tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 9 & Hệ thống & Gửi email thông báo kết quả phê duyệt cho nhà tuyển dụng \\
+\cline{2-4}
+\hline
+\pagebreak
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\hline
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 2a & Hệ thống & Tài khoản không có vai trò quản trị viên, hệ thống không hiển thị giao diện quản trị viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6a & Quản trị viên & Chọn chức năng từ chối phê duyệt \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7a & Hệ thống & Hiển thị cửa sổ (popup) từ chối phê duyệt \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 8a & Quản trị viên & Nhập lý do từ chối và xác nhận thao tác \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Tin tuyển dụng được chuyển sang trạng thái \textit{approved} và sẵn sàng hiển thị trên hệ thống} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case tạo đề xuất tin tuyển dụng}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Tạo đề xuất tin tuyển dụng''}
+\label{tab:uc-job-recommendation} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC07 & \textbf{Tên use case} & Tạo đề xuất tin tuyển dụng \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Hệ thống} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Hệ thống tự động tạo danh sách đề xuất tin tuyển dụng phù hợp cho ứng viên dựa trên mô hình so khớp vectơ} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{p{10.2cm}|}{Hệ thống đã có vectơ đặc trưng của công việc và vectơ đặc trưng của ứng viên} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 1 & Hệ thống & Lấy thông tin vectơ đặc trưng của công việc và ứng viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 2 & Hệ thống & Thực hiện hàm tính toán độ phù hợp của công việc đối với từng ứng viên \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 3 & Hệ thống & Lưu kết quả đề xuất (điểm phù hợp và lý do) vào bảng \textit{Job Recommendation} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Hệ thống & Lấy danh sách đề xuất theo thứ tự điểm phù hợp giảm dần \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị danh sách đề xuất cho ứng viên và gửi email thông báo tự động lúc 8 giờ sáng \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 1a & Hệ thống & Không tìm thấy \textit{user\_vector}, hệ thống hiển thị thông báo lỗi và dừng quá trình đề xuất \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Danh sách đề xuất tin tuyển dụng được hiển thị thành công và email thông báo được gửi tới ứng viên} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case tạo đề xuất ứng viên}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Tạo đề xuất ứng viên''}
+\label{tab:uc-candidate-recommendation} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC08 & \textbf{Tên use case} & Tạo đề xuất ứng viên \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Hệ thống} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Hệ thống tự động tạo danh sách đề xuất ứng viên phù hợp cho nhà tuyển dụng dựa trên mô hình so khớp vectơ} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{p{10.2cm}|}{Hệ thống đã có vectơ đặc trưng của ứng viên (user\_vector) và vectơ đặc trưng của nhà tuyển dụng (recruiter\_vector)} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 1 & Hệ thống & Lấy thông tin vectơ đặc trưng của ứng viên và nhà tuyển dụng \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Thực hiện hàm tính toán độ phù hợp giữa ứng viên và nhà tuyển dụng \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 3 & Hệ thống & Lưu kết quả đề xuất (điểm phù hợp và lý do) vào bảng \textit{CandidateRecommendation} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Hệ thống & Lấy danh sách đề xuất theo thứ tự điểm phù hợp giảm dần \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 5 & Hệ thống & Hiển thị danh sách đề xuất cho nhà tuyển dụng và gửi email thông báo tự động lúc 9 giờ sáng \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 1a & Hệ thống & Không tìm thấy \textit{RecruiterPreference} cho người dùng này, hệ thống hiển thị thông báo lỗi và dừng quá trình đề xuất \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Danh sách đề xuất ứng viên được hiển thị thành công và email thông báo được gửi tới nhà tuyển dụng} \\
+\hline
+
+\end{longtable}
+
+\subsection{Đặc tả use case ứng tuyển}
+
+\renewcommand{\arraystretch}{1.4}
+
+\begin{longtable}{|p{2.8cm}|p{1.5cm}|p{3.2cm}|p{5.5cm}|}
+\caption{Bảng đặc tả use case ``Ứng tuyển''}
+\label{tab:uc-apply-job} \\
+
+\endfirsthead
+\endhead
+\endfoot
+\endlastfoot
+
+% ===== THÔNG TIN CHUNG =====
+\hline
+\textbf{Mã use case} & UC09 & \textbf{Tên use case} & Ứng tuyển \\
+\hline
+\textbf{Tác nhân} & \multicolumn{3}{l|}{Ứng viên} \\
+\hline
+\textbf{Mô tả} & \multicolumn{3}{p{10.2cm}|}{Ứng viên tạo đơn ứng tuyển vào một tin tuyển dụng trên hệ thống} \\
+\hline
+\textbf{Tiền điều kiện} & \multicolumn{3}{l|}{Ứng viên đã đăng nhập vào hệ thống} \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN CHÍNH =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+\hline
+
+\parbox[c]{2.8cm}{}
+& 1 & Ứng viên & Đăng nhập tài khoản có vai trò ứng viên \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 2 & Hệ thống & Hiển thị giao diện chính \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 3 & Ứng viên & Chọn một tin tuyển dụng phù hợp \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 4 & Ứng viên & Chọn chức năng \textit{Ứng tuyển ngay} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\chính}}
+& 5 & Hệ thống & Hiển thị cửa sổ (popup) ứng tuyển công việc \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 6 & Ứng viên & Nhập các thông tin cần thiết và xác nhận ứng tuyển \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7 & Hệ thống & Tính điểm phù hợp của ứng viên với công việc và lưu đơn ứng tuyển vào cơ sở dữ liệu \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 8 & Hệ thống & Hiển thị thông báo: Ứng tuyển thành công! \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 9 & Hệ thống & Gửi email thông báo có ứng viên ứng tuyển cho nhà tuyển dụng \\
+\hline
+
+% ===== LUỒNG SỰ KIỆN THAY THẾ =====
+\parbox[c]{2.8cm}{}
+& \textbf{STT} & \textbf{Thực hiện bởi} & \textbf{Hành động} \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{\centering\textbf{Luồng\\sự kiện\\thay thế}}
+& 7a & Hệ thống & Hiển thị thông báo lỗi: Vui lòng nhập thư ứng tuyển \\
+\cline{2-4}
+
+\parbox[c]{2.8cm}{}
+& 7b & Hệ thống & Hiển thị thông báo lỗi: Vui lòng tải lên CV \\
+\hline
+
+% ===== HẬU ĐIỀU KIỆN =====
+\textbf{Hậu điều kiện}
+& \multicolumn{3}{p{10.2cm}|}{Ứng viên có thể xem lại đơn ứng tuyển của mình tại trang cá nhân} \\
+\hline
+
+\end{longtable}
+
+\section{Yêu cầu phi chức năng}
+\label{section:2.4}
+Đối với hệ thống tuyển dụng thông minh, hệ thống cần đảm bảo mức độ bảo mật cao, thực hiện phân quyền rõ ràng theo vai trò người dùng và hiển thị giao diện phù hợp với từng chức năng, quyền hạn tương ứng. Mã nguồn và thiết kế cấu trúc thư mục phải được tổ chức một cách khoa học, tuân theo các nguyên tắc thiết kế (design pattern) [3] ở mức tổng thể, nhằm nâng cao khả năng bảo trì, mở rộng và phát triển hệ thống trong tương lai.
+
+Bên cạnh đó, giao diện hệ thống cần được thiết kế gọn gàng, trực quan, hạn chế thông tin dư thừa và tập trung vào các chức năng cốt lõi, qua đó nâng cao trải nghiệm người dùng. Cơ sở dữ liệu phải áp dụng các cơ chế mã hóa và bảo mật đối với những thông tin quan trọng, đặc biệt là dữ liệu nhạy cảm như mật khẩu người dùng.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

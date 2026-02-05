@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Lập trình viên ReactJS",
+    "company": "Công ty ABC",
+    "location": "Hà Nội",
+    "description": "Phát triển và bảo trì ứng dụng web sử dụng ReactJS, tối ưu hóa giao diện người dùng.",
+    "salary_min": 15000000,
+    "salary_max": 20000000,
+    "requirements": "Kinh nghiệm 1 năm với ReactJS, hiểu biết về JavaScript, HTML, CSS.",
+    "tags": ["IT", "ReactJS", "Web Development"]
+  },
+  {
+    "title": "Kỹ sư DevOps",
+    "company": "Công ty XYZ",
+    "location": "TP. Hồ Chí Minh",
+    "description": "Triển khai và quản lý hạ tầng CI/CD, tối ưu hóa quy trình phát triển phần mềm.",
+    "salary_min": 20000000,
+    "salary_max": 30000000,
+    "requirements": "Kinh nghiệm 2 năm với AWS, Docker, Kubernetes.",
+    "tags": ["DevOps", "Cloud", "IT"]
+  },
+  {
+    "title": "Nhân viên Marketing Online",
+    "company": "Công ty DEF",
+    "location": "Đà Nẵng",
+    "description": "Lập kế hoạch và thực hiện các chiến dịch quảng cáo trên mạng xã hội và Google Ads.",
+    "salary_min": 10000000,
+    "salary_max": 15000000,
+    "requirements": "Kinh nghiệm 1 năm trong marketing số, hiểu biết về SEO, SEM.",
+    "tags": ["Marketing", "Digital Marketing", "SEO"]
+  }
+]

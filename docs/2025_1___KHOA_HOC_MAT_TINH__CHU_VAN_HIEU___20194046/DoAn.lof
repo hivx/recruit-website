@@ -1,0 +1,62 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Biểu đồ use case tổng quát}}{5}{figure.caption.8}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Biểu đồ use case phân rã đăng nhập}}{6}{figure.caption.9}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Biểu đồ use case phân rã tìm kiếm}}{7}{figure.caption.10}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Biểu đồ use case phân rã yêu thích}}{7}{figure.caption.11}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Biểu đồ use case phân rã tạo hồ sơ cá nhân}}{8}{figure.caption.12}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Biểu đồ use case phân rã ứng tuyển}}{8}{figure.caption.13}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Biểu đồ use case phân rã tạo công ty}}{9}{figure.caption.14}%
+\contentsline {figure}{\numberline {2.8}{\ignorespaces Biểu đồ use case phân rã quản lý tin tuyển dụng}}{9}{figure.caption.15}%
+\contentsline {figure}{\numberline {2.9}{\ignorespaces Biểu đồ use case phân rã quản lý hồ sơ ứng tuyển}}{10}{figure.caption.16}%
+\contentsline {figure}{\numberline {2.10}{\ignorespaces Biểu đồ use case phân rã phê duyệt}}{10}{figure.caption.17}%
+\contentsline {figure}{\numberline {2.11}{\ignorespaces Biểu đồ use case phân rã quản lý người dùng}}{11}{figure.caption.18}%
+\contentsline {figure}{\numberline {2.12}{\ignorespaces Biểu đồ use case phân rã tính điểm phù hợp}}{11}{figure.caption.19}%
+\contentsline {figure}{\numberline {2.13}{\ignorespaces Biểu đồ use case phân rã tạo đề xuất}}{12}{figure.caption.20}%
+\contentsline {figure}{\numberline {2.14}{\ignorespaces Biểu đồ use case phân rã nhật ký hành vi}}{12}{figure.caption.21}%
+\contentsline {figure}{\numberline {2.15}{\ignorespaces Biểu đồ use case phân rã gửi thông báo}}{13}{figure.caption.22}%
+\contentsline {figure}{\numberline {2.16}{\ignorespaces Biểu đồ hoạt động quy trình đăng tin tuyển dụng}}{14}{figure.caption.23}%
+\contentsline {figure}{\numberline {2.17}{\ignorespaces Biểu đồ hoạt động quy trình đề xuất tin tuyển dụng}}{15}{figure.caption.24}%
+\contentsline {figure}{\numberline {2.18}{\ignorespaces Biểu đồ hoạt động quy trình đề xuất ứng viên}}{16}{figure.caption.25}%
+\contentsline {figure}{\numberline {2.19}{\ignorespaces Biểu đồ hoạt động quy trình ứng tuyển}}{17}{figure.caption.26}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Minh họa thư viện React}}{30}{figure.caption.27}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Kiến trúc phân lớp của hệ thống [10]}}{35}{figure.caption.28}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Biểu đồ phụ thuộc gói}}{37}{figure.caption.29}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Thiết kế gói dịch vụ Frontend}}{39}{figure.caption.30}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Thiết kế gói các trang giao diện của tầng User Interface}}{40}{figure.caption.31}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Thiết kế gói Controllers và Services Backend}}{41}{figure.caption.32}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Thiết kế gói định tuyến API Backend}}{42}{figure.caption.33}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Thiết kế giao diện đăng nhập}}{43}{figure.caption.34}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Thiết kế giao diện màn hình chính}}{44}{figure.caption.35}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Thiết kế trang cá nhân}}{45}{figure.caption.36}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Thiết kế giao diện quản trị viên}}{46}{figure.caption.37}%
+\contentsline {figure}{\numberline {4.11}{\ignorespaces Thiết kế chi tiết lớp User}}{47}{figure.caption.38}%
+\contentsline {figure}{\numberline {4.12}{\ignorespaces Thiết kế chi tiết lớp Preference}}{47}{figure.caption.39}%
+\contentsline {figure}{\numberline {4.13}{\ignorespaces Thiết kế chi tiết lớp Job}}{48}{figure.caption.40}%
+\contentsline {figure}{\numberline {4.14}{\ignorespaces Thiết kế chi tiết lớp Recommendation}}{48}{figure.caption.41}%
+\contentsline {figure}{\numberline {4.15}{\ignorespaces Thiết kế chi tiết lớp Application}}{49}{figure.caption.42}%
+\contentsline {figure}{\numberline {4.16}{\ignorespaces Biểu đồ trình tự use case Tạo tin tuyển dụng}}{50}{figure.caption.43}%
+\contentsline {figure}{\numberline {4.17}{\ignorespaces Biểu đồ trình tự use case Ứng tuyển}}{51}{figure.caption.44}%
+\contentsline {figure}{\numberline {4.18}{\ignorespaces Biểu đồ trình tự use case Mong muốn công việc}}{51}{figure.caption.45}%
+\contentsline {figure}{\numberline {4.19}{\ignorespaces Biểu đồ trình tự use case Mong muốn tuyển dụng}}{52}{figure.caption.46}%
+\contentsline {figure}{\numberline {4.20}{\ignorespaces Biểu đồ trình tự use case Tạo đề xuất}}{52}{figure.caption.47}%
+\contentsline {figure}{\numberline {4.21}{\ignorespaces Biểu đồ thực thể liên kết}}{53}{figure.caption.48}%
+\contentsline {figure}{\numberline {4.22}{\ignorespaces Giao diện "Nộp đơn ứng tuyển"}}{64}{figure.caption.51}%
+\contentsline {figure}{\numberline {4.23}{\ignorespaces Giao diện "Quản lý tin tuyển dụng"}}{65}{figure.caption.52}%
+\contentsline {figure}{\numberline {4.24}{\ignorespaces Giao diện "Cập nhật tin tuyển dụng"}}{65}{figure.caption.53}%
+\contentsline {figure}{\numberline {4.25}{\ignorespaces Giao diện "Quản lý đơn ứng tuyển"}}{66}{figure.caption.54}%
+\contentsline {figure}{\numberline {4.26}{\ignorespaces Giao diện "Nhu cầu tuyển dụng"}}{66}{figure.caption.55}%
+\contentsline {figure}{\numberline {4.27}{\ignorespaces Giao diện "Mong muốn nghề nghiệp"}}{67}{figure.caption.56}%
+\contentsline {figure}{\numberline {4.28}{\ignorespaces Giao diện "Đề xuất ứng viên"}}{67}{figure.caption.57}%
+\contentsline {figure}{\numberline {4.29}{\ignorespaces Giao diện "Trang chủ xem tin tuyển dụng"}}{68}{figure.caption.58}%
+\contentsline {figure}{\numberline {4.30}{\ignorespaces Giao diện "Đề xuất tin tuyển dụng"}}{68}{figure.caption.59}%
+\contentsline {figure}{\numberline {4.31}{\ignorespaces Kết quả đo bằng công cụ Sonarqube}}{71}{figure.caption.60}%
+\contentsline {figure}{\numberline {4.32}{\ignorespaces Kết quả đo bằng công cụ Lighthouse}}{72}{figure.caption.61}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Điểm phù hợp và lý do đề xuất}}{87}{figure.caption.62}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Email thông báo cho nhà tuyển dụng}}{88}{figure.caption.63}%
+\addvspace {10\p@ }
+\contentsfinish 
+\contentsfinish 

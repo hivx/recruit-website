@@ -1,0 +1,997 @@
+\documentclass[../DoAn.tex]{subfiles}
+
+\begin{document}
+
+\section{Thiết kế kiến trúc}
+\subsection{Lựa chọn kiến trúc phần mềm}
+Hệ thống được xây dựng theo kiến trúc phân lớp (Layered Architecture), bao gồm ba tầng chính: User Interface, Business Logic và Database Layer, như minh họa trong Hình~\ref{fig:layered-architecture}. Kiến trúc này cho phép phân tách rõ ràng trách nhiệm giữa các thành phần trong hệ thống, qua đó nâng cao khả năng bảo trì, mở rộng và kiểm soát luồng xử lý nghiệp vụ.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Hinhve/LayeredArchitecture.png}
+    \caption{Kiến trúc phân lớp của hệ thống [10]}
+    \label{fig:layered-architecture}
+\end{figure}
+\subsubsection{Tầng User Interface}
+Tầng User Interface (UI) chịu trách nhiệm tương tác trực tiếp với người dùng, bao gồm việc hiển thị giao diện và tiếp nhận các yêu cầu từ phía người dùng. Trong hệ thống, tầng này được triển khai chủ yếu trong thư mục client. Các chức năng chính của tầng User Interface bao gồm: hiển thị dữ liệu và trạng thái hệ thống cho người dùng; tiếp nhận các thao tác và yêu cầu (request); gửi các yêu cầu hợp lệ xuống tầng Business Logic để xử lý; và nhận kết quả xử lý để phản hồi lại cho người dùng. Tầng này không chứa logic nghiệp vụ và không thực hiện truy cập trực tiếp đến cơ sở dữ liệu.
+
+\subsubsection{Tầng Business Logic}
+Tầng Business Logic là tầng trung tâm của hệ thống, nơi xử lý toàn bộ các quy tắc nghiệp vụ, luồng xử lý và logic cốt lõi của ứng dụng. Tầng này tiếp nhận các yêu cầu hợp lệ từ tầng User Interface, thực hiện kiểm tra điều kiện, xử lý nghiệp vụ và quyết định cách thức truy cập dữ liệu.
+
+Trong hệ thống, tầng Business Logic được triển khai chủ yếu trong thư mục server, bao gồm các Service chịu trách nhiệm xử lý logic nghiệp vụ và thực hiện truy cập cơ sở dữ liệu. Việc truy cập và thao tác dữ liệu được thực hiện thông qua ORM Prisma. Tệp schema.prisma đóng vai trò định nghĩa trung tâm cho mô hình dữ liệu và cơ chế persistence, làm cơ sở cho việc sinh mã Prisma Client và đảm bảo tính nhất quán, an toàn về kiểu dữ liệu khi truy cập cơ sở dữ liệu.
+
+Chức năng persistence trong hệ thống được tích hợp trực tiếp trong tầng Business Logic thông qua các Service và ORM Prisma, thay vì được tách thành một Persistence Layer độc lập. Cách tiếp cận này giúp giảm độ phức tạp của hệ thống trong khi vẫn đảm bảo nguyên tắc phân tách trách nhiệm giữa các tầng.
+
+\subsubsection{Tầng Database}
+Tầng Database (Database Layer) đóng vai trò là lớp lưu trữ toàn bộ dữ liệu của hệ thống. Trong đồ án này, sinh viên sử dụng hệ quản trị cơ sở dữ liệu quan hệ MySQL. Việc tương tác giữa tầng Business Logic và Database được thực hiện thông qua Prisma ORM. Cách tiếp cận này giúp tối ưu hóa các truy vấn SQL, đồng thời đảm bảo sự đồng nhất giữa mô hình dữ liệu (Schema) trong mã nguồn và cấu trúc bảng thực tế trong cơ sở dữ liệu.
+
+\subsection{Thiết kế tổng quan}
+Hệ thống gồm ba tầng chính: User Interface, Business Logic và Database Layer. Mỗi tầng đảm nhiệm một nhóm trách nhiệm riêng biệt và được tổ chức theo mối quan hệ phụ thuộc một chiều từ trên xuống dưới, phù hợp với nguyên tắc của kiến trúc phân lớp. Cấu trúc và mối quan hệ phụ thuộc giữa các gói trong từng tầng của hệ thống được minh họa trong Hình~\ref{fig:package-diagram}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Hinhve/Package_diagram_v1.png}
+    \caption{Biểu đồ phụ thuộc gói}
+    \label{fig:package-diagram}
+\end{figure}
+
+\subsubsection{Tầng User Interface}
+Tầng User Interface chịu trách nhiệm hiển thị giao diện và tương tác trực tiếp với người dùng. Tầng này được tổ chức thành các gói chính gồm: pages, đại diện cho các trang giao diện của hệ thống; components, bao gồm các thành phần giao diện con có khả năng tái sử dụng trong các trang; layouts, xác định bố cục giao diện cố định cho từng nhóm trang; utils, chứa các hàm và tiện ích dùng chung nhằm giảm trùng lặp mã nguồn; services, đảm nhiệm việc giao tiếp với hệ thống backend thông qua các API; hooks, đóng vai trò là lớp trung gian giữa giao diện và tầng service, giúp đóng gói logic truy xuất và quản lý dữ liệu; và types, dùng để chuẩn hóa và định nghĩa các kiểu dữ liệu trao đổi với backend, đảm bảo tính nhất quán và an toàn kiểu dữ liệu trong quá trình phát triển.
+
+\subsubsection{Tầng Business Logic}
+Tầng Business Logic là tầng trung tâm của hệ thống, chịu trách nhiệm xử lý toàn bộ các quy tắc nghiệp vụ và điều phối luồng xử lý chính của ứng dụng. Trong biểu đồ, tầng này được chia thành hai gói con chính là controllers và services. Gói controllers đảm nhiệm việc tiếp nhận các yêu cầu từ tầng User Interface, kiểm tra dữ liệu đầu vào và điều phối luồng xử lý tương ứng. Sau đó, các yêu cầu được chuyển tiếp tới gói services, nơi thực hiện các xử lý nghiệp vụ cốt lõi của hệ thống.
+
+\subsubsection{Tầng Database}
+Tầng Database Layer đại diện cho hệ quản trị cơ sở dữ liệu của hệ thống. Trong biểu đồ, tầng này được biểu diễn bằng gói MySQL, phản ánh việc hệ thống sử dụng hệ quản trị cơ sở dữ liệu MySQL để lưu trữ dữ liệu.
+
+\subsection{Thiết kế chi tiết gói}
+
+\begin{figure}[H]
+\begin{adjustwidth}{-1.5cm}{-1.5cm}
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Package_diagram_service_fe.png}
+    \caption{Thiết kế gói dịch vụ Frontend}
+    \label{fig:pkg-fe-service}
+\end{adjustwidth}
+\end{figure}
+Biểu đồ thiết kế gói ở Hình~\ref{fig:pkg-fe-service} mô tả tầng dịch vụ phía Frontend, bao gồm các gói chính: services, api và types. Trong đó, gói types định nghĩa các kiểu dữ liệu của hệ thống và, thông qua thành phần Mapper, thực hiện việc chuyển đổi dữ liệu nhận từ API sang mô hình dữ liệu nội bộ được sử dụng tại tầng giao diện.
+
+\begin{figure}[H]
+\begin{adjustwidth}{-1.5cm}{-1.5cm}
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Package_diagram_pages.png}
+    \caption{Thiết kế gói các trang giao diện của tầng User Interface}
+    \label{fig:pkg-fe-pages}
+\end{adjustwidth}
+\end{figure}
+Biểu đồ thiết kế gói ở Hình~\ref{fig:pkg-fe-pages} mô tả cấu trúc tổ chức các trang giao diện của hệ thống, bao gồm các gói chính: pages, components và layouts. Trong đó, mỗi trang giao diện (page) được xây dựng trên một bố cục chung (layout) và được cấu thành từ nhiều thành phần giao diện tái sử dụng (components).
+
+\begin{figure}[H]
+\begin{adjustwidth}{-1.5cm}{-1.5cm}
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Package_diagram_control_be.png}
+    \caption{Thiết kế gói Controllers và Services Backend}
+    \label{fig:pkg-control-be}
+\end{adjustwidth}
+\end{figure}
+Biểu đồ thiết kế gói ở Hình~\ref{fig:pkg-control-be} thể hiện cách tầng ứng dụng phía Backend được tổ chức nhằm xử lý các yêu cầu và thực thi nghiệp vụ của hệ thống. Trong đó, gói services đảm nhiệm việc triển khai logic nghiệp vụ và truy cập dữ liệu thông qua Prisma ORM, trong khi gói controllers đóng vai trò tiếp nhận yêu cầu từ các endpoint, gọi các dịch vụ tương ứng và trả kết quả xử lý về cho phía client.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Package_diagram_routes.png}
+    \caption{Thiết kế gói định tuyến API Backend}
+    \label{fig:pkg-be-routes}
+\end{figure}
+Biểu đồ thiết kế gói ở Hình~\ref{fig:pkg-be-routes} mô tả cách tổ chức tầng định tuyến API của hệ thống. Các endpoint được khai báo trong gói routes và được liên kết với gói controllers để xử lý yêu cầu nghiệp vụ. Trước khi chuyển đến controller, các yêu cầu được kiểm tra thông qua 
+gói middleware, bao gồm xác thực người dùng (auth – kiểm tra token), 
+kiểm tra vai trò (role) và kiểm soát một số chức năng (requireAccess).
+
+\section{Thiết kế chi tiết}
+\subsection{Thiết kế giao diện}
+Ứng dụng được thiết kế hướng tới đối tượng người dùng chính là người tìm việc và nhà tuyển dụng, những người chủ yếu truy cập hệ thống thông qua máy tính xách tay (laptop). Trong phạm vi đồ án, sinh viên lựa chọn màn hình laptop có kích thước từ 14 inch trở lên làm thiết bị hiển thị mục tiêu để xây dựng và đánh giá giao diện người dùng.
+
+Cụ thể, giao diện được thiết kế dựa trên các thông số sau: kích thước màn hình vật lý 14 inch, tỷ lệ màn hình 16:9 và độ phân giải Full HD (1920 × 1080).
+
+Các thiết kế giao diện được sử dụng trong hệ thống:
+
+(i) Các biểu tượng (icon) được sử dụng từ các thư viện có sẵn, theo phong cách tối giản và có màu sắc phù hợp với ngữ cảnh sử dụng. Các nút bấm và thẻ nội dung được thiết kế với các góc bo tròn nhằm tạo cảm giác thân thiện cho người dùng.
+
+(ii) Bố cục giao diện của các trang bao gồm thanh điều hướng (navbar), vùng nội dung chính (main content) và chân trang (footer). Đối với các trang quản lý, giao diện được bổ sung thanh điều hướng bên trái (sidebar) để hỗ trợ truy cập nhanh các chức năng.
+
+(iii) Logo của hệ thống được bố trí ở phía bên trái thanh điều hướng, trong khi biểu tượng tài khoản cá nhân được đặt ở phía bên phải nhằm thuận tiện cho thao tác của người dùng.
+
+(iv) Vùng nội dung chính được chia thành nhiều khu vực (section) khác nhau, mỗi khu vực hiển thị một nhóm thông tin hoặc chức năng riêng biệt.
+
+(v) Màu sắc chủ đạo của giao diện là màu xanh dương nhạt, kết hợp với hiệu ứng chuyển màu nhẹ từ trắng sang xanh dương nhằm tạo cảm giác hiện đại và dễ nhìn.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Login.png}
+    \caption{Thiết kế giao diện đăng nhập}
+    \label{fig:login-page}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Applicant1.png}
+    \caption{Thiết kế giao diện màn hình chính}
+    \label{fig:home-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Profile.png}
+    \caption{Thiết kế trang cá nhân}
+    \label{fig:profile-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Admin.png}
+    \caption{Thiết kế giao diện quản trị viên}
+    \label{fig:admin-page}
+\end{figure}
+\subsection{Thiết kế lớp}
+\subsubsection{Thiết kế chi tiết lớp}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Hinhve/class_user.png}
+    \caption{Thiết kế chi tiết lớp User}
+    \label{fig:class-user}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{Hinhve/class_preference.png}
+    \caption{Thiết kế chi tiết lớp Preference}
+    \label{fig:class-preference}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Hinhve/class_job.png}
+    \caption{Thiết kế chi tiết lớp Job}
+    \label{fig:class-job}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Hinhve/class_recommendation.png}
+    \caption{Thiết kế chi tiết lớp Recommendation}
+    \label{fig:class-recommendation}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Hinhve/class_application.png}
+    \caption{Thiết kế chi tiết lớp Application}
+    \label{fig:class-application}
+\end{figure}
+Các lớp User, Preference, Job, Application và RecommendationService là các lớp chủ đạo của hệ thống. Các lớp này đóng vai trò trung tâm trong việc quản lý dữ liệu nghiệp vụ và triển khai chức năng đề xuất thông minh, bao gồm lưu trữ thông tin người dùng, công việc, hồ sơ ứng tuyển và thực hiện các thuật toán gợi ý.
+
+\newpage
+\subsubsection{Biểu đồ trình tự}
+Các use case Tạo tin tuyển dụng, Ứng tuyển, Mong muốn công việc, Mong muốn tuyển dụng và Tạo đề xuất là các use case chính của hệ thống.
+
+Các use case này phản ánh các nghiệp vụ cốt lõi và được mô tả chi tiết thông qua các biểu đồ trình tự ở các hình sau.
+\begin{figure}[H]
+\begin{adjustwidth}{-1cm}{-1cm}
+    \centering
+    \includegraphics[width=1.2\textwidth]{Hinhve/BDTT_Tao_tin_tuyen_dung.png}
+    \caption{Biểu đồ trình tự use case Tạo tin tuyển dụng}
+    \label{fig:seq-create-job}
+\end{adjustwidth}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/BDTT_Ung_tuyen.png}
+    \caption{Biểu đồ trình tự use case Ứng tuyển}
+    \label{fig:seq-apply-job}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/BDTT_Ho_so_tim_viec.png}
+    \caption{Biểu đồ trình tự use case Mong muốn công việc}
+    \label{fig:seq-job-profile}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/BDTT_Ho_so_tuyen_dung.png}
+    \caption{Biểu đồ trình tự use case Mong muốn tuyển dụng}
+    \label{fig:seq-recruitment-profile}
+\end{figure}
+
+\begin{figure}[H]
+\begin{adjustwidth}{-1.5cm}{-1.5cm}
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/BDTT_He_thong_de_xuat.png}
+    \caption{Biểu đồ trình tự use case Tạo đề xuất}
+    \label{fig:seq-recommendation}
+\end{adjustwidth}
+\end{figure}
+
+\subsection{Thiết kế cơ sở dữ liệu}
+
+\subsubsection{Biểu đồ thực thể liên kết}
+\begin{figure}[H]
+\begin{adjustwidth}{-2.5cm}{-2.5cm}
+    \centering
+    \includegraphics[width=1.3\textwidth]{Hinhve/ERD-recruit-mini_v3.0.png}
+    \caption{Biểu đồ thực thể liên kết}
+    \label{fig:erd-diagram-mini}
+\end{adjustwidth}
+\end{figure}
+Biểu đồ thực thể–liên kết trong Hình~\ref{fig:erd-diagram-mini} là phiên bản giản lược, tập trung vào các thực thể chính của hệ thống, bao gồm: Job (tin tuyển dụng), User (người dùng), Application (đơn ứng tuyển), Tag (ngành nghề), Skill (kỹ năng), Preference (mong muốn), JobVector, UserVector, BehaviorProfile (hành vi người dùng) và Recommendation (đề xuất).
+
+Trong đó, User là thực thể trung tâm với ba vai trò chính: ứng viên, nhà tuyển dụng và quản trị viên. Tùy theo vai trò, người dùng sẽ có các quan hệ dữ liệu khác nhau. Cụ thể, nhà tuyển dụng liên quan đến các thực thể tin tuyển dụng và công ty; ứng viên có các liên kết tới hồ sơ ứng tuyển, hành vi người dùng và các thông tin mong muốn việc làm; trong khi đó, quản trị viên đảm nhiệm các chức năng quản lý và phê duyệt trong hệ thống.
+
+Mỗi Job được tạo bởi một nhà tuyển dụng và thuộc về một công ty duy nhất. Đối với mỗi tin tuyển dụng, hệ thống xây dựng một JobVector tương ứng nhằm phục vụ cho việc tính toán mức độ phù hợp trong quá trình đề xuất.
+
+Một ứng viên có thể tạo nhiều Application để ứng tuyển vào các tin tuyển dụng khác nhau. Đồng thời, mỗi tin tuyển dụng cũng có thể nhận được nhiều hồ sơ ứng tuyển từ các ứng viên khác nhau.
+
+BehaviorProfile là tập dữ liệu được tổng hợp và tính toán dựa trên hành vi sử dụng của người dùng trong hệ thống. Dữ liệu này chỉ được ghi nhận đối với người dùng có vai trò là ứng viên.
+
+Preference là các thông tin mong muốn của người dùng, bao gồm cả ứng viên và nhà tuyển dụng. Trong thực tế, hệ thống phân tách dữ liệu này thành hai bảng riêng biệt tương ứng với từng vai trò của người dùng.
+
+Skill và Tag là các thông tin cơ bản, được sử dụng để mô tả yêu cầu của tin tuyển dụng, hồ sơ người dùng.
+
+Đối với mỗi vai trò người dùng, hệ thống lưu trữ các dữ liệu Recommendation tương ứng, làm cơ sở cho việc triển khai hệ thống đề xuất phù hợp.
+
+\subsubsection{Danh sách các bảng dữ liệu}
+
+\begin{longtable}{|c|p{5cm}|p{3cm}|p{6cm}|}
+\caption{Bảng Users} \label{tab:user}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & Khóa chính (PK), tự tăng, định danh người dùng \\ \hline
+2 & name & String & Tên hiển thị của người dùng \\ \hline
+3 & avatar & String & Đường dẫn ảnh đại diện \\ \hline
+4 & email & String & Email đăng nhập, duy nhất \\ \hline
+5 & password & String & Mật khẩu đã được mã hóa \\ \hline
+6 & role & UserRole & Vai trò người dùng: admin, recruiter, applicant \\ \hline
+7 & isVerified & Boolean & Trạng thái xác thực tài khoản \\ \hline
+8 & receive\_recommendation & Boolean & Cho phép nhận đề xuất từ hệ thống \\ \hline
+9 & reset\_token & String & Token đặt lại mật khẩu\\ \hline
+10 & reset\_token\_expiry & DateTime & Thời hạn hiệu lực của token \\ \hline
+11 & reset\_password\_hash & String & Hash xác nhận đặt lại mật khẩu \\ \hline
+12 & created\_at & DateTime & Thời điểm tạo tài khoản \\ \hline
+13 & updated\_at & DateTime & Thời điểm cập nhật gần nhất \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{4cm}|p{3cm}|p{6cm}|}
+\caption{Bảng Companies} \label{tab:company}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & Khóa chính (PK), định danh công ty \\ \hline
+2 & legal\_name & String & Tên pháp lý của công ty \\ \hline
+3 & registration\_number & String & Mã đăng ký doanh nghiệp \\ \hline
+4 & tax\_id & String & Mã số thuế \\ \hline
+5 & country\_code & String & Mã quốc gia \\ \hline
+6 & registered\_address & String & Địa chỉ đăng ký \\ \hline
+7 & incorporation\_date & DateTime & Ngày thành lập \\ \hline
+8 & owner\_id & BigInt & Khóa ngoại (FK), chủ công ty \\ \hline
+9 & logo & String & Đường dẫn logo công ty \\ \hline
+10 & created\_at & DateTime & Thời điểm tạo \\ \hline
+11 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3cm}|p{5cm}|p{6cm}|}
+\caption{Bảng CompanyVerifications}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & PK, định danh bản ghi xác thực \\ \hline
+2 & reviewed\_by & BigInt & FK, mã quản trị viên xử lý \\ \hline
+3 & company\_id & BigInt & FK, mã công ty \\ \hline
+4 & status & CompanyVerificationStatus & Trạng thái xác minh (submitted, verified, rejected) \\ \hline
+5 & rejection\_reason & Text & Lý do từ chối \\ \hline
+6 & submitted\_at & DateTime & Thời điểm gửi yêu cầu xác minh \\ \hline
+7 & verified\_at & DateTime & Thời điểm xác minh \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{4cm}|p{3cm}|p{6cm}|}
+\caption{Bảng Jobs} \label{tab:job}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & Khóa chính (PK), định danh tin tuyển dụng \\ \hline
+2 & title & String & Tiêu đề tin tuyển dụng \\ \hline
+3 & company\_id & BigInt & Khóa ngoại (FK) công ty sở hữu \\ \hline
+4 & created\_by & BigInt & Khóa ngoại (FK) Người tạo \\ \hline
+5 & created\_by\_name & String & Tên nhà tuyển dụng tạo \\ \hline
+6 & location & String & Địa điểm làm việc \\ \hline
+7 & description & Text & Mô tả chi tiết công việc \\ \hline
+8 & salary\_min & Int & Mức lương tối thiểu \\ \hline
+9 & salary\_max & Int & Mức lương tối đa \\ \hline
+10 & requirements & Text & Yêu cầu công việc \\ \hline
+11 & quality\_score & Float & Điểm chất lượng \\ \hline
+12 & application\_count & Int & Số đơn đã ứng tuyển \\ \hline
+13 & created\_at & DateTime & Thời điểm tạo \\ \hline
+14 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng JobApprovals}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & PK, định danh bản ghi phê duyệt \\ \hline
+2 & job\_id & BigInt & FK, mã tin tuyển dụng \\ \hline
+3 & status & JobApprovalStatus & Trạng thái phê duyệt (pending, approved, rejected) \\ \hline
+4 & reason & Text & Lý do từ chối \\ \hline
+5 & auditor\_id & BigInt & FK, người phê duyệt \\ \hline
+6 & audited\_at & DateTime & Thời điểm phê duyệt \\ \hline
+7 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng JobRequiredSkills}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & job\_id & BigInt & PK, FK, mã tin tuyển dụng \\ \hline
+2 & skill\_id & Int & PK, FK, mã kỹ năng \\ \hline
+3 & level\_required & Int & Mức độ kỹ năng yêu cầu (1-5) \\ \hline
+4 & years\_required & Int & Số năm kinh nghiệm yêu cầu \\ \hline
+5 & must\_have & Boolean & Kỹ năng bắt buộc \\ \hline
+6 & fit\_weight & Float & Trọng số kỹ năng trong tính điểm phù hợp \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng Tags}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & Int & PK, tự tăng \\ \hline
+2 & name & String & Tên ngành nghề / lĩnh vực \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng JobTags}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & job\_id & BigInt & PK, FK, mã tin tuyển dụng \\ \hline
+2 & tag\_id & Int & PK, FK, mã ngành nghề \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserFavoriteJobs}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK. mã người dùng \\ \hline
+2 & job\_id & BigInt & PK, FK, mã tin tuyển dụng \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3cm}|p{3.2cm}|p{6cm}|}
+\caption{Bảng Applications} \label{tab:application}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & Khóa chính (PK), định danh đơn ứng tuyển \\ \hline
+2 & job\_id & BigInt & Khóa ngoại (FK) mã tin tuyển dụng \\ \hline
+3 & applicant\_id & BigInt & Khóa ngoại (FK) mã ứng viên \\ \hline
+4 & cover\_letter & Text & Nội dung thư ứng tuyển \\ \hline
+5 & cv & String & Đường dẫn CV \\ \hline
+6 & phone & String & Số điện thoại liên hệ \\ \hline
+7 & status & ApplicationStatus & Trạng thái hồ sơ \\ \hline
+8 & fit\_score & Float & Điểm phù hợp \\ \hline
+9 & fit\_reason & Text & Lý do phù hợp \\ \hline
+10 & review\_note & Text & Ghi chú đánh giá \\ \hline
+11 & reviewed\_by & BigInt & Người đánh giá \\ \hline
+12 & reviewed\_at & DateTime & Thời điểm đánh giá \\ \hline
+13 & created\_at & DateTime & Thời điểm nộp hồ sơ \\ \hline
+14 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserInterestHistory}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & PK, định danh bản ghi hành vi \\ \hline
+2 & user\_id & BigInt & FK, mã người dùng \\ \hline
+3 & job\_id & BigInt & FK, mã tin tuyển dụng \\ \hline
+4 & job\_title & String & Tiêu đề công việc \\ \hline
+5 & location & String & Địa điểm làm việc \\ \hline
+6 & avg\_salary & Int & Mức lương trung bình \\ \hline
+7 & tags & Json & Danh sách ngành nghề \\ \hline
+8 & source & InterestSource & Nguồn phát sinh hành vi \\ \hline
+9 & event\_type & String & Loại sự kiện (open\_detail, apply, …) \\ \hline
+10 & recorded\_at & DateTime & Thời điểm ghi nhận hành vi \\ \hline
+11 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng CareerPreferences}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & desired\_title & String & Vị trí mong muốn \\ \hline
+3 & desired\_company & String & Công ty mong muốn \\ \hline
+4 & desired\_location & String & Địa điểm mong muốn \\ \hline
+5 & desired\_salary & Int & Mức lương mong muốn \\ \hline
+6 & created\_at & DateTime & Thời điểm tạo \\ \hline
+7 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng CareerPreferenceTags}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & tag\_id & Int & PK, FK, mã ngành nghề \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.4cm}|p{3cm}|p{6cm}|}
+\caption{Bảng RecruiterPreferences}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & desired\_location & String & Địa điểm mong muốn tuyển dụng \\ \hline
+3 & desired\_salary\_avg & Int & Mức lương trung bình mong muốn \\ \hline
+4 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng RecruiterRequiredSkills}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & skill\_id & Int & PK, FK, mã kỹ năng \\ \hline
+3 & years\_required & Int & Số năm kinh nghiệm yêu cầu \\ \hline
+4 & must\_have & Boolean & Kỹ năng bắt buộc \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng RecruiterPreferenceTags}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & tag\_id & Int & PK, FK, mã ngành nghề \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserBehaviorProfile}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & avg\_salary & Int & Mức lương trung bình \\ \hline
+3 & main\_location & String & Địa điểm chính \\ \hline
+4 & tags & Json & Tập tag tổng hợp \\ \hline
+5 & keywords & Json & Từ khóa nổi bật \\ \hline
+6 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng JobRecommendations}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & PK, định danh đề xuất \\ \hline
+2 & user\_id & BigInt & FK, ứng viên \\ \hline
+3 & job\_id & BigInt & FK, mã tin tuyển dụng \\ \hline
+4 & fit\_score & Float & Điểm phù hợp \\ \hline
+5 & reason & Text & Giải thích đề xuất \\ \hline
+6 & is\_sent & Boolean & Trạng thái đã gửi đề xuất \\ \hline
+7 & sent\_at & DateTime & Thời điểm gửi \\ \hline
+8 & status & String & Trạng thái xử lý \\ \hline
+9 & recommended\_at & DateTime & Thời điểm tạo đề xuất \\ \hline
+10 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng CandidateRecommendations}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & BigInt & PK, định danh đề xuất \\ \hline
+2 & recruiter\_id & BigInt & FK), nhà tuyển dụng \\ \hline
+3 & applicant\_id & BigInt & FK, ứng viên \\ \hline
+4 & fit\_score & Float & Điểm phù hợp \\ \hline
+5 & reason & Text & Giải thích đề xuất \\ \hline
+6 & status & String & Trạng thái đề xuất \\ \hline
+7 & is\_sent & Boolean & Trạng thái đã gửi \\ \hline
+8 & sent\_at & DateTime & Thời điểm gửi \\ \hline
+9 & recommended\_at & DateTime & Thời điểm tạo \\ \hline
+10 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng Skills}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & id & Int & PK, tự tăng \\ \hline
+2 & name & String & Tên kỹ năng \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserSkills}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & skill\_id & Int & PK, FK, mã kỹ năng \\ \hline
+3 & level & Int & Mức độ kỹ năng (1-5) \\ \hline
+4 & years & Int & Số năm kinh nghiệm \\ \hline
+5 & note & Text & Ghi chú thêm \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserVector}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & skill\_profile & Json & Tổng hợp kỹ năng \\ \hline
+3 & tag\_profile & Json & Tổng hợp ngành nghề \\ \hline
+4 & title\_keywords & Json & Từ khóa chính \\ \hline
+5 & preferred\_location & String & Khu vực ưu tiên \\ \hline
+6 & salary\_expected & Int & Mức lương kỳ vọng \\ \hline
+7 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng RecruiterVector}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, nhà tuyển dụng \\ \hline
+2 & skill\_profile & Json & Tổng hợp kỹ năng \\ \hline
+3 & tag\_profile & Json & Tổng hợp ngành nghề \\ \hline
+4 & preferred\_location & String & Khu vực tuyển dụng ưu tiên \\ \hline
+5 & salary\_avg & Int & Mức lương trung bình \\ \hline
+6 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng JobVector}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & job\_id & BigInt & PK, FK, mã tin tuyển dụng \\ \hline
+2 & skill\_profile & Json & Tổng hợp kỹ năng \\ \hline
+3 & tag\_profile & Json & Tổng hợp ngành nghề \\ \hline
+4 & title\_keywords & Json & Từ khóa chính\\ \hline
+5 & location & String & Địa điểm làm việc \\ \hline
+6 & salary\_avg & Int & Mức lương trung bình \\ \hline
+7 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{3cm}|p{6cm}|}
+\caption{Bảng UserJobMatrix}\\
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endfirsthead
+\hline
+\textbf{STT} & \textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+\endhead
+
+1 & user\_id & BigInt & PK, FK, mã người dùng \\ \hline
+2 & job\_id & BigInt & PK, FK, mã tin tuyển dụng \\ \hline
+3 & score & Float & Điểm phù hợp \\ \hline
+4 & updated\_at & DateTime & Thời điểm cập nhật \\ \hline
+\end{longtable}
+
+\section{Xây dựng ứng dụng}
+\subsection{Thư viện và công cụ sử dụng}
+Bảng \ref{table:code_tools} liệt kê các công cụ chính; danh sách đã được giản lược, chỉ giữ các thư viện tối thiểu cần thiết để hệ thống có thể vận hành.
+
+\begin{table}[H]
+\centering{}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{8pt}
+\small
+     \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{2.8cm} >{\centering\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}X}
+        \hline
+        \textbf{Mục đích} & \textbf{Công cụ} & \textbf{Phiên bản} & \textbf{Địa chỉ URL} \\ \hline
+        IDE lập trình & Visual Studio Code & 1.108.0 & https://code.visualstudio.com/ \\ \hline
+        Ngôn ngữ lập trình Backend & Javascript &  & https://www.javascript.com/ \\ \hline
+        Ngôn ngữ lập trình Fontend & Typescript & 5.8.3 & https://www.typescriptlang.org/ \\ \hline
+        Web framework (REST API) & Express & 5.1.0 & https://expressjs.com/ \\ \hline
+        Nền tảng lập trình & NodeJS & 22.18.0 & https://nodejs.org/ \\ \hline
+        Framework Fontend & React & 19.1.1 & https://react.dev/ \\ \hline
+        ORM & Prisma & 6.15.0 & https://www.prisma.io/ \\ \hline
+        Cơ sở dữ liệu & MySQL & 9.4.0 & https://www.mysql.com/ \\ \hline
+        Quản lý server-state & @tanstack/react-query & 5.90.11 & https://tanstack.com/query/ \\ \hline
+        Xác thực JWT & jsonwebtoken & 9.0.2 & https://www.jwt.io/ \\ \hline
+        Gọi API HTTP & Axios & 1.11.0 & https://axios-http.com/ \\ \hline
+        CSS giao diện & Tailwind CSS & 4.1.11 & https://tailwindcss.com/ \\ \hline
+        Quản ký state & Zustand & 5.0.8 & https://zustand-demo.pmnd.rs/ \\ \hline
+        Công cụ build mã nguồn & Vite & 7.1.0 & https://vitejs.dev/ \\ \hline
+        Thư viện gửi email & Nodemailer & 7.0.5 & https://nodemailer.com/ \\ \hline
+        Tài liệu API (Swagger) & swagger-jsdoc & 6.2.8 & https://swagger.io/ \\ \hline
+        Tìm và sửa lỗi code & ESLint & 9.34.0 & https://eslint.org/ \\ \hline
+        Định dạng mã nguồn & Prettier & 3.6.2 & https://prettier.io/ \\ \hline
+        Kiểm thử API & Postman & 11.76.9 & https://www.postman.com/ \\ \hline
+        Quản lý phiên bản & Git & 2.45.1 & https://git-scm.com/ \\ \hline
+        Kiểm tra và bảo mật & SonarQube & 2.45.1 & https://www.sonarsource.com/ \\ \hline
+    \end{tabularx}
+    \caption{Danh sách thư viện và công cụ sử dụng}
+    \label{table:code_tools}
+\end{table}
+
+\subsection{Kết quả đạt được}
+Hệ thống được đóng gói dưới dạng một ứng dụng website hoàn chỉnh, bao gồm backend kết nối và thao tác với cơ sở dữ liệu, cùng frontend triển khai giao diện phục vụ người dùng. Mã nguồn được tổ chức tách biệt theo từng thành phần, giúp việc triển khai trên môi trường/thiết bị khác thực hiện đơn giản thông qua các bước cơ bản như: cài đặt các thư viện phụ thuộc và cấu hình thông tin kết nối cơ sở dữ liệu; sau đó hệ thống có thể vận hành ổn định.
+
+Sản phẩm đóng gói gồm hai thành phần chính tương ứng với hai thư mục server và client. Thư mục server chứa các thành phần cấu thành backend, thực hiện các chức năng như: kết nối cơ sở dữ liệu, xử lý nghiệp vụ, và trả kết quả về cho phía client thông qua API. Thư mục client chứa mã nguồn frontend, bao gồm các giao diện tương tác với người dùng, tiếp nhận sự kiện thao tác, gửi yêu cầu đến backend và hiển thị kết quả phản hồi trên giao diện.
+
+Các thông tin chi tiết của ứng dụng được thống kê trong Bảng \ref{tab:app_stats}. Trong đó, số dòng code được tính không bao gồm dòng chú thích (comment); dung lượng mã nguồn được tính không bao gồm thư mục chứa ảnh/tài nguyên tĩnh và không bao gồm các gói thư viện cài đặt.
+
+\begin{table}[H]
+\centering{}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{clll}
+\hline
+\textbf{STT} & \textbf{Mô tả} & \textbf{Số lượng} & \textbf{Đơn vị} \\ \hline
+1 & Số dòng code trong thư mục server & 13,713 & dòng \\ \hline
+2 & Số dòng code trong thư mục client & 7,373 & dòng \\ \hline
+3 & Dung lượng toàn bộ mã nguồn & 1424 & Kb \\ \hline
+4 & Số module & 14 & module \\ \hline
+5 & Số file & 253 & file \\ \hline
+\end{tabular}
+\caption{Thống kê thông tin ứng dụng}
+\label{tab:app_stats}
+\end{table}
+
+\subsection{Minh họa các chức năng chính}
+Các chức năng nổi bật của hệ thống xoay quanh nghiệp vụ tin tuyển dụng, mô hình hoá nhu cầu người dùng, và chức năng đề xuất. Dựa trên bố cục giao diện đã trình bày tại Mục 2, Chương 4, sinh viên đã xây dựng các màn hình giao diện chính, đáp ứng đầy đủ các chức năng cốt lõi của hệ thống.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Ung_tuyen.png}
+    \caption{Giao diện "Nộp đơn ứng tuyển"}
+    \label{fig:seq-applyJob}
+\end{figure}
+Giao diện trong Hình~\ref{fig:seq-applyJob} là biểu mẫu mà ứng viên cần điền khi ứng tuyển vào một vị trí. Các trường dữ liệu như CV, số điện thoại và thư ứng tuyển là những thông tin bắt buộc, phục vụ nhà tuyển dụng trong quá trình tiếp nhận và đánh giá hồ sơ ứng tuyển.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Tao_tinTD.png}
+    \caption{Giao diện "Quản lý tin tuyển dụng"}
+    \label{fig:seq-createJob}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Cap_nhat_tinTD.png}
+    \caption{Giao diện "Cập nhật tin tuyển dụng"}
+    \label{fig:seq-update-job}
+\end{figure}
+Hình~\ref{fig:seq-createJob} minh hoạ trang chính sau khi nhà tuyển dụng đăng nhập vào hệ thống. Tại đây, nhà tuyển dụng có thể tạo mới, chỉnh sửa và xoá các tin tuyển dụng. Hình~\ref{fig:seq-update-job} là biểu mẫu dùng để nhập thông tin khi tạo hoặc cập nhật tin tuyển dụng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Quan_ly_ung_tuyen.png}
+    \caption{Giao diện "Quản lý đơn ứng tuyển"}
+    \label{fig:seq-manage-application}
+\end{figure}
+Giao diện quản lý đơn ứng tuyển cho phép nhà tuyển dụng theo dõi tổng quan danh sách hồ sơ, phê duyệt/từ chối đơn ứng tuyển, đồng thời hiển thị mức độ phù hợp của từng ứng viên đối với vị trí tuyển dụng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{Hinhve/Nhu_cau_TD.png}
+    \caption{Giao diện "Nhu cầu tuyển dụng"}
+    \label{fig:seq-recruitment-needs}
+\end{figure}
+Nhà tuyển dụng cần khai báo nhu cầu tuyển dụng như trong Hình~\ref{fig:seq-recruitment-needs} để hệ thống có đủ dữ liệu làm cơ sở tạo các đề xuất phù hợp.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/Mong_muon_nghe_nghiep.png}
+    \caption{Giao diện "Mong muốn nghề nghiệp"}
+    \label{fig:seq-career-preferences}
+\end{figure}
+Tương tự nhà tuyển dụng, ứng viên cũng cần khai báo mong muốn nghề nghiệp và kỹ năng của bản thân như trong Hình~\ref{fig:seq-career-preferences} để hệ thống có đủ dữ liệu nhằm đưa ra các đề xuất phù hợp hơn.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/De_xuat_ung_vien.png}
+    \caption{Giao diện "Đề xuất ứng viên"}
+    \label{fig:seq-recommend-candidate}
+\end{figure}
+Nhà tuyển dụng có thể xem danh sách ứng viên được đề xuất thông qua giao diện như Hình~\ref{fig:seq-recommend-candidate}. Danh sách hiển thị các thông tin gồm: hồ sơ ứng viên, mức độ phù hợp và lý do đề xuất.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/De_xuat_tinTD_cao.png}
+    \caption{Giao diện "Trang chủ xem tin tuyển dụng"}
+    \label{fig:seq-recommend-job-high}
+\end{figure}
+Hình~\ref{fig:seq-recommend-job-high} minh hoạ một phần trên trang chủ, hiển thị danh sách các công việc được đề xuất và sắp xếp theo mức độ phù hợp giảm dần (từ cao đến thấp). Bên cạnh các thông tin cơ bản của công việc, giao diện còn hiển thị lý do đề xuất nhằm giải thích tính phù hợp và tăng mức độ thuyết phục ứng viên khi quyết định ứng tuyển.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hinhve/De_xuat_tinTD_thap.png}
+    \caption{Giao diện "Đề xuất tin tuyển dụng"}
+    \label{fig:seq-recommend-job-low}
+\end{figure}
+Tương tự Hình~\ref{fig:seq-recommend-job-high}, giao diện đề xuất tin tuyển dụng hiển thị đầy đủ thông tin liên quan và trình bày danh sách công việc theo cơ chế phân trang, giúp người dùng theo dõi và tra cứu một cách rõ ràng, thuận tiện.
+
+\section{Kiểm thử}
+Hệ thống sử dụng kỹ thuật kiểm thử hộp đen để thiết kế các trường hợp kiểmthử. Trong quá trình kiểm thử, các trường hợp kiểm thử được xây dựng dựa trên dữliệu đầu vào và kết quả đầu ra của hệ thống, sau đó so sánh kết quả thực tế với kếtquả kỳ vọng nhằm đánh giá mức độ đúng đắn của từng trường hợp kiểm thử.
+
+\subsection{Kiểm thử chức năng ``Tạo tin tuyển dụng''}
+
+\begin{longtable}{|c|p{2.5cm}|p{3.5cm}|p{4.5cm}|c|}
+	\caption{Test case kiểm thử chức năng tạo tin tuyển dụng}
+	\label{tab:test-create-job} \\
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\ 
+	\hline
+	\endfirsthead
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\ 
+	\hline
+	\endhead
+	
+	TC001 & Chưa có công ty &
+	Thực hiện tạo tin tuyển dụng khi người dùng chưa tạo công ty &
+	Hệ thống hiển thị thông báo lỗi yêu cầu tạo công ty trước khi đăng tin &
+	Đạt \\ \hline
+	
+	TC002 & Công ty chưa xác thực &
+	Thực hiện tạo tin tuyển dụng khi công ty chưa được xác thực &
+	Hệ thống hiển thị thông báo lỗi công ty chưa được xác thực &
+	Đạt \\ \hline
+	
+	TC003 & Nhập thiếu thông tin &
+	Nhập thiếu trường tiêu đề khi tạo tin tuyển dụng &
+	Hệ thống hiển thị cảnh báo yêu cầu điền đầy đủ các trường bắt buộc &
+	Đạt \\ \hline
+	
+	TC004 & Tạo tin tuyển dụng &
+	Nhập đầy đủ các thông tin hợp lệ để tạo tin tuyển dụng &
+	Hệ thống tạo tin tuyển dụng thành công và hiển thị tin với trạng thái ``Chờ duyệt'' &
+	Đạt \\ \hline
+	
+\end{longtable}
+
+\subsection{Kiểm thử chức năng ``Đề xuất công việc''}
+
+\begin{longtable}{|c|p{2.5cm}|p{3.5cm}|p{4.5cm}|c|}
+	\caption{Test case kiểm thử chức năng đề xuất công việc}
+	\label{tab:test-recommend-job} \\
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\
+	\hline
+	\endfirsthead
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\
+	\hline
+	\endhead
+	
+	TC001 & Cập nhật đề xuất &
+	Thay đổi thông tin mong muốn của ứng viên &
+	Danh sách công việc đề xuất được cập nhật tương ứng &
+	Đạt \\ \hline
+	
+	TC002 & Sinh đề xuất công việc &
+	Dữ liệu của ứng viên và công việc &
+	Hiển thị các công việc được đề xuất tại trang chủ &
+	Đạt \\ \hline
+	
+	TC003 & Danh sách đề xuất &
+	Dữ liệu đề xuất công việc &
+	Hiển thị danh sách công việc theo điểm phù hợp giảm dần &
+	Đạt \\ \hline
+	
+	TC004 & Sinh lý do đề xuất &
+	Dữ liệu của ứng viên và công việc &
+	Hiển thị lý do đề xuất cho từng công việc &
+	Đạt \\ \hline
+	
+	TC005 & Tính điểm phù hợp &
+	Ứng viên tạo các sự kiện như ứng tuyển, yêu thích, xem tin tuyển dụng &
+	Điểm phù hợp của các đề xuất thay đổi tương ứng &
+	Đạt \\ \hline
+	
+	TC006 & Thông báo đề xuất &
+	Dữ liệu đề xuất công việc &
+	Ứng viên nhận được email thông báo đề xuất &
+	Đạt \\ \hline
+	
+\end{longtable}
+
+\subsection{Kiểm thử chức năng ``Đề xuất ứng viên''}
+
+\begin{longtable}{|c|p{2.5cm}|p{3.5cm}|p{4.5cm}|c|}
+	\caption{Bảng kiểm thử chức năng đề xuất ứng viên}
+	\label{tab:test-recommend-candidate} \\
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\
+	\hline
+	\endfirsthead
+	
+	\hline
+	\textbf{Mã test case} & \textbf{Test case} & \textbf{Dữ liệu đầu vào} & \textbf{Kết quả mong muốn} & \textbf{Kết quả} \\
+	\hline
+	\endhead
+	
+	TC001 & Cập nhật đề xuất &
+	Thay đổi mong muốn tuyển dụng của nhà tuyển dụng &
+	Danh sách ứng viên được đề xuất thay đổi tương ứng &
+	Đạt \\ \hline
+	
+	TC002 & Sinh đề xuất ứng viên &
+	Dữ liệu của ứng viên và nhà tuyển dụng &
+	Hiển thị các ứng viên được đề xuất tại trang nhà tuyển dụng &
+	Đạt \\ \hline
+	
+	TC003 & Danh sách đề xuất &
+	Dữ liệu đề xuất ứng viên &
+	Hiển thị danh sách ứng viên theo điểm phù hợp giảm dần &
+	Đạt \\ \hline
+	
+	TC004 & Sinh lý do đề xuất &
+	Dữ liệu của ứng viên và nhà tuyển dụng &
+	Hiển thị lý do đề xuất cho từng ứng viên &
+	Đạt \\ \hline
+	
+	TC005 & Thông báo đề xuất &
+	Dữ liệu đề xuất ứng viên &
+	Nhà tuyển dụng nhận được email thông báo đề xuất &
+	Đạt \\ \hline
+	
+\end{longtable}
+
+\section{Triển khai}
+Hệ thống được triển khai trên máy tính có cấu hình.
+\begin{longtable}{|p{4cm}|p{8cm}|}
+	\caption{Cấu hình môi trường thực nghiệm} \\
+	\hline
+	\textbf{Thông số} & \textbf{Mô tả} \\ \hline
+	\endfirsthead
+	
+	\hline
+	\textbf{Thông số} & \textbf{Mô tả} \\ \hline
+	\endhead
+	
+	CPU & AMD Ryzen 5 5600H \\ \hline
+	Hệ điều hành & Windows 11 \\ \hline
+	RAM & 20 GB \\ \hline
+	Bộ nhớ & 512 GB SSD \\ \hline
+\end{longtable}
+
+Ngoài ra, Hệ thống sử dụng công cụ sonarqube để đánh giá mã nguồn và Lighthouse để đo kết quả thử nghiệm.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.1\textwidth]{Hinhve/Clean_code.png}
+	\caption{Kết quả đo bằng công cụ Sonarqube}
+	\label{fig:clean-code}
+\end{figure}
+SonarQube đánh giá chất lượng mã nguồn dựa trên các tiêu chí chính bao gồm: \textit{Security} (bảo mật), \textit{Reliability} (độ tin cậy), 
+\textit{Maintainability} (khả năng bảo trì), \textit{Coverage} (độ bao  phủ kiểm thử) và \textit{Duplications} (mức độ trùng lặp mã nguồn).
+
+Kết quả đánh giá cho thấy hệ thống không phát hiện các vấn đề nghiêm trọng liên quan đến bảo mật, độ tin cậy và khả năng bảo trì, với số lượng lỗi mở (Open Issues) bằng 0 và mức đánh giá đạt mức A ở các tiêu chí này. Điều này cho thấy mã nguồn được tổ chức tốt, tuân thủ các nguyên tắc lập trình an toàn và dễ dàng mở rộng, bảo trì trong tương lai.
+
+Hệ thống tự triển khai các bài test thủ công nên độ bao phủ kiểm thử (Coverage) của hệ thống hiện tại ở mức 0\%. Tỷ lệ trùng lặp mã nguồn (Duplications) ở mức 1.7\% trên tổng số 29.000 dòng mã cho thấy mức độ trùng lặp thấp và chấp nhận được.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.1\textwidth]{Hinhve/Hieu_suat.png}
+	\caption{Kết quả đo bằng công cụ Lighthouse}
+	\label{fig:hieu-suat}
+\end{figure}
+Lighthouse đánh giá ứng dụng web dựa trên bốn tiêu chí chính gồm: \textit{Performance} (hiệu năng), \textit{Accessibility} (khả năng truy cập), \textit{Best Practices} (thực hành tốt) và \textit{SEO} (tối ưu hóa công cụ tìm kiếm).
+
+Kết quả đánh giá cho thấy hệ thống đạt điểm \textit{Accessibility} là 90 và \textit{Best Practices} là 96, phản ánh giao diện người dùng được xây dựng tương đối thân thiện, tuân thủ các nguyên tắc truy cập cơ bản và các thực hành phát triển web hiện đại.
+
+Chỉ số \textit{SEO} đạt 83 cho thấy hệ thống đã đáp ứng tốt các tiêu chí cơ bản về tối ưu hóa công cụ tìm kiếm, giúp cải thiện khả năng hiển thị của website trên các nền tảng tìm kiếm.
+Chỉ số \textit{Performance} đạt 55 điểm cho thấy hiệu năng tải trang của hệ thống chưa được tối ưu, chủ yếu do các tệp hình ảnh chưa được xử lý và tối ưu hiệu quả, ảnh hưởng đến tốc độ tải trang.
+
+\end{document}
