@@ -8,7 +8,7 @@ Dự án xây dựng một nền tảng tuyển dụng với các chức năng c
 ### Đối tượng sử dụng
 - **Ứng viên**: tài khoản mặc định có vai trò `applicant` (xem `server/prisma/schema.prisma`).
 - **Recruiter (nhà tuyển dụng)**: thao tác đăng tin, quản lý công ty, xem ứng viên.
-- **Admin**: duyệt job, duyệt công ty, quản trị hệ thống.
+- **Admin (quản trị viên)**: duyệt job, duyệt công ty, quản trị hệ thống.
 
 ### Vai trò của backend và frontend
 - **Backend (server/)**: cung cấp REST API, xử lý xác thực, logic nghiệp vụ, thao tác dữ liệu bằng Prisma/MySQL, xử lý recommendation/vector, cron job.
@@ -55,8 +55,9 @@ Dự án xây dựng một nền tảng tuyển dụng với các chức năng c
 │  ├─ server.js
 │  └─ package.json
 ├─ docs/
-│  ├─ Analystics.docx
-│  └─ UC.docx
+│  ├─ Analysis
+│  ├─ Reports
+|  └─ Diagrams
 └─ README.md
 ```
 
@@ -188,6 +189,3 @@ Dự án xây dựng một nền tảng tuyển dụng với các chức năng c
 3. **api** attach token, xử lý lỗi, trả dữ liệu.
 4. **types/mappers** (`client/src/types`) map raw response thành UI model.
 5. **stores** (`client/src/stores`) giữ state toàn cục (auth/filter).
-
-### Sonarqube
-sonar-scanner "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_dd904df89adf382bb831.......e1368830710727dc39bc" "-Dsonar.projectKey=recruit-website"
