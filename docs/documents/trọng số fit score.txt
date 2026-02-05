@@ -1,0 +1,218 @@
+Level 1 – Heuristic (thực dụng, chưa có data)
+
+Khi chưa có nhiều dữ liệu lịch sử, rất nhiều hệ thống bước đầu làm như sau:
+
+Quyết định “tầm quan trọng tương đối” dựa trên business logic:
+
+Skill là quan trọng nhất → > 50%
+
+Tag (domain, ngành nghề, tech stack) cũng quan trọng → 20–30%
+
+Salary & location là constraint → mỗi cái 10–15%
+
+Đặt số sao cho:
+
+Tổng = 1
+
+Phản ánh đúng ưu tiên về mặt nghiệp vụ (skill-first)
+
+Đây chính là chỗ mấy hệ số kiểu 0.55 / 0.25 / 0.1 / 0.1 thường ra đời.
+Nó không “được chứng minh toán học”, mà là giả thuyết ban đầu, sau này phải đánh giá & điều chỉnh bằng dữ liệu.
+
+Level 2 – Học từ dữ liệu (có “dẫn chứng” đúng nghĩa)
+
+Khi bạn có đủ dữ liệu lịch sử (ví dụ):
+
+User A apply job X → được phỏng vấn / được nhận
+
+User B apply job Y → bị reject
+
+User xem job nhưng không apply
+
+Recruiter accept / reject candidate trong danh sách đề xuất
+
+Bạn có thể:
+
+Với mỗi (user, job) tạo 1 vector feature:
+
+skill_match, tag_match, salary_match, location_match, thêm cả overSkill, experience_match, v.v.
+
+Gắn nhãn:
+
+y = 1 nếu “match tốt” (được mời phỏng vấn, được nhận, recruiter click xem CV, v.v.)
+
+y = 0 nếu “match kém” (xem nhưng không apply, apply nhưng reject sớm, v.v.)
+
+Train một model đơn giản như logistic regression / linear model:
+
+logit
+(
+𝑝
+)
+=
+𝑤
+0
++
+𝑤
+1
+⋅
+𝑠
+𝑘
+𝑖
+𝑙
+𝑙
++
+𝑤
+2
+⋅
+𝑡
+𝑎
+𝑔
++
+𝑤
+3
+⋅
+𝑠
+𝑎
+𝑙
+𝑎
+𝑟
+𝑦
++
+𝑤
+4
+⋅
+𝑙
+𝑜
+𝑐
+𝑎
+𝑡
+𝑖
+𝑜
+𝑛
++
+.
+.
+.
+logit(p)=w
+0
+	​
+
++w
+1
+	​
+
+⋅skill+w
+2
+	​
+
+⋅tag+w
+3
+	​
+
+⋅salary+w
+4
+	​
+
+⋅location+...
+
+Normalize các w_i cho thành trọng số:
+
+𝛼
+𝑖
+=
+∣
+𝑤
+𝑖
+∣
+∑
+𝑗
+∣
+𝑤
+𝑗
+∣
+α
+i
+	​
+
+=
+∑
+j
+	​
+
+∣w
+j
+	​
+
+∣
+∣w
+i
+	​
+
+∣
+	​
+
+
+→ Đây chính là bộ hệ số “có dẫn chứng”: chúng được fit trực tiếp từ dữ liệu lịch sử, phản ánh:
+
+Khi skill_match tăng 0.1 thì xác suất “match tốt” tăng bao nhiêu.
+
+So sánh mức độ quan trọng tương đối giữa skill vs tag vs salary…
+
+Đây là cách làm chuẩn trong mảng learning to rank / job recommendation trong nghiên cứu và thực tế triển khai hệ thống gợi ý.
+
+Level 3 – A/B test trên production
+
+Sau khi có bộ trọng số (hoặc model):
+
+Bạn chạy A/B test:
+
+Group A dùng trọng số cũ (ví dụ 0.55 / 0.25 / 0.1 / 0.1)
+
+Group B dùng trọng số học được từ data
+
+So sánh metric:
+
+tỉ lệ apply
+
+tỉ lệ recruiter click vào ứng viên đề xuất
+
+tỉ lệ offer / hire
+
+Nhóm nào thắng → “dẫn chứng thực tế” cho bộ trọng số đó.
+
+3. Đề xuất “có căn cứ” cho trường hợp của bạn
+
+Vì bạn đang ở giai đoạn:
+
+Đã có vector hoá khá chỉnh chu (skill_profile, tag_profile, location, salary)
+
+Đang muốn nâng chất lượng fit-score + muốn mọi thay đổi đều có logic
+
+Mình gợi ý roadmap:
+
+Ngắn hạn (hôm nay / gần nhất)
+
+Giữ weights 0.55 / 0.25 / 0.1 / 0.1 như một giả thuyết có giải thích rõ ràng:
+
+Skill là quan trọng nhất → 55%
+
+Tag phản ánh lĩnh vực / tech stack → 25%
+
+Salary, location là constraint nhưng vẫn quan trọng → 10% mỗi cái
+
+Cập nhật computeSkillMatch để thêm bonus khi user skill > yêu cầu (như ví dụ mình đề xuất).
+
+Ghi lại trong docs của project:
+
+“Trọng số hiện tại là heuristic, sẽ được revise khi có đủ dữ liệu để train model”.
+
+Trung hạn
+
+Bắt đầu log lại dữ liệu: mỗi lần user apply, recruiter accept/reject, v.v.
+
+Sau 1 thời gian, export ra dataset → train logistic regression để học lại trọng số.
+
+Dài hạn
+
+Chuyển sang learning-to-rank model (XGBoost, LightGBM, hoặc deep learning) để xếp hạng job/candidate.

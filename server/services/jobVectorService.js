@@ -79,7 +79,6 @@ async function buildJobVector(jobId) {
     update: {
       skill_profile,
       tag_profile,
-      title_keywords: null,
       salary_avg,
       location,
     },
@@ -87,7 +86,6 @@ async function buildJobVector(jobId) {
       job_id: job.id,
       skill_profile,
       tag_profile,
-      title_keywords: null,
       salary_avg,
       location,
     },

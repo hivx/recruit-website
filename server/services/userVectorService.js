@@ -97,7 +97,6 @@ async function buildUserVector(userId) {
   const skill_profile = buildSkillProfile(userSkills);
   const mergedTags = mergeBehaviorTags(behavior);
   const tag_profile = await mapTagsToDB(mergedTags);
-  const title_keywords = buildKeywordProfile(behavior);
   const { preferred_location, salary_expected } = resolveLocationAndSalary(
     preference,
     behavior,
@@ -108,7 +107,6 @@ async function buildUserVector(userId) {
     update: {
       skill_profile,
       tag_profile,
-      title_keywords,
       preferred_location,
       salary_expected,
       updated_at: new Date(),
@@ -117,7 +115,6 @@ async function buildUserVector(userId) {
       user_id: uid,
       skill_profile,
       tag_profile,
-      title_keywords,
       preferred_location,
       salary_expected,
     },
@@ -163,25 +160,6 @@ async function mapTagsToDB(mergedTags) {
   return dbTags.map((t) => ({
     id: t.id,
     weight: Number((mergedTags[t.name] ?? 0).toFixed(4)),
-  }));
-}
-
-function buildKeywordProfile(behavior) {
-  const keywordMap = {};
-
-  if (Array.isArray(behavior?.keywords)) {
-    for (const kw of behavior.keywords) {
-      const k = typeof kw.name === "string" ? kw.name.toLowerCase() : null;
-      if (!k) {
-        continue;
-      }
-      keywordMap[k] = Math.max(keywordMap[k] || 0, kw.weight || 0);
-    }
-  }
-
-  return Object.entries(keywordMap).map(([keyword, weight]) => ({
-    keyword,
-    weight: Number(weight.toFixed(4)),
   }));
 }
 

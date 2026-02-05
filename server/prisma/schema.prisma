@@ -286,7 +286,6 @@ model UserBehaviorProfile {
   avg_salary    Int?
   main_location String?  @db.VarChar(100)
   tags          Json?
-  keywords      Json?
   updated_at    DateTime @default(now()) @updatedAt
   user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -361,7 +360,6 @@ model UserVector {
   user_id            BigInt   @id
   skill_profile      Json?
   tag_profile        Json?
-  title_keywords     Json?
   preferred_location String?  @db.VarChar(100)
   salary_expected    Int?
   updated_at         DateTime @default(now()) @updatedAt
@@ -387,7 +385,6 @@ model JobVector {
   job_id         BigInt   @id
   skill_profile  Json?
   tag_profile    Json?
-  title_keywords Json?
   location       String?  @db.VarChar(100)
   salary_avg     Int?
   updated_at     DateTime @default(now()) @updatedAt

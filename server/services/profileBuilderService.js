@@ -1,6 +1,5 @@
 // server/services/profileBuilderService.js
 const cfg = require("../config/profile.config");
-const { extractTopKeywords } = require("../utils/keywordExtractor");
 const prisma = require("../utils/prisma");
 
 // event_type in user_interest_history -> EVENT_WEIGHT in /profile.config.js
@@ -81,15 +80,14 @@ exports.rebuildForUser = async (userId) => {
   const since = calcSince(cfg.HISTORY_WINDOW_DAYS);
   const [pref, events] = await fetchUserSignals(uid, since);
 
-  const { tagScore, keywordScore, locScore, salarySumW, weightSum } =
+  const { tagScore, locScore, salarySumW, weightSum } =
     analyzeUserEvents(events);
 
   applyPreferencePrior(pref, tagScore, locScore);
 
-  const { main_location, avg_salary, topTags, topKeywords } = computeAggregates(
+  const { main_location, avg_salary, topTags } = computeAggregates(
     pref,
     tagScore,
-    keywordScore,
     locScore,
     salarySumW,
     weightSum,
@@ -99,7 +97,6 @@ exports.rebuildForUser = async (userId) => {
     main_location,
     avg_salary,
     topTags,
-    topKeywords,
   });
 
   return buildResponse(userId, saved);
@@ -127,7 +124,6 @@ async function fetchUserSignals(uid, since) {
 
 function analyzeUserEvents(events) {
   const tagScore = Object.create(null);
-  const keywordScore = Object.create(null);
   const locScore = Object.create(null);
   let salarySumW = 0;
   let weightSum = 0;
@@ -148,19 +144,6 @@ function analyzeUserEvents(events) {
     // --- TAGS ---
     addToMap(tagScore, e.tags, w);
 
-    // --- KEYWORDS ---
-    let kwArr = toArray(e.keywords); // e.keywords có thể undefined
-
-    // nếu chưa có keywords → sinh từ job_title
-    if (!kwArr || kwArr.length === 0) {
-      if (e.job_title) {
-        const extracted = extractTopKeywords(e.job_title);
-        kwArr = extracted.map((k) => k.name);
-      }
-    }
-
-    addToMap(keywordScore, kwArr, w);
-
     // --- LOCATION ---
     addToMap(locScore, e.location, w);
 
@@ -176,7 +159,6 @@ function analyzeUserEvents(events) {
 
   return {
     tagScore,
-    keywordScore: pickTopKValues(keywordScore),
     locScore,
     salarySumW,
     weightSum,
@@ -225,19 +207,11 @@ function applyPreferencePrior(pref, tagScore, locScore) {
   }
 }
 
-function computeAggregates(
-  pref,
-  tagScore,
-  keywordScore,
-  locScore,
-  salarySumW,
-  weightSum,
-) {
+function computeAggregates(pref, tagScore, locScore, salarySumW, weightSum) {
   const topTags = normalizeTopK(tagScore, cfg.TOPK_TAGS);
-  const topKeywords = normalizeTopK(keywordScore, cfg.TOPK_KEY || 10);
   const main_location = computeMainLocation(locScore, pref);
   const avg_salary = computeAvgSalary(salarySumW, weightSum, pref);
-  return { main_location, avg_salary, topTags, topKeywords };
+  return { main_location, avg_salary, topTags };
 }
 
 function computeMainLocation(locScore, pref) {
@@ -269,7 +243,7 @@ function computeAvgSalary(salarySumW, weightSum, pref) {
 
 async function upsertBehaviorProfile(
   uid,
-  { main_location, avg_salary, topTags, topKeywords },
+  { main_location, avg_salary, topTags },
 ) {
   return prisma.userBehaviorProfile.upsert({
     where: { user_id: uid },
@@ -277,7 +251,6 @@ async function upsertBehaviorProfile(
       avg_salary: avg_salary ?? null,
       main_location: main_location || null,
       tags: topTags,
-      keywords: topKeywords, // <── thêm trường keyword
       updated_at: new Date(),
     },
     create: {
@@ -285,7 +258,6 @@ async function upsertBehaviorProfile(
       avg_salary: avg_salary ?? null,
       main_location: main_location || null,
       tags: topTags,
-      keywords: topKeywords,
     },
   });
 }
@@ -296,26 +268,6 @@ function buildResponse(userId, saved) {
     avg_salary: saved.avg_salary ?? null,
     main_location: saved.main_location || null,
     tags: saved.tags || [],
-    keywords: saved.keywords || [],
     skipped: false,
   };
-}
-
-function pickTopKValues(mapObj, k = cfg.TOPK_KEY) {
-  const entries = Object.entries(mapObj); // [ [key, score], ... ]
-  if (entries.length === 0) {
-    return {};
-  }
-
-  // sort từ lớn xuống bé
-  entries.sort((a, b) => b[1] - a[1]);
-
-  // danh sách score không trùng
-  const uniqueScores = [...new Set(entries.map(([_, v]) => v))];
-
-  // lấy K score cao nhất
-  const topKScores = new Set(uniqueScores.slice(0, k));
-
-  // lọc tất cả entry có score thuộc top-K
-  return Object.fromEntries(entries.filter(([_, v]) => topKScores.has(v)));
 }

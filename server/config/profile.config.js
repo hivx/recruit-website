@@ -25,9 +25,6 @@ module.exports = {
   // Khoảng thời gian để coi là duplicate log (phút)
   LOG_DUPLICATE_WINDOW_MINUTES: 10,
 
-  // Lấy bao nhiêu keyword có điểm cao nhất để làm profile
-  TOPK_KEY: 2,
-
   // Thời gian tối thiểu giữa 2 lần rebuild vector liên tiếp (phút)
   MIN_REBUILD_VECTOR_MINUTES: 15,
 

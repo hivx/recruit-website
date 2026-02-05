@@ -1,0 +1,114 @@
+\ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } CHƯƠNG \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@v {chapter}{}{}{}\relax 
+\ttl@change@i {\@ne }{section}{0.0cm}{\vspace {0.3cm}}{\thecontentslabel \ }{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@v {section}{}{}{}\relax 
+\ttl@change@i {\@ne }{subsection}{1.0cm}{\vspace {0.3cm}}{\thecontentslabel \ }{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@v {subsection}{}{}{}\relax 
+\thispagestyle {empty}
+\contentsline {chapter}{\numberline {1}GIỚI THIỆU ĐỀ TÀI}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Đặt vấn đề}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Mục tiêu và phạm vi đề tài}{1}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Định hướng giải pháp}{2}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Bố cục đồ án}{2}{section.1.4}%
+\contentsline {chapter}{\numberline {2}KHẢO SÁT VÀ PHÂN TÍCH YÊU CẦU}{4}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Khảo sát hiện trạng}{4}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Tổng quan chức năng}{4}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Biểu đồ use case tổng quát}{5}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Biểu đồ use case phân rã đăng nhập}{6}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Biểu đồ use case phân rã tìm kiếm}{7}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}Biểu đồ use case phân rã yêu thích}{7}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.5}Biểu đồ use case phân rã tạo hồ sơ cá nhân}{8}{subsection.2.2.5}%
+\contentsline {subsection}{\numberline {2.2.6}Biểu đồ use case phân rã ứng tuyển}{8}{subsection.2.2.6}%
+\contentsline {subsection}{\numberline {2.2.7}Biểu đồ use case phân rã tạo công ty}{9}{subsection.2.2.7}%
+\contentsline {subsection}{\numberline {2.2.8}Biểu đồ use case phân rã quản lý tin tuyển dụng}{9}{subsection.2.2.8}%
+\contentsline {subsection}{\numberline {2.2.9}Biểu đồ use case phân rã quản lý hồ sơ ứng tuyển}{10}{subsection.2.2.9}%
+\contentsline {subsection}{\numberline {2.2.10}Biểu đồ use case phân rã phê duyệt}{10}{subsection.2.2.10}%
+\contentsline {subsection}{\numberline {2.2.11}Biểu đồ use case phân rã quản lý người dùng}{11}{subsection.2.2.11}%
+\contentsline {subsection}{\numberline {2.2.12}Biểu đồ use case phân rã tính điểm phù hợp}{11}{subsection.2.2.12}%
+\contentsline {subsection}{\numberline {2.2.13}Biểu đồ use case phân rã tạo đề xuất}{12}{subsection.2.2.13}%
+\contentsline {subsection}{\numberline {2.2.14}Biểu đồ use case phân rã nhật ký hành vi}{12}{subsection.2.2.14}%
+\contentsline {subsection}{\numberline {2.2.15}Biểu đồ use case phân rã gửi thông báo}{13}{subsection.2.2.15}%
+\contentsline {subsection}{\numberline {2.2.16}Quy trình nghiệp vụ}{13}{subsection.2.2.16}%
+\contentsline {subsubsection}{\numberline {a}Quy trình đăng tin tuyển dụng}{14}{subsubsection.2.2.16.1}%
+\contentsline {subsubsection}{\numberline {b}Quy trình đề xuất tin tuyển dụng}{15}{subsubsection.2.2.16.2}%
+\contentsline {subsubsection}{\numberline {c}Quy trình đề xuất ứng viên}{16}{subsubsection.2.2.16.3}%
+\contentsline {subsubsection}{\numberline {d}Quy trình ứng tuyển}{17}{subsubsection.2.2.16.4}%
+\contentsline {section}{\numberline {2.3}Đặc tả chức năng}{17}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Đặc tả use case đăng nhập}{17}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Đặc tả use case mong muốn công việc}{19}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Đặc tả use case mong muốn tuyển dụng}{20}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Đặc tả use case tạo công ty}{21}{subsection.2.3.4}%
+\contentsline {subsection}{\numberline {2.3.5}Đặc tả use case tạo tin tuyển dụng}{22}{subsection.2.3.5}%
+\contentsline {subsection}{\numberline {2.3.6}Đặc tả use case phê duyệt tin tuyển dụng}{24}{subsection.2.3.6}%
+\contentsline {subsection}{\numberline {2.3.7}Đặc tả use case tạo đề xuất tin tuyển dụng}{25}{subsection.2.3.7}%
+\contentsline {subsection}{\numberline {2.3.8}Đặc tả use case tạo đề xuất ứng viên}{26}{subsection.2.3.8}%
+\contentsline {subsection}{\numberline {2.3.9}Đặc tả use case ứng tuyển}{27}{subsection.2.3.9}%
+\contentsline {section}{\numberline {2.4}Yêu cầu phi chức năng}{28}{section.2.4}%
+\contentsline {chapter}{\numberline {3}CÔNG NGHỆ SỬ DỤNG}{30}{chapter.3}%
+\contentsline {section}{\numberline {3.1}ReactTS}{30}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}React}{30}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}TypeScript}{31}{subsection.3.1.2}%
+\contentsline {section}{\numberline {3.2}Tailwind CSS}{31}{section.3.2}%
+\contentsline {section}{\numberline {3.3}NodeJS}{32}{section.3.3}%
+\contentsline {section}{\numberline {3.4}MySQL}{33}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Phương pháp đề xuất dựa theo nội dung (Content-based Filtering -- CBF)}{33}{section.3.5}%
+\contentsline {chapter}{\numberline {4}THIẾT KẾ, TRIỂN KHAI VÀ ĐÁNH GIÁ HỆ THỐNG}{35}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Thiết kế kiến trúc}{35}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Lựa chọn kiến trúc phần mềm}{35}{subsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {a}Tầng User Interface}{35}{subsubsection.4.1.1.1}%
+\contentsline {subsubsection}{\numberline {b}Tầng Business Logic}{36}{subsubsection.4.1.1.2}%
+\contentsline {subsubsection}{\numberline {c}Tầng Database}{36}{subsubsection.4.1.1.3}%
+\contentsline {subsection}{\numberline {4.1.2}Thiết kế tổng quan}{36}{subsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {a}Tầng User Interface}{37}{subsubsection.4.1.2.1}%
+\contentsline {subsubsection}{\numberline {b}Tầng Business Logic}{38}{subsubsection.4.1.2.2}%
+\contentsline {subsubsection}{\numberline {c}Tầng Database}{38}{subsubsection.4.1.2.3}%
+\contentsline {subsection}{\numberline {4.1.3}Thiết kế chi tiết gói}{39}{subsection.4.1.3}%
+\contentsline {section}{\numberline {4.2}Thiết kế chi tiết}{42}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Thiết kế giao diện}{42}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Thiết kế lớp}{47}{subsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {a}Thiết kế chi tiết lớp}{47}{subsubsection.4.2.2.1}%
+\contentsline {subsubsection}{\numberline {b}Biểu đồ trình tự}{50}{subsubsection.4.2.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}Thiết kế cơ sở dữ liệu}{53}{subsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {a}Biểu đồ thực thể liên kết}{53}{subsubsection.4.2.3.1}%
+\contentsline {subsubsection}{\numberline {b}Danh sách các bảng dữ liệu}{54}{subsubsection.4.2.3.2}%
+\contentsline {section}{\numberline {4.3}Xây dựng ứng dụng}{62}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Thư viện và công cụ sử dụng}{62}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Kết quả đạt được}{63}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Minh họa các chức năng chính}{63}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}Kiểm thử}{69}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Kiểm thử chức năng ``Tạo tin tuyển dụng''}{69}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Kiểm thử chức năng ``Đề xuất công việc''}{69}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Kiểm thử chức năng ``Đề xuất ứng viên''}{70}{subsection.4.4.3}%
+\contentsline {section}{\numberline {4.5}Triển khai}{70}{section.4.5}%
+\contentsline {chapter}{\numberline {5}CÁC GIẢI PHÁP VÀ ĐÓNG GÓP NỔI BẬT}{73}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Chuẩn hóa dữ liệu}{73}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Đặt vấn đề}{73}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Giải pháp}{73}{subsection.5.1.2}%
+\contentsline {subsubsection}{\numberline {a}Ứng viên}{74}{subsubsection.5.1.2.1}%
+\contentsline {subsubsection}{\numberline {b}Nhà tuyển dụng}{75}{subsubsection.5.1.2.2}%
+\contentsline {subsubsection}{\numberline {c}Tin tuyển dụng}{76}{subsubsection.5.1.2.3}%
+\contentsline {subsection}{\numberline {5.1.3}Kết quả thực hiện}{77}{subsection.5.1.3}%
+\contentsline {section}{\numberline {5.2}Tính hành vi người dùng}{78}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Đặt vấn đề}{78}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Giải pháp}{78}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Kết quả thực hiện}{79}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}Xây dựng công thức tính điểm phù hợp}{79}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Đặt vấn đề}{79}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Giải pháp}{80}{subsection.5.3.2}%
+\contentsline {subsubsection}{\numberline {a}Dữ liệu đầu vào}{80}{subsubsection.5.3.2.1}%
+\contentsline {subsection}{\numberline {5.3.3}Công thức tính điểm}{81}{subsection.5.3.3}%
+\contentsline {subsubsection}{\numberline {a}So khớp kỹ năng}{81}{subsubsection.5.3.3.1}%
+\contentsline {subsubsection}{\numberline {b}So khớp lĩnh vực/ngành nghề}{83}{subsubsection.5.3.3.2}%
+\contentsline {subsubsection}{\numberline {c}So khớp địa điểm}{84}{subsubsection.5.3.3.3}%
+\contentsline {subsubsection}{\numberline {d}So khớp mức lương}{84}{subsubsection.5.3.3.4}%
+\contentsline {subsubsection}{\numberline {e}Công thức tính FitScore theo từng ngữ cảnh đề xuất}{86}{subsubsection.5.3.3.5}%
+\contentsline {subsection}{\numberline {5.3.4}Kết quả thực hiện}{87}{subsection.5.3.4}%
+\contentsline {section}{\numberline {5.4}Gửi thông báo thông minh}{87}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Đặt vấn đề}{87}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Giải pháp}{87}{subsection.5.4.2}%
+\contentsline {subsection}{\numberline {5.4.3}Kết quả thực hiện}{88}{subsection.5.4.3}%
+\contentsline {chapter}{\numberline {6}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{89}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Kết luận}{89}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Hướng phát triển}{89}{section.6.2}%
+\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{91}{section*.64}%
+\contentsfinish 
